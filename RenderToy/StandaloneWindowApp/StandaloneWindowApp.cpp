@@ -4,6 +4,8 @@
 #include "framework.h"
 #include "StandaloneWindowApp.h"
 
+#include "RenderToyApi.h"
+
 #define MAX_LOADSTRING 100
 
 // Global Variables:
@@ -104,6 +106,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    {
       return FALSE;
    }
+
+   // Initialize renderer
+   InitializeRenderer();
 
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
