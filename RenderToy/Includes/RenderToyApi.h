@@ -11,4 +11,6 @@
 extern "C"
 {
 	RENDER_TOY_API bool InitializeRenderer();
+
+	RENDER_TOY_API bool FinalizeRenderer();
 }

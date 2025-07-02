@@ -6,3 +6,8 @@ bool InitializeRenderer()
 	Renderer* renderer = Renderer::Get();
 	return renderer->Initialize();
 }
+
+bool FinalizeRenderer()
+{
+	return false;
+}
