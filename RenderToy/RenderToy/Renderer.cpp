@@ -12,7 +12,7 @@ Renderer* Renderer::Get()
 	return singleton.get();
 }
 
-bool Renderer::Initialize()
+bool Renderer::Initialize(HWND hwnd)
 {
 	if (m_initialized)
 	{
@@ -22,7 +22,7 @@ bool Renderer::Initialize()
 	// Initialize graphics device
 	m_graphicsContext = std::unique_ptr<GraphicsContext>(new GraphicsContext());
 
-	if (!m_graphicsContext->Initialize())
+	if (!m_graphicsContext->Initialize(hwnd))
 	{
 		return false;
 	}

@@ -20,7 +20,7 @@ public:
 	/// </summary>
 	static Renderer* Get();
 
-	bool Initialize();
+	bool Initialize(HWND hwnd);
 
 private:
 	Renderer() {};

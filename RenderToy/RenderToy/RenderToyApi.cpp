@@ -1,10 +1,10 @@
 #include "RenderToyApi.h"
 #include "Renderer.h"
 
-bool InitializeRenderer()
+bool InitializeRenderer(HWND hwnd)
 {
 	Renderer* renderer = Renderer::Get();
-	return renderer->Initialize();
+	return renderer->Initialize(hwnd);
 }
 
 bool FinalizeRenderer()

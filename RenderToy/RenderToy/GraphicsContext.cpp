@@ -8,12 +8,17 @@ GraphicsContext::GraphicsContext()
 
 }
 
-bool GraphicsContext::Initialize()
+bool GraphicsContext::Initialize(HWND hwnd)
 {
 	if (m_initialized)
 	{
 		return true;
 	}
+
+    if (!IsWindow(hwnd))
+    {
+        return false;
+    }
 
     if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(m_idxgiFactory.GetAddressOf()))))
     {
@@ -30,6 +35,7 @@ bool GraphicsContext::Initialize()
     {
         DXGI_ADAPTER_DESC1 desc;
         adapter->GetDesc1(&desc);
+        
 
         if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
         {
@@ -61,6 +67,36 @@ bool GraphicsContext::Initialize()
         return false;
     }
 
+    // Create direct command queue
+    m_directCommandQueue = std::unique_ptr<CommandQueue>(new CommandQueue(D3D12_COMMAND_QUEUE_FLAG_NONE, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_QUEUE_PRIORITY_NORMAL, adapterIndex));
+    if (!m_directCommandQueue->Initialize(m_pDevice.Get()))
+    {
+        return false;
+    }
+
+    // Create swapchain.
+    DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
+    swapChainDesc.BufferCount = m_numFrameBuffers;
+    swapChainDesc.Width = 0;
+    swapChainDesc.Height = 0;
+    swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    swapChainDesc.SampleDesc.Count = 1;
+
+    ComPtr<IDXGISwapChain1> swapchain1 = nullptr;
+    if (FAILED(m_idxgiFactory->CreateSwapChainForHwnd(
+        m_directCommandQueue->GetCommandQueue(),        // Swap chain needs the queue so that it can force a flush on it.
+        hwnd,
+        &swapChainDesc,
+        nullptr,
+        nullptr,
+        swapchain1.GetAddressOf())))
+    {
+        return false;
+    }
+
+    m_hwnd = hwnd;
     m_initialized = true;
 
     return true;
@@ -69,5 +105,15 @@ bool GraphicsContext::Initialize()
 
 GraphicsContext::~GraphicsContext()
 {
+    if (m_idxgiFactory)
+    {
+        m_idxgiFactory->Release();
+        m_idxgiFactory = nullptr;
+    }
 
+    if (m_pDevice)
+    {
+        m_pDevice->Release();
+        m_pDevice = nullptr;
+    }
 }

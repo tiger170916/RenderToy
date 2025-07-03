@@ -108,7 +108,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    }
 
    // Initialize renderer
-   InitializeRenderer();
+   bool initialzied = InitializeRenderer(hWnd);
 
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);

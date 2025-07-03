@@ -94,12 +94,16 @@ copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)Libs\$(ProjectName).lib"
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CommandBuilder.cpp" />
+    <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="GraphicsContext.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderToyApi.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CommandBuilder.h" />
+    <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="GraphicsContext.h" />
     <ClInclude Include="Includes.h" />
     <ClInclude Include="Renderer.h" />
