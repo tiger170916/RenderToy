@@ -28,12 +28,10 @@ bool Renderer::Initialize(HWND hwnd)
 		return false;
 	}
 
-
+	std::vector<std::shared_ptr<StaticMesh>> meshes;
 	FbxLoader* fbxLoader = new FbxLoader("C:\\Users\\erlie\\Desktop\\Assets\\medieval-house-2\\source\\House2\\House2.fbx");
-	fbxLoader->Load();
+	fbxLoader->Load(meshes);
 
-	FbxLoader* fbxLoader2 = new FbxLoader("C:\\Users\\erlie\\Desktop\\Assets\\medieval-house-2\\source\\House2\\House2.fbx");
-	fbxLoader2->Load();
 
 	m_initialized = true;
 	return true;

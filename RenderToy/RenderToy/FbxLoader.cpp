@@ -6,7 +6,7 @@ FbxLoader::FbxLoader(std::string fileName)
     
 }
 
-bool FbxLoader::Load()
+bool FbxLoader::Load(std::vector<std::shared_ptr<StaticMesh>>& outMeshes)
 {
     if (m_loaded)
     {
@@ -43,13 +43,13 @@ bool FbxLoader::Load()
 
     // Process the scene's root node
     FbxNode* lRootNode = lScene->GetRootNode();
-    ProcessNode(lRootNode);
+    ProcessNode(lRootNode, outMeshes);
     m_loaded = true;
 
     return true;
 }
 
-void FbxLoader::ProcessNode(FbxNode* pNode)
+void FbxLoader::ProcessNode(FbxNode* pNode, std::vector<std::shared_ptr<StaticMesh>>& outMeshes)
 {
     // Process the node's attributes
     for (int i = 0; i < pNode->GetNodeAttributeCount(); ++i)
@@ -57,6 +57,9 @@ void FbxLoader::ProcessNode(FbxNode* pNode)
         FbxNodeAttribute* pAttribute = pNode->GetNodeAttributeByIndex(i);
         if (pAttribute->GetAttributeType() == FbxNodeAttribute::eMesh)
         {
+            std::shared_ptr<StaticMesh> staticMesh = std::shared_ptr<StaticMesh>(new StaticMesh());
+            outMeshes.push_back(staticMesh);
+
             FbxMesh* pMesh = static_cast<FbxMesh*>(pAttribute);
 
             // Access control points (vertices)
@@ -64,8 +67,10 @@ void FbxLoader::ProcessNode(FbxNode* pNode)
             FbxVector4* controlPoints = pMesh->GetControlPoints();
             for (int j = 0; j < controlPointCount; ++j)
             {
-                // Access vertex data (x, y, z)
-                controlPoints[j][0], controlPoints[j][1], controlPoints[j][2];
+                float x = (float)controlPoints[j][0];
+                float y = (float)controlPoints[j][1];
+                float z = (float)controlPoints[j][2];
+                staticMesh->AddPoint(x, y, z);
             }
 
             // Access polygons (faces)
@@ -77,19 +82,21 @@ void FbxLoader::ProcessNode(FbxNode* pNode)
                 if (polygonSize >= 4)
                 {
                     int lastPointIdx = pMesh->GetPolygonVertex(j, polygonSize - 1);
+
+                    // Triangulate
                     for (int k = 0; k < polygonSize - 2; k++) 
                     {
                         int idx1 = pMesh->GetPolygonVertex(j, k);
                         int idx2 = pMesh->GetPolygonVertex(j, k + 1);
-                        // and lastPointIdx is the 3rd vertex of triangle
+                        staticMesh->AddTriangle(idx1, idx2, lastPointIdx);
                     }
                 }
-                else
+                else if (polygonSize == 3)
                 {
-                    for (int k = 0; k < polygonSize; ++k)
-                    {
-                        int controlPointIndex = pMesh->GetPolygonVertex(j, k);
-                    }
+                    int idx1 = pMesh->GetPolygonVertex(j, 0);
+                    int idx2 = pMesh->GetPolygonVertex(j, 1);
+                    int idx3 = pMesh->GetPolygonVertex(j, 2);
+                    staticMesh->AddTriangle(idx1, idx2, idx3);
                 }
             }
 
@@ -101,7 +108,7 @@ void FbxLoader::ProcessNode(FbxNode* pNode)
     // Recursively process child nodes
     for (int i = 0; i < pNode->GetChildCount(); ++i)
     {
-        ProcessNode(pNode->GetChild(i));
+        ProcessNode(pNode->GetChild(i), outMeshes);
     }
 }
 

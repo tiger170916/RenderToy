@@ -1,6 +1,7 @@
 #pragma once
 #include "fbxsdk.h"
 #include "Includes.h"
+#include "StaticMesh.h"
 
 class FbxLoader
 {
@@ -14,10 +15,10 @@ private:
 public:
 	FbxLoader(std::string fileName);
 
-	bool Load();
+	bool Load(std::vector<std::shared_ptr<StaticMesh>> & outMeshes);
 
 	~FbxLoader();
 
 private:
-	void ProcessNode(FbxNode* pNode);
+	void ProcessNode(FbxNode* pNode, std::vector<std::shared_ptr<StaticMesh>>& outMeshes);
 };
