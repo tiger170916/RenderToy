@@ -1,6 +1,7 @@
 #pragma once
 #include "Includes.h"
 #include "GraphicsContext.h"
+#include "GraphicsPipelineState.h"
 
 /// <summary>
 /// Renderer singleton class

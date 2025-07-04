@@ -74,6 +74,9 @@
 copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)Libs\$(ProjectName).lib";
 copy /Y "$(SolutionDir)FbxSdk\lib\x64\debug\libfbxsdk.dll" "$(SolutionDir)bin\libfbxsdk.dll";</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>$(SolutionDir)bin\CodeGen.exe;</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -100,27 +103,38 @@ copy /Y "$(SolutionDir)FbxSdk\lib\x64\debug\libfbxsdk.dll" "$(SolutionDir)bin\li
 copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)Libs\$(ProjectName).lib";
 copy /Y "$(SolutionDir)FbxSdk\lib\x64\release\libfbxsdk.dll" "$(SolutionDir)bin\libfbxsdk.dll";</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>$(SolutionDir)bin\CodeGen.exe;</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CommandBuilder.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="DeferredRenderPass.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="EarlyZPass.cpp" />
     <ClCompile Include="FbxLoader.cpp" />
     <ClCompile Include="GraphicsContext.cpp" />
+    <ClCompile Include="GraphicsPipelineState.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="RenderPassBase.cpp" />
     <ClCompile Include="RenderToyApi.cpp" />
+    <ClCompile Include="ShaderType.cpp" />
     <ClCompile Include="StaticMesh.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandBuilder.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="DeferredRenderPass.h" />
+    <ClInclude Include="EarlyZPass.h" />
     <ClInclude Include="FbxLoader.h" />
     <ClInclude Include="GraphicsContext.h" />
+    <ClInclude Include="GraphicsPipelineState.h" />
     <ClInclude Include="Includes.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="RenderPassBase.h" />
     <ClInclude Include="RenderToyApi.h" />
+    <ClInclude Include="ShaderType.h" />
     <ClInclude Include="StaticMesh.h" />
     <ClInclude Include="Vectors.h" />
   </ItemGroup>

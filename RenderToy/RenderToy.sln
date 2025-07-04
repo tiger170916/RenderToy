@@ -4,8 +4,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RenderToy", "RenderToy\RenderToy.vcxproj", "{E2FF92A8-E29E-44E8-8A4F-42A5ADDFC015}"
+	ProjectSection(ProjectDependencies) = postProject
+		{51CD842E-2AA2-427D-B61B-6850EDFC86C1} = {51CD842E-2AA2-427D-B61B-6850EDFC86C1}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StandaloneWindowApp", "StandaloneWindowApp\StandaloneWindowApp.vcxproj", "{BB512D32-6AB8-461A-8D3A-8798A21B3727}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E2FF92A8-E29E-44E8-8A4F-42A5ADDFC015} = {E2FF92A8-E29E-44E8-8A4F-42A5ADDFC015}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CodeGen", "CodeGen\CodeGen.vcxproj", "{51CD842E-2AA2-427D-B61B-6850EDFC86C1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +29,10 @@ Global
 		{BB512D32-6AB8-461A-8D3A-8798A21B3727}.Debug|x64.Build.0 = Debug|x64
 		{BB512D32-6AB8-461A-8D3A-8798A21B3727}.Release|x64.ActiveCfg = Release|x64
 		{BB512D32-6AB8-461A-8D3A-8798A21B3727}.Release|x64.Build.0 = Release|x64
+		{51CD842E-2AA2-427D-B61B-6850EDFC86C1}.Debug|x64.ActiveCfg = Debug|x64
+		{51CD842E-2AA2-427D-B61B-6850EDFC86C1}.Debug|x64.Build.0 = Debug|x64
+		{51CD842E-2AA2-427D-B61B-6850EDFC86C1}.Release|x64.ActiveCfg = Release|x64
+		{51CD842E-2AA2-427D-B61B-6850EDFC86C1}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
