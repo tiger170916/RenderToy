@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include "FbxLoader.h"
 
 Renderer::~Renderer()
 {
@@ -26,6 +27,13 @@ bool Renderer::Initialize(HWND hwnd)
 	{
 		return false;
 	}
+
+
+	FbxLoader* fbxLoader = new FbxLoader("C:\\Users\\erlie\\Desktop\\Assets\\medieval-house-2\\source\\House2\\House2.fbx");
+	fbxLoader->Load();
+
+	FbxLoader* fbxLoader2 = new FbxLoader("C:\\Users\\erlie\\Desktop\\Assets\\medieval-house-2\\source\\House2\\House2.fbx");
+	fbxLoader2->Load();
 
 	m_initialized = true;
 	return true;

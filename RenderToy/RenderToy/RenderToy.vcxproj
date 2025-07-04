@@ -45,9 +45,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)bin\</OutDir>
+    <IncludePath>$(SolutionDir)FbxSdk\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(SolutionDir)FbxSdk\lib\x64\debug\;$(SolutionDir)FbxSdk\include;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)bin\</OutDir>
+    <IncludePath>$(SolutionDir)FbxSdk\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(SolutionDir)FbxSdk\lib\x64\release\;$(SolutionDir)FbxSdk\include;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -63,6 +67,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
+      <AdditionalDependencies>libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(ProjectDir)RenderToyApi.h" "$(SolutionDir)Includes\RenderToyApi.h";
@@ -87,6 +92,7 @@ copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)Libs\$(ProjectName).lib"
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
+      <AdditionalDependencies>libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(ProjectDir)RenderToyApi.h" "$(SolutionDir)Includes\RenderToyApi.h";
@@ -96,18 +102,24 @@ copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)Libs\$(ProjectName).lib"
   <ItemGroup>
     <ClCompile Include="CommandBuilder.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
+    <ClCompile Include="DeferredRenderPass.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="FbxLoader.cpp" />
     <ClCompile Include="GraphicsContext.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderToyApi.cpp" />
+    <ClCompile Include="StaticMesh.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandBuilder.h" />
     <ClInclude Include="CommandQueue.h" />
+    <ClInclude Include="DeferredRenderPass.h" />
+    <ClInclude Include="FbxLoader.h" />
     <ClInclude Include="GraphicsContext.h" />
     <ClInclude Include="Includes.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderToyApi.h" />
+    <ClInclude Include="StaticMesh.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
