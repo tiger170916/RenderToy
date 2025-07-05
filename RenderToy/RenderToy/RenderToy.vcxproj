@@ -108,8 +108,10 @@ copy /Y "$(SolutionDir)FbxSdk\lib\x64\release\libfbxsdk.dll" "$(SolutionDir)bin\
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CommandBuilder.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
+    <ClCompile Include="D3DResource.cpp" />
     <ClCompile Include="DeferredRenderPass.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="EarlyZPass.cpp" />
@@ -121,22 +123,29 @@ copy /Y "$(SolutionDir)FbxSdk\lib\x64\release\libfbxsdk.dll" "$(SolutionDir)bin\
     <ClCompile Include="RenderToyApi.cpp" />
     <ClCompile Include="ShaderType.cpp" />
     <ClCompile Include="StaticMesh.cpp" />
+    <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="CommandBuilder.h" />
     <ClInclude Include="CommandQueue.h" />
+    <ClInclude Include="D3DResource.h" />
+    <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DeferredRenderPass.h" />
     <ClInclude Include="EarlyZPass.h" />
     <ClInclude Include="FbxLoader.h" />
     <ClInclude Include="GraphicsContext.h" />
     <ClInclude Include="GraphicsPipelineState.h" />
     <ClInclude Include="Includes.h" />
+    <ClInclude Include="MeshStructs.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderPassBase.h" />
+    <ClInclude Include="RenderPassType.h" />
     <ClInclude Include="RenderToyApi.h" />
     <ClInclude Include="ShaderType.h" />
     <ClInclude Include="StaticMesh.h" />
     <ClInclude Include="Vectors.h" />
+    <ClInclude Include="World.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

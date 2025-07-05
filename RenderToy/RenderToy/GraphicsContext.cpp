@@ -67,6 +67,12 @@ bool GraphicsContext::Initialize(HWND hwnd)
         return false;
     }
 
+    // Query the descriptor sizes of current device.
+    m_rtvDescriptorSize = m_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    m_dsvDescriptorSize = m_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+    m_cbvSrvDescriptorSize = m_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    m_samplerDescriptorSize = m_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+
     // Create direct command queue
     m_directCommandQueue = std::unique_ptr<CommandQueue>(new CommandQueue(D3D12_COMMAND_QUEUE_FLAG_NONE, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_QUEUE_PRIORITY_NORMAL, adapterIndex));
     if (!m_directCommandQueue->Initialize(m_pDevice.Get()))
@@ -96,6 +102,52 @@ bool GraphicsContext::Initialize(HWND hwnd)
         return false;
     }
 
+    if (FAILED(swapchain1->QueryInterface(m_swapchain.GetAddressOf())))
+    {
+        return false;
+    }
+
+    // Rtv heap for swapchain
+    D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
+    rtvHeapDesc.NumDescriptors = m_numFrameBuffers;
+    rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+    rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+    rtvHeapDesc.NodeMask = adapterIndex;
+    if (FAILED(m_pDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(m_renderTargetViewHeap.GetAddressOf()))))
+    {
+        throw;
+    }
+
+    // Create render target view.
+    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(m_renderTargetViewHeap->GetCPUDescriptorHandleForHeapStart());
+    for (UINT i = 0; i < m_numFrameBuffers; i++)
+    {
+        if (FAILED(m_swapchain->GetBuffer(i, IID_PPV_ARGS(&m_swapchainbuffer[i]))))
+        {
+            throw;
+        }
+
+        m_pDevice->CreateRenderTargetView(m_swapchainbuffer[i].Get(), nullptr, rtvHeapHandle);
+
+        rtvHeapHandle.Offset(1, m_rtvDescriptorSize);
+    }
+
+    RECT rect;
+    GetWindowRect(hwnd, &rect);
+    m_width = rect.right - rect.left;
+    m_height = rect.bottom - rect.top;
+    
+    // Create the viewport.
+    m_viewport.TopLeftX = 0.0f;
+    m_viewport.TopLeftY = 0.0f;
+    m_viewport.Width = static_cast<float>(m_width);
+    m_viewport.Height = static_cast<float>(m_height);
+    m_viewport.MinDepth = 0.0f;
+    m_viewport.MaxDepth = 1.0f;
+
+    // Create the scissor rectangles.
+    m_scissorRect = { 0, 0, (long)m_width, (long)m_height };
+
     m_hwnd = hwnd;
     m_initialized = true;
 
@@ -115,5 +167,11 @@ GraphicsContext::~GraphicsContext()
     {
         m_pDevice->Release();
         m_pDevice = nullptr;
+    }
+
+    if (m_swapchain)
+    {
+        m_swapchain->Release();
+        m_swapchain = nullptr;
     }
 }

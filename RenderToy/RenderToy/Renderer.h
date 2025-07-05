@@ -2,6 +2,8 @@
 #include "Includes.h"
 #include "GraphicsContext.h"
 #include "GraphicsPipelineState.h"
+#include "World.h"
+#include "EarlyZPass.h"
 
 /// <summary>
 /// Renderer singleton class
@@ -13,6 +15,18 @@ private:
 
 	bool m_initialized = false;
 
+	bool m_rendering = false;
+
+	HANDLE m_renderThreadHandle = 0;
+
+	uint64_t m_lastRenderTime = 0;
+
+private:
+	std::shared_ptr<World> m_activeWorld = nullptr;	// TODO: switch between differnt scenes
+
+	// Render passes
+	std::unique_ptr<EarlyZPass> m_earlyZPass = nullptr;
+
 public:
 	~Renderer();
 
@@ -23,6 +37,14 @@ public:
 
 	bool Initialize(HWND hwnd);
 
+	bool RenderStart();
+
+	inline HANDLE GetRenderThreadHandle() const { return m_renderThreadHandle; }
+
 private:
 	Renderer() {};
+
+	static DWORD WINAPI RenderThreadRoutine(LPVOID lpParameter);
+
+	void Frame();
 };
