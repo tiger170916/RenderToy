@@ -21,11 +21,6 @@ bool ShaderTypeCodeGen::GenerateCode()
         std::cout << "Shaders directory doesn't exist" << std::endl;
         return false;
     }
-     
-    std::filesystem::path shaderEnumHeaderFilePath = buffer;
-    shaderEnumHeaderFilePath = shaderEnumHeaderFilePath.parent_path();
-    shaderEnumHeaderFilePath = shaderEnumHeaderFilePath.parent_path();
-    shaderEnumHeaderFilePath = shaderEnumHeaderFilePath.append("RenderToy\\ShaderType.h");
 
     std::vector<std::string> shaderFiles;
     std::vector<std::string> shaderEnums;
@@ -52,14 +47,20 @@ bool ShaderTypeCodeGen::GenerateCode()
         }
     }
 
+    std::filesystem::path shaderEnumHeaderFilePath = buffer;
+    shaderEnumHeaderFilePath = shaderEnumHeaderFilePath.parent_path();
+    shaderEnumHeaderFilePath = shaderEnumHeaderFilePath.parent_path();
+    std::filesystem::path shaderEnumCppFilePath = shaderEnumHeaderFilePath;
+    shaderEnumHeaderFilePath = shaderEnumHeaderFilePath.append("RenderToy\\ShaderType.h");
+    shaderEnumCppFilePath = shaderEnumCppFilePath.append("RenderToy\\ShaderType.cpp");
+
+    // Generate header file
     std::cout << "Generating ShaderType.h file..." << std::endl;
     std::ofstream headerFile(shaderEnumHeaderFilePath.string().c_str());
     if (!headerFile.is_open()) {
         std::cout<< "Error opening file!" << std::endl;
         return false;
     }
-
-    headerFile.clear();
 
     headerFile << "#pragma once\n"
                << "#include <string>\n"
@@ -76,6 +77,38 @@ bool ShaderTypeCodeGen::GenerateCode()
     headerFile << "std::string GetShaderRelativePath(const ShaderType & type);\n";
 
     headerFile.close();
+
+    // Generate cpp file
+    std::cout << "Generating ShaderType.cpp file..." << std::endl;
+    std::ofstream cppFile(shaderEnumCppFilePath.string().c_str());
+    if (!cppFile.is_open()) {
+        std::cout << "Error opening file!" << std::endl;
+        return false;
+    }
+
+    cppFile << "#include \"ShaderType.h\"\n"
+            << "std::string GetShaderRelativePath(const ShaderType & type)\n"
+            << "{\n"
+            << "    switch (type)\n"
+            << "    {\n";
+
+    cppFile << "    case ShaderType::SHADER_TYPE_NONE:\n"
+            << "    {\n"
+            << "        return std::string("");\n"
+            << "    }\n";
+
+    for (int i = 0; i < shaderFiles.size(); i++)
+    {
+        cppFile << "    case ShaderType::" << shaderEnums[i] << ":\n"
+                << "    {\n"
+                << "        return std::string(\"" << shaderFiles[i] << "\");\n"
+                << "    }\n";
+    }
+
+    cppFile << "    }\n"
+            << "    return std::string();\n"
+            << "}\n";
+    cppFile.close();
 
     return true;
 }

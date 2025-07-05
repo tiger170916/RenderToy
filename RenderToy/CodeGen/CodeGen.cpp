@@ -3,7 +3,7 @@
 
 int main()
 {
-    std::cout << "Code Gen ...\n";
+    std::cout << "\nCode Gen ...\n";
 
     ShaderTypeCodeGen::GenerateCode();
 
