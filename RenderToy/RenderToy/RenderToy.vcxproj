@@ -75,7 +75,7 @@ copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)Libs\$(ProjectName).lib"
 copy /Y "$(SolutionDir)FbxSdk\lib\x64\debug\libfbxsdk.dll" "$(SolutionDir)bin\libfbxsdk.dll";</Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>powershell -NoProfile -ExecutionPolicy RemoteSigned -file $(ProjectDir)ShaderBuilderScript.ps1  -fxc "$(WindowsSDKDir)bin\$(TargetPlatformVersion)\$(Platform)\fxc.exe" -shaderDir "$(ProjectDir)Shaders\\" -outputDir "$(SolutionDir)bin\\Shaders\\"
+      <Command>powershell -NoProfile -ExecutionPolicy RemoteSigned -file $(ProjectDir)ShaderBuilderScript.ps1  -dxc "$(WindowsSDKDir)bin\$(TargetPlatformVersion)\$(Platform)\dxc.exe" -shaderDir "$(ProjectDir)Shaders\\" -outputDir "$(SolutionDir)bin\\Shaders\\"
 $(SolutionDir)bin\CodeGen.exe</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
@@ -105,7 +105,7 @@ copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)Libs\$(ProjectName).lib"
 copy /Y "$(SolutionDir)FbxSdk\lib\x64\release\libfbxsdk.dll" "$(SolutionDir)bin\libfbxsdk.dll";</Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>powershell -NoProfile -ExecutionPolicy RemoteSigned -file $(ProjectDir)ShaderBuilderScript.ps1  -fxc "$(WindowsSDKDir)bin\$(TargetPlatformVersion)\$(Platform)\fxc.exe" -shaderDir "$(ProjectDir)Shaders\\" -outputDir "$(SolutionDir)bin\\Shaders\\"
+      <Command>powershell -NoProfile -ExecutionPolicy RemoteSigned -file $(ProjectDir)ShaderBuilderScript.ps1  -dxc "$(WindowsSDKDir)bin\$(TargetPlatformVersion)\$(Platform)\dxc.exe" -shaderDir "$(ProjectDir)Shaders\\" -outputDir "$(SolutionDir)bin\\Shaders\\"
 $(SolutionDir)bin\CodeGen.exe</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
@@ -153,14 +153,12 @@ $(SolutionDir)bin\CodeGen.exe</Command>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\EarlyZPass.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EarlyZPassRootsignature</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">RootSignature</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">rootsig_1.1</ShaderModel>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">EarlyZPassRootsignature</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">RootSignature</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">rootsig_1.1</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </EntryPointName>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

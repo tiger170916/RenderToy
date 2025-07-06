@@ -11,6 +11,10 @@ std::string GetShaderRelativePath(const ShaderType & type)
     {
         return std::string("early_z_pass_root_signature.cso");
     }
+    case ShaderType::EARLY_Z_PASS_VERTEX_SHADER:
+    {
+        return std::string("early_z_pass_vertex_shader.cso");
+    }
     }
     return std::string();
 }
