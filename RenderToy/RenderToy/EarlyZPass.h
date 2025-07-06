@@ -2,6 +2,7 @@
 
 #include "Includes.h"
 #include "RenderPassBase.h"
+#include "ShaderManager.h"
 
 class EarlyZPass : public RenderPassBase
 {
@@ -19,7 +20,7 @@ public:
 
 	~EarlyZPass();
 
-	bool Initialize(ID3D12Device* pDevice, UINT width, UINT height);
+	bool Initialize(ID3D12Device* pDevice, ShaderManager* shaderMgr, UINT width, UINT height);
 
 	virtual void Frame(std::shared_ptr<World> world) override;
 };

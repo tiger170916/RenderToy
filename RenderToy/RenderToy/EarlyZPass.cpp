@@ -4,11 +4,16 @@ EarlyZPass::EarlyZPass()
 {
 }
 
-bool EarlyZPass::Initialize(ID3D12Device* pDevice, UINT width, UINT height)
+bool EarlyZPass::Initialize(ID3D12Device* pDevice, ShaderManager* shaderMgr, UINT width, UINT height)
 {
 	if (m_initialized)
 	{
 		return true;
+	}
+
+	if (!pDevice || !shaderMgr)
+	{
+		return false;
 	}
 
 	m_depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
@@ -64,6 +69,21 @@ bool EarlyZPass::Initialize(ID3D12Device* pDevice, UINT width, UINT height)
 		m_depthStencilBuffer.Get(),
 		&dsvDesc,
 		dsvHandle);
+
+	m_graphicsPipelineState = std::unique_ptr<GraphicsPipelineState>(new GraphicsPipelineState());
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc = m_graphicsPipelineState->GraphicsPipelineStateDesc();
+
+	char* rootSignatureData = nullptr;
+	UINT rootSignatureSize = 0;
+	if (!shaderMgr->GetShader(ShaderType::EARLY_Z_PASS_ROOT_SIGNATURE, &rootSignatureData, rootSignatureSize))
+	{
+		return false;
+	}
+
+	if (FAILED(pDevice->CreateRootSignature(0, rootSignatureData, rootSignatureSize, IID_PPV_ARGS(&pipelineStateDesc.pRootSignature))))
+	{
+		return false;
+	}
 
 	m_initialized = true;
 

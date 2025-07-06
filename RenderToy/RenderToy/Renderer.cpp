@@ -28,9 +28,11 @@ bool Renderer::Initialize(HWND hwnd)
 		return false;
 	}
 
+	m_shaderManager = std::unique_ptr<ShaderManager>(new ShaderManager());
+
 	// Initialize render passes
 	m_earlyZPass = std::unique_ptr<EarlyZPass>(new EarlyZPass());
-	if (!m_earlyZPass->Initialize(m_graphicsContext->GetDevice(), m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight()))
+	if (!m_earlyZPass->Initialize(m_graphicsContext->GetDevice(), m_shaderManager.get(), m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight()))
 	{
 		return false;
 	}

@@ -3,6 +3,7 @@
 #include "GraphicsContext.h"
 #include "GraphicsPipelineState.h"
 #include "World.h"
+#include "ShaderManager.h"
 #include "EarlyZPass.h"
 
 /// <summary>
@@ -26,6 +27,8 @@ private:
 
 	// Render passes
 	std::unique_ptr<EarlyZPass> m_earlyZPass = nullptr;
+
+	std::unique_ptr<ShaderManager> m_shaderManager = nullptr;
 
 public:
 	~Renderer();

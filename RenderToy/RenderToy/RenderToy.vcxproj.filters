@@ -65,6 +65,12 @@
     <ClCompile Include="D3DResource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ShaderManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -131,6 +137,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ConstantBuffer.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderManager.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
