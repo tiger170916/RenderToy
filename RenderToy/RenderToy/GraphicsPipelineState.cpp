@@ -1,7 +1,15 @@
 #include "GraphicsPipelineState.h"
 
-GraphicsPipelineState::GraphicsPipelineState(
-	ID3D12Device* pDevice, D3D12_INPUT_ELEMENT_DESC* inputLayout, UINT numInputs, ShaderType vs, ShaderType ps)
-{
+GraphicsPipelineState::GraphicsPipelineState() {}
 
+GraphicsPipelineState::~GraphicsPipelineState() {}
+
+bool GraphicsPipelineState::Initialize(ID3D12Device* pDevice)
+{
+	if (!pDevice)
+	{
+		return false;
+	}
+
+	return true;
 }

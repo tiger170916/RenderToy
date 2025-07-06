@@ -7,9 +7,9 @@ std::string GetShaderRelativePath(const ShaderType & type)
     {
         return std::string();
     }
-    case ShaderType::TEXTSHADERCS:
+    case ShaderType::EARLY_Z_PASS_ROOT_SIGNATURE:
     {
-        return std::string("TextShaderCs.cso");
+        return std::string("early_z_pass_root_signature.cso");
     }
     }
     return std::string();

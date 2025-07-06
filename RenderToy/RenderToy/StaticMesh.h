@@ -5,6 +5,7 @@
 #include "RenderPassType.h"
 #include "D3DResource.h"
 #include "MeshStructs.h"
+#include "ConstantBuffer.h"
 
 class StaticMesh
 {
@@ -27,6 +28,8 @@ private:
 	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView = {};
 
 	D3D12_INDEX_BUFFER_VIEW m_indexBufferView = {};
+
+	std::unique_ptr<ConstantBuffer<MeshInstanceConstants>> m_instanceConstants = nullptr;
 
 public:
 	StaticMesh();

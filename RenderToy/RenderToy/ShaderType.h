@@ -3,6 +3,6 @@
 enum class ShaderType
 {
     SHADER_TYPE_NONE = 0,
-    TEXTSHADERCS = 1,
+    EARLY_Z_PASS_ROOT_SIGNATURE = 1,
 };
 std::string GetShaderRelativePath(const ShaderType & type);

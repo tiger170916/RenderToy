@@ -54,7 +54,7 @@ bool StaticMesh::BuildResource(ID3D12Device* pDevice)
 	}
 
 	auto vbDesc = CD3DX12_RESOURCE_DESC::Buffer(vertices.size() * sizeof(MeshVertex));
-	if (!m_vbResource->Initialize(pDevice, &vbDesc, vertices.data(), vertices.size() * sizeof(MeshVertex)))
+	if (!m_vbResource->Initialize(pDevice, &vbDesc, vertices.data(), (UINT)vertices.size() * sizeof(MeshVertex)))
 	{
 		return false;
 	}
@@ -62,7 +62,7 @@ bool StaticMesh::BuildResource(ID3D12Device* pDevice)
 	// Build index buffer resources
 	m_ibResource = std::unique_ptr<D3DResource>(new D3DResource(true));
 	auto ibDesc = CD3DX12_RESOURCE_DESC::Buffer(m_triangles.size() * sizeof(int));
-	if (!m_ibResource->Initialize(pDevice, &ibDesc, m_triangles.data(), m_triangles.size() * sizeof(int)))
+	if (!m_ibResource->Initialize(pDevice, &ibDesc, m_triangles.data(), (UINT)m_triangles.size() * sizeof(int)))
 	{
 		return false;
 	}
@@ -74,6 +74,9 @@ bool StaticMesh::BuildResource(ID3D12Device* pDevice)
 	m_indexBufferView.BufferLocation = m_ibResource->GetDefaultResource()->GetGPUVirtualAddress();
 	m_indexBufferView.Format = DXGI_FORMAT_R32_UINT; // 32-bit unsigned integer
 	m_indexBufferView.SizeInBytes = (UINT)m_triangles.size() * sizeof(UINT);
+
+	m_instanceConstants = std::unique_ptr<ConstantBuffer<MeshInstanceConstants>>(new ConstantBuffer<MeshInstanceConstants>(64));
+	m_instanceConstants->Initialize(pDevice);
 
 	return true;
 }

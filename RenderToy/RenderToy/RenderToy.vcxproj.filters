@@ -12,6 +12,9 @@
     <Filter Include="RenderPasses">
       <UniqueIdentifier>{d10527d3-b97d-450b-8126-6050460a9533}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ShaderSource">
+      <UniqueIdentifier>{1e08837f-14d6-4328-a219-a0ac10131e9f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -124,5 +127,19 @@
     <ClInclude Include="MeshStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GlobalStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstantBuffer.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\EarlyZPass.hlsl">
+      <Filter>ShaderSource</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\MeshVertex.hlsli">
+      <Filter>ShaderSource</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

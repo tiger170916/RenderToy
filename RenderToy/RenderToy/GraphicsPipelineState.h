@@ -10,7 +10,14 @@ private:
 
 	ComPtr<ID3D12PipelineState> m_graphicsPipelineState = nullptr;
 
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC desc {};
+
 public:
-	GraphicsPipelineState(
-		ID3D12Device *pDevice, D3D12_INPUT_ELEMENT_DESC* inputLayout, UINT numInputs, ShaderType vs, ShaderType ps);
+	GraphicsPipelineState();
+
+	~GraphicsPipelineState();
+
+	bool Initialize(ID3D12Device* pDevice);
+
+	inline D3D12_GRAPHICS_PIPELINE_STATE_DESC& GraphicsPipelineStateDesc() { return desc; }
 };

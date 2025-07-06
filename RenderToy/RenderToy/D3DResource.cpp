@@ -5,7 +5,7 @@ D3DResource::D3DResource(bool needCopyToDefaultHeap)
 {
 }
 
-bool D3DResource::Initialize(ID3D12Device* pDevice, const D3D12_RESOURCE_DESC* pResourceDesc, void* data, SIZE_T dataSize)
+bool D3DResource::Initialize(ID3D12Device* pDevice, const D3D12_RESOURCE_DESC* pResourceDesc, void* data, UINT dataSize)
 {
 	if (m_initialized)
 	{
@@ -33,23 +33,10 @@ bool D3DResource::Initialize(ID3D12Device* pDevice, const D3D12_RESOURCE_DESC* p
 		return false;
 	}
 
-	// store vertex buffer in upload heap
-	D3D12_SUBRESOURCE_DATA vertexData = {};
-	vertexData.pData = data; // pointer to our vertex array
-	vertexData.RowPitch = dataSize; // size of all our triangle vertex data
-	vertexData.SlicePitch = dataSize; // also the size of our triangle vertex data
-
-	void* pMappedData;
-	D3D12_RANGE readRange = { 0, 0 };
-	if (FAILED(m_uploadeHeapResource->Map(0, &readRange, &pMappedData)))
+	if (!UpdateUploadBuffer(data, dataSize))
 	{
 		return false;
 	}
-
-	memcpy(pMappedData, data, dataSize);
-
-	D3D12_RANGE writeRange = { 0, dataSize }; // The range that was written to
-	m_uploadeHeapResource->Unmap(0, &writeRange);
 
 	if (m_needCopyToDefaultHeap)
 	{
@@ -69,6 +56,28 @@ bool D3DResource::Initialize(ID3D12Device* pDevice, const D3D12_RESOURCE_DESC* p
 	}
 
 	m_initialized = true;
+
+	return true;
+}
+
+bool D3DResource::UpdateUploadBuffer(void* data, UINT size)
+{
+	if (m_uploadeHeapResource == nullptr)
+	{
+		return false;
+	}
+
+	void* pMappedData;
+	D3D12_RANGE readRange = { 0, 0 };
+	if (FAILED(m_uploadeHeapResource->Map(0, &readRange, &pMappedData)))
+	{
+		return false;
+	}
+
+	memcpy(pMappedData, data, size);
+
+	D3D12_RANGE writeRange = { 0, size }; // The range that was written to
+	m_uploadeHeapResource->Unmap(0, &writeRange);
 
 	return true;
 }

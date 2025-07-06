@@ -21,11 +21,13 @@ private:
 public:
 	D3DResource(bool needCopyToDefaultHeap);
 
-	bool Initialize(ID3D12Device* pDevice, const D3D12_RESOURCE_DESC* pResourceDesc, void* data, SIZE_T dataSize);
+	bool Initialize(ID3D12Device* pDevice, const D3D12_RESOURCE_DESC* pResourceDesc, void* data, UINT dataSize);
 
 	inline ID3D12Resource* GetDefaultResource() const { return m_defaultHeapResource.Get(); }
 
 	inline ID3D12Resource* GetUploadResource() const { return m_uploadeHeapResource.Get(); }
+
+	bool UpdateUploadBuffer(void* data, UINT size);
 
 	~D3DResource();
 };
