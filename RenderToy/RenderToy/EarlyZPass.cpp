@@ -1,10 +1,11 @@
 #include "EarlyZPass.h"
+#include "Macros.h"
 
 EarlyZPass::EarlyZPass()
 {
 }
 
-bool EarlyZPass::Initialize(ID3D12Device* pDevice, ShaderManager* shaderMgr, UINT width, UINT height)
+bool EarlyZPass::Initialize(ID3D12Device* pDevice, UINT adapterNodeMask, ShaderManager* shaderMgr, UINT width, UINT height)
 {
 	if (m_initialized)
 	{
@@ -30,16 +31,16 @@ bool EarlyZPass::Initialize(ID3D12Device* pDevice, ShaderManager* shaderMgr, UIN
 	}
 
 	// Create the depth/stencil buffer and view.
-	D3D12_RESOURCE_DESC depthStencilDesc = {};
-	depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	depthStencilDesc.Alignment = 0;
-	depthStencilDesc.Width = width;
-	depthStencilDesc.Height = height;
-	depthStencilDesc.DepthOrArraySize = 1;
-	depthStencilDesc.MipLevels = 1;
-	depthStencilDesc.Format = m_depthStencilFormat;
-	depthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+	D3D12_RESOURCE_DESC depthStencilResourceDesc = {};
+	depthStencilResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	depthStencilResourceDesc.Alignment = 0;
+	depthStencilResourceDesc.Width = width;
+	depthStencilResourceDesc.Height = height;
+	depthStencilResourceDesc.DepthOrArraySize = 1;
+	depthStencilResourceDesc.MipLevels = 1;
+	depthStencilResourceDesc.Format = m_depthStencilFormat;
+	depthStencilResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	depthStencilResourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
 	D3D12_CLEAR_VALUE optClear = {};
 	optClear.Format = m_depthStencilFormat;
@@ -50,7 +51,7 @@ bool EarlyZPass::Initialize(ID3D12Device* pDevice, ShaderManager* shaderMgr, UIN
 	if (FAILED(pDevice->CreateCommittedResource(
 		&heapProperties,
 		D3D12_HEAP_FLAG_NONE,
-		&depthStencilDesc,
+		&depthStencilResourceDesc,
 		D3D12_RESOURCE_STATE_DEPTH_WRITE,
 		&optClear,
 		IID_PPV_ARGS(m_depthStencilBuffer.GetAddressOf()))))
@@ -84,6 +85,51 @@ bool EarlyZPass::Initialize(ID3D12Device* pDevice, ShaderManager* shaderMgr, UIN
 	{
 		return false;
 	}
+
+	char* vertexShaderData = nullptr;
+	UINT vertexShaderSize = 0;
+	if (!shaderMgr->GetShader(ShaderType::EARLY_Z_PASS_VERTEX_SHADER, &vertexShaderData, vertexShaderSize))
+	{
+		return false;
+	}
+
+	pipelineStateDesc.VS.BytecodeLength = vertexShaderSize;
+	pipelineStateDesc.VS.pShaderBytecode = vertexShaderData;
+	pipelineStateDesc.NodeMask = adapterNodeMask;
+	pipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+
+	D3D12_DEPTH_STENCIL_DESC depthStencilDesc = {
+		TRUE,
+		D3D12_DEPTH_WRITE_MASK_ALL,
+		D3D12_COMPARISON_FUNC_LESS_EQUAL,
+		FALSE
+	};
+		
+	D3D12_RASTERIZER_DESC rasterizerDesc = {
+		D3D12_FILL_MODE_SOLID,
+		D3D12_CULL_MODE_NONE,
+		FALSE,
+		0,
+		0.0f, //clamp
+		0.0f, //slope scaled
+		TRUE,
+		FALSE,
+		FALSE,
+		0,
+		D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF
+	};
+
+	D3D12_INPUT_ELEMENT_DESC meshInputLayout[] = IA_MESH_LAYOUT;
+
+	pipelineStateDesc.RasterizerState = rasterizerDesc;
+	pipelineStateDesc.DepthStencilState = depthStencilDesc;
+	pipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	pipelineStateDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+	pipelineStateDesc.SampleDesc.Count = 1;
+	pipelineStateDesc.SampleDesc.Quality = 0;
+	pipelineStateDesc.SampleMask = UINT_MAX;
+	pipelineStateDesc.InputLayout.NumElements = 1;
+	pipelineStateDesc.InputLayout.pInputElementDescs = meshInputLayout;
 
 	m_initialized = true;
 

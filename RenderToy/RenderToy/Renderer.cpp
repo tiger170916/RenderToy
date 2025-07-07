@@ -32,7 +32,7 @@ bool Renderer::Initialize(HWND hwnd)
 
 	// Initialize render passes
 	m_earlyZPass = std::unique_ptr<EarlyZPass>(new EarlyZPass());
-	if (!m_earlyZPass->Initialize(m_graphicsContext->GetDevice(), m_shaderManager.get(), m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight()))
+	if (!m_earlyZPass->Initialize(m_graphicsContext->GetDevice(), m_graphicsContext->GetAdapterNodeMask(), m_shaderManager.get(), m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight()))
 	{
 		return false;
 	}

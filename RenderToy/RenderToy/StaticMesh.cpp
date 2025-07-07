@@ -76,6 +76,12 @@ bool StaticMesh::BuildResource(ID3D12Device* pDevice)
 	m_indexBufferView.SizeInBytes = (UINT)m_triangles.size() * sizeof(UINT);
 
 	m_instanceConstants = std::unique_ptr<ConstantBuffer<MeshInstanceConstants>>(new ConstantBuffer<MeshInstanceConstants>(64));
+	
+	for (int i = 0; i < min(64, m_instances.size()); i++)
+	{
+		//(*m_instanceConstants)[i].TransformMatrix = m_instances[i];
+	}
+
 	m_instanceConstants->Initialize(pDevice);
 
 	return true;

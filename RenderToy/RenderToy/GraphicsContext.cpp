@@ -59,6 +59,8 @@ bool GraphicsContext::Initialize(HWND hwnd)
         return false;
     }
 
+    m_adapterNodeMask = adapterIndex;
+
     if (FAILED(D3D12CreateDevice(
         adapter,
         D3D_FEATURE_LEVEL_11_0,
@@ -112,7 +114,7 @@ bool GraphicsContext::Initialize(HWND hwnd)
     rtvHeapDesc.NumDescriptors = m_numFrameBuffers;
     rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
     rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-    rtvHeapDesc.NodeMask = adapterIndex;
+    rtvHeapDesc.NodeMask = m_adapterNodeMask;
     if (FAILED(m_pDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(m_renderTargetViewHeap.GetAddressOf()))))
     {
         throw;

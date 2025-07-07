@@ -40,6 +40,8 @@ private:
 
 	UINT m_currentBackbuffer = 0;
 
+	UINT m_adapterNodeMask = 0;
+
 protected:
 	GraphicsContext();
 
@@ -51,6 +53,8 @@ public:
 	inline UINT GetHwndHeight() const { return m_height; }
 
 	inline ID3D12Device* GetDevice() const { return m_pDevice.Get(); }
+
+	inline const UINT GetAdapterNodeMask() const { return m_adapterNodeMask; }
 
 	~GraphicsContext();
 };

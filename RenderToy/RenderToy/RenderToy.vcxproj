@@ -115,6 +115,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="D3DResource.cpp" />
     <ClCompile Include="DeferredRenderPass.cpp" />
+    <ClCompile Include="DescriptporHeapManager.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="EarlyZPass.cpp" />
     <ClCompile Include="FbxLoader.cpp" />
@@ -137,12 +138,14 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="D3DResource.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DeferredRenderPass.h" />
+    <ClInclude Include="DescriptorHeapManager.h" />
     <ClInclude Include="EarlyZPass.h" />
     <ClInclude Include="FbxLoader.h" />
     <ClInclude Include="GlobalStructs.h" />
     <ClInclude Include="GraphicsContext.h" />
     <ClInclude Include="GraphicsPipelineState.h" />
     <ClInclude Include="Includes.h" />
+    <ClInclude Include="Macros.h" />
     <ClInclude Include="MeshStructs.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderPassBase.h" />

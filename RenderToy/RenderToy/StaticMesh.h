@@ -4,8 +4,8 @@
 #include "Vectors.h"
 #include "RenderPassType.h"
 #include "D3DResource.h"
-#include "MeshStructs.h"
 #include "ConstantBuffer.h"
+#include "MeshStructs.h"
 
 class StaticMesh
 {
