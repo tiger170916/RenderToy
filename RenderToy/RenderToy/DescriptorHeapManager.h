@@ -100,6 +100,44 @@ public:
 	/// </summary>
 	bool BindCbvSrvUavToPipeline(uint64_t viewId, D3D12_GPU_DESCRIPTOR_HANDLE& outGpuDescriptorHandle);
 
+	/// <summary>
+	/// Get render target view handle
+	/// </summary>
+	/// <param name="viewId"></param>
+	bool GetRenderTargetViewCpuHandle(uint64_t viewId, D3D12_CPU_DESCRIPTOR_HANDLE& outCpuDescriptorHandle);
+
+	/// <summary>
+	/// Get depth stencil view handle
+	/// </summary>
+	/// <param name="viewId"></param>
+	bool GetDepthStencilViewCpuHandle(uint64_t viewId, D3D12_CPU_DESCRIPTOR_HANDLE& outCpuDescriptorHandle);
+
+	/// <summary>
+	/// Get sampler handle
+	/// </summary>
+	/// <param name="viewId"></param>
+	bool GetSampler(uint64_t viewId, D3D12_GPU_DESCRIPTOR_HANDLE& outGpuDescriptorHandle);
+
+	/// <summary>
+	/// Get ring buffer cbv/srv/uav shader visible descriptor heap
+	/// </summary>
+	inline ID3D12DescriptorHeap* GetCbvSrvUavShaderVisibleRingBufferHeap() const { return m_cbvSrvUavRingBuffer.Get(); }
+
+	/// <summary>
+	/// Get sampler shader visible descriptor heap
+	/// </summary>
+	inline ID3D12DescriptorHeap* GetSamplerShaderVisibleDescriptorHeap() const { return m_samplerDescriptorHeap.Get(); }
+
+	/// <summary>
+	/// Get render target view descriptor heap
+	/// </summary>
+	inline ID3D12DescriptorHeap* GetRenderTargetViewDescriptorHeap() const { return m_rtvDescriptorHeap.Get(); }
+
+	/// <summary>
+	/// Get depth stencil view descriptor heap
+	/// </summary>
+	inline ID3D12DescriptorHeap* GetDepthStencilViewDescriptorHeap() const { return m_dsvDescriptorHeap.Get(); }
+
 	~DescriptorHeapManager();
 
 

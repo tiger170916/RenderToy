@@ -30,6 +30,8 @@ private:
 
 	std::unique_ptr<ShaderManager> m_shaderManager = nullptr;
 
+	std::unique_ptr<DescriptorHeapManager> m_descriptorHeapManager = nullptr;
+
 public:
 	~Renderer();
 

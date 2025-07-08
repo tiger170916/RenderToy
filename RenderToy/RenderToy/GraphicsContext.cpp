@@ -69,6 +69,13 @@ bool GraphicsContext::Initialize(HWND hwnd)
         return false;
     }
 
+    // Create and init Descriptor heap manager
+    m_descriptorHeapManager = std::unique_ptr<DescriptorHeapManager>(new DescriptorHeapManager(m_pDevice.Get(), m_adapterNodeMask));
+    if (!m_descriptorHeapManager->Initialize())
+    {
+        return false;
+    }
+
     // Query the descriptor sizes of current device.
     m_rtvDescriptorSize = m_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     m_dsvDescriptorSize = m_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
@@ -109,29 +116,15 @@ bool GraphicsContext::Initialize(HWND hwnd)
         return false;
     }
 
-    // Rtv heap for swapchain
-    D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
-    rtvHeapDesc.NumDescriptors = m_numFrameBuffers;
-    rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-    rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-    rtvHeapDesc.NodeMask = m_adapterNodeMask;
-    if (FAILED(m_pDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(m_renderTargetViewHeap.GetAddressOf()))))
-    {
-        throw;
-    }
-
-    // Create render target view.
-    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(m_renderTargetViewHeap->GetCPUDescriptorHandleForHeapStart());
     for (UINT i = 0; i < m_numFrameBuffers; i++)
     {
         if (FAILED(m_swapchain->GetBuffer(i, IID_PPV_ARGS(&m_swapchainbuffer[i]))))
         {
-            throw;
+            return false;
         }
 
-        m_pDevice->CreateRenderTargetView(m_swapchainbuffer[i].Get(), nullptr, rtvHeapHandle);
-
-        rtvHeapHandle.Offset(1, m_rtvDescriptorSize);
+        uint64_t rtvId = m_descriptorHeapManager->CreateRenderTargetView(m_swapchainbuffer[i].Get(), nullptr);
+        m_rtvIds[i] = rtvId;
     }
 
     RECT rect;

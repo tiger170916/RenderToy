@@ -2,6 +2,7 @@
 
 #include "Includes.h"
 #include "CommandQueue.h"
+#include "DescriptorHeapManager.h"
 
 class GraphicsContext
 {
@@ -18,11 +19,11 @@ private:
 
 	ComPtr<IDXGISwapChain3> m_swapchain = nullptr;
 
-	ComPtr<ID3D12DescriptorHeap> m_renderTargetViewHeap = nullptr;
-
 	ComPtr<ID3D12Resource> m_swapchainbuffer[3];
 
 	std::unique_ptr<CommandQueue> m_directCommandQueue = nullptr;
+
+	std::unique_ptr<DescriptorHeapManager> m_descriptorHeapManager = nullptr;
 
 	D3D12_VIEWPORT m_viewport;
 
@@ -35,6 +36,8 @@ private:
 
 	UINT m_width = 0;
 	UINT m_height = 0;
+
+	uint64_t m_rtvIds[4] = {};		// Max size of render target is 4
 
 	UINT m_numFrameBuffers = 2;
 
@@ -55,6 +58,8 @@ public:
 	inline ID3D12Device* GetDevice() const { return m_pDevice.Get(); }
 
 	inline const UINT GetAdapterNodeMask() const { return m_adapterNodeMask; }
+
+	inline DescriptorHeapManager* GetDescriptorHeapManager() const { return m_descriptorHeapManager.get(); }
 
 	~GraphicsContext();
 };

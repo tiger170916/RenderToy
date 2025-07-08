@@ -243,6 +243,45 @@ bool DescriptorHeapManager::BindCbvSrvUavToPipeline(uint64_t viewId, D3D12_GPU_D
     return true;
 }
 
+bool DescriptorHeapManager::GetRenderTargetViewCpuHandle(uint64_t viewId, D3D12_CPU_DESCRIPTOR_HANDLE& outCpuDescriptorHandle)
+{
+    if (viewId >= m_currentRtvCount)
+    {
+        return false;
+    }
+
+    CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHeapHandle(m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), (INT)viewId, m_rtvDescriptorSize);
+    outCpuDescriptorHandle = cpuHeapHandle;
+    
+    return true;
+}
+
+bool DescriptorHeapManager::GetDepthStencilViewCpuHandle(uint64_t viewId, D3D12_CPU_DESCRIPTOR_HANDLE& outCpuDescriptorHandle)
+{
+    if (viewId >= m_currentDsvCount)
+    {
+        return false;
+    }
+
+    CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHeapHandle(m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), (INT)viewId, m_dsvDescriptorSize);
+    outCpuDescriptorHandle = cpuHeapHandle;
+
+    return true;
+}
+
+bool DescriptorHeapManager::GetSampler(uint64_t viewId, D3D12_GPU_DESCRIPTOR_HANDLE& outGpuDescriptorHandle)
+{
+    if (viewId >= m_currentSamplerCount)
+    {
+        return false;
+    }
+
+    CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHeapHandle(m_samplerDescriptorHeap->GetGPUDescriptorHandleForHeapStart(), (INT)viewId, m_samplerDescriptorSize);
+    outGpuDescriptorHandle = gpuHeapHandle;
+
+    return true;
+}
+
 DescriptorHeapManager::~DescriptorHeapManager()
 {
     if (m_rtvDescriptorHeap)
