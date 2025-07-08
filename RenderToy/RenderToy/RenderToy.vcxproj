@@ -115,7 +115,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="D3DResource.cpp" />
     <ClCompile Include="DeferredRenderPass.cpp" />
-    <ClCompile Include="DescriptporHeapManager.cpp" />
+    <ClCompile Include="DescriptorHeapManager.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="EarlyZPass.cpp" />
     <ClCompile Include="FbxLoader.cpp" />

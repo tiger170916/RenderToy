@@ -71,7 +71,7 @@
     <ClCompile Include="Utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DescriptporHeapManager.cpp">
+    <ClCompile Include="DescriptorHeapManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
