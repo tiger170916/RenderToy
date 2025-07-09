@@ -31,6 +31,8 @@ private:
 
 	std::unique_ptr<ConstantBuffer<MeshInstanceConstants>> m_instanceConstants = nullptr;
 
+	std::vector<XMMATRIX> m_transformMatrices;
+
 public:
 	StaticMesh();
 
@@ -46,7 +48,7 @@ public:
 
 	bool PassEnabled(const RenderPass& renderPass);
 
-	bool BuildResource(ID3D12Device* pDevice);
+	bool BuildResource(ID3D12Device* pDevice, DescriptorHeapManager* descriptorHeapManager);
 
-	void DrawCall(ID3D12GraphicsCommandList* cmdList);
+	void Draw(ID3D12GraphicsCommandList* cmdList);
 };

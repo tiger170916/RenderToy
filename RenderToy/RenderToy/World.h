@@ -2,6 +2,9 @@
 #include "Includes.h"
 #include "Camera.h"
 #include "StaticMesh.h"
+#include "GlobalStructs.h"
+#include "ConstantBuffer.h"
+#include "DescriptorHeapManager.h"
 
 class World
 {
@@ -10,8 +13,14 @@ private:
 
 	std::vector<std::shared_ptr<StaticMesh>> m_staticMeshes;
 
+	std::unique_ptr<ConstantBuffer<UniformFrameConstants>> m_uniformFrameConstantBuffer = nullptr;
+
+	bool m_initialized = false;
+
 public:
 	World();
+
+	bool Initialize(ID3D12Device* pDevice, DescriptorHeapManager* descriptorHeapManager);
 
 	~World();
 
@@ -20,4 +29,8 @@ public:
 	void SpawnStaticMeshes(std::vector<std::shared_ptr<StaticMesh>>& staticMeshes);
 
 	const std::vector<std::shared_ptr<StaticMesh>>& GetAllStaticMeshes() const { return m_staticMeshes; }
+
+	inline Camera* GetActiveCamera() const { return m_activeCamera.get(); }
+
+	inline ConstantBuffer<UniformFrameConstants>* GetUniformFrameConstantBuffer() const { return m_uniformFrameConstantBuffer.get(); }
 };

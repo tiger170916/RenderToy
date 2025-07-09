@@ -2,6 +2,7 @@
 
 #include "Includes.h"
 #include "D3DResource.h"
+#include "DescriptorHeapManager.h"
 
 template <typename T>
 class ConstantBuffer
@@ -12,6 +13,8 @@ private:
 	std::vector<T> m_buffer;
 
 	UINT m_numInstances = 1;
+
+	UINT64 m_cbvId = UINT64_MAX;
 
 	bool m_initialized = false;
 
@@ -28,6 +31,8 @@ public:
 		m_numInstances = numInstances;
 	}
 
+
+
 	T& operator [](int idx) {
 		return m_buffer[idx];
 	}
@@ -36,8 +41,23 @@ public:
 		return m_buffer[idx];
 	}
 
-	bool Initialize(ID3D12Device* pDevice)
+	inline bool BindConstantBufferViewToPipeline(DescriptorHeapManager* descriptorHeapManager, D3D12_GPU_DESCRIPTOR_HANDLE& gpuDescriptorHandle)
 	{
+		return descriptorHeapManager->BindCbvSrvUavToPipeline(m_cbvId, gpuDescriptorHandle);
+	}
+
+	bool Initialize(ID3D12Device* pDevice, DescriptorHeapManager* descriptorHeapManager)
+	{
+		if (m_initialized)
+		{
+			return true;
+		}
+
+		if (!pDevice || !descriptorHeapManager)
+		{
+			return false;
+		}
+
 		UINT bufferSize = (sizeof(T) + 255) & ~255;
 		m_resource = std::unique_ptr<D3DResource>(new D3DResource(false));
 
@@ -46,6 +66,13 @@ public:
 		{
 			return false;
 		}
+
+		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+		// Use default buffer if the data is static.
+		cbvDesc.BufferLocation = m_resource->GetUploadResource()->GetGPUVirtualAddress();
+		cbvDesc.SizeInBytes = bufferSize;
+
+		m_cbvId = descriptorHeapManager->CreateConstantBufferView(&cbvDesc);
 
 		m_initialized = true;
 		return true;
@@ -63,7 +90,7 @@ public:
 			return false;
 		}
 
-		m_resource->UpdateUploadBuffer(m_buffer.data(), m_buffer.size() * sizeof(T));
+		return m_resource->UpdateUploadBuffer(m_buffer.data(), (UINT)m_buffer.size() * sizeof(T));
 	}
 
 	~ConstantBuffer()

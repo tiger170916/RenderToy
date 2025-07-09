@@ -136,7 +136,7 @@ bool EarlyZPass::Initialize(ID3D12Device* pDevice, UINT adapterNodeMask, ShaderM
 	return true;
 }
 
-void EarlyZPass::Frame(std::shared_ptr<World> world)
+void EarlyZPass::Frame(std::shared_ptr<World> world, ID3D12GraphicsCommandList* commandList)
 {
 	if (world == nullptr)
 	{
@@ -149,6 +149,8 @@ void EarlyZPass::Frame(std::shared_ptr<World> world)
 		{
 			continue;
 		}
+
+		staticMesh->Draw(commandList);
 	}
 }
 

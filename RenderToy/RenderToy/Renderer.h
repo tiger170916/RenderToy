@@ -5,6 +5,8 @@
 #include "World.h"
 #include "ShaderManager.h"
 #include "EarlyZPass.h"
+#include "CommandQueue.h"
+#include "CommandBuilder.h"
 
 /// <summary>
 /// Renderer singleton class
@@ -31,6 +33,10 @@ private:
 	std::unique_ptr<ShaderManager> m_shaderManager = nullptr;
 
 	std::unique_ptr<DescriptorHeapManager> m_descriptorHeapManager = nullptr;
+
+	std::unique_ptr<CommandQueue> m_mainCommandQueue = nullptr;
+
+	std::unique_ptr<CommandBuilder> m_mainCommandBuilder = nullptr;
 
 public:
 	~Renderer();

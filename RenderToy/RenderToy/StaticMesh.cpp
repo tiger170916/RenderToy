@@ -25,6 +25,13 @@ void StaticMesh::AddTriangle(int& v1, int& v2, int& v3)
 void StaticMesh::AddInstance(const Transform& transform)
 {
 	m_instances.push_back(transform);
+
+	XMMATRIX transformMatrix = XMMatrixIdentity();
+	XMMATRIX rotation = XMMatrixRotationRollPitchYaw(transform.Rotation.Pitch, transform.Rotation.Yaw, transform.Rotation.Roll);
+	XMMATRIX translation = XMMatrixTranslation(transform.Translation.X, transform.Translation.Y, transform.Translation.Z);
+	XMMATRIX scale = XMMatrixScaling(transform.Scale.X, transform.Scale.Y, transform.Scale.Z);
+	transformMatrix = scale * rotation * translation;
+	m_transformMatrices.push_back(transformMatrix);
 }
 
 void StaticMesh::EnableRenderPass(const RenderPass& renderPass)
@@ -37,8 +44,13 @@ bool StaticMesh::PassEnabled(const RenderPass& renderPass)
 	return m_enabledPasses.contains(renderPass);
 }
 
-bool StaticMesh::BuildResource(ID3D12Device* pDevice)
+bool StaticMesh::BuildResource(ID3D12Device* pDevice, DescriptorHeapManager* descriptorHeapManager)
 {
+	if (!pDevice || !descriptorHeapManager)
+	{
+		return false;
+	}
+
 	// Build vertex buffer resources
 	m_vbResource = std::unique_ptr<D3DResource>(new D3DResource(true));
 
@@ -82,12 +94,12 @@ bool StaticMesh::BuildResource(ID3D12Device* pDevice)
 		//(*m_instanceConstants)[i].TransformMatrix = m_instances[i];
 	}
 
-	m_instanceConstants->Initialize(pDevice);
+	m_instanceConstants->Initialize(pDevice, descriptorHeapManager);
 
 	return true;
 }
 
-void StaticMesh::DrawCall(ID3D12GraphicsCommandList* cmdList)
+void StaticMesh::Draw(ID3D12GraphicsCommandList* cmdList)
 {
 	if (!cmdList)
 	{

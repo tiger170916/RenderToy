@@ -3,6 +3,6 @@
 
 struct UniformFrameConstants
 {
-	XMMATRIX ViewMatrix;
-	XMMATRIX ProjectionMatrix;
+	XMFLOAT4X4 ViewMatrix;
+	XMFLOAT4X4 ProjectionMatrix;
 };

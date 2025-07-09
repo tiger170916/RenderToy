@@ -8,5 +8,5 @@ struct MeshVertex
 
 struct MeshInstanceConstants
 {
-	XMMATRIX TransformMatrix;
+	XMFLOAT4X4 TransformMatrix;
 };
