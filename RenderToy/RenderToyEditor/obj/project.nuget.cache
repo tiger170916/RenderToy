@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "dxUq22MZKPo=",
+  "success": true,
+  "projectFilePath": "C:\\ZemingGit\\RenderToy\\RenderToyEditor\\RenderToyEditor.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\erlie\\.nuget\\packages\\dirkster.avalondock\\4.72.1\\dirkster.avalondock.4.72.1.nupkg.sha512"
+  ],
+  "logs": []
+}
