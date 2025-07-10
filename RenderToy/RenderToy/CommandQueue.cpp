@@ -73,13 +73,11 @@ CommandQueue::~CommandQueue()
 {
 	if (m_fence)
 	{
-		m_fence->Release();
-		m_fence = nullptr;
+		m_fence.Reset();
 	}
 
 	if (m_commandQueue)
 	{
-		m_commandQueue->Release();
-		m_commandQueue = nullptr;
+		m_commandQueue.Reset();
 	}
 }

@@ -56,15 +56,13 @@ void CommandBuilder::Close()
 
 CommandBuilder::~CommandBuilder()
 {
-	if (m_commandAllocator)
-	{
-		m_commandAllocator->Release();
-		m_commandAllocator = nullptr;
-	}
-
 	if (m_commandList)
 	{
-		m_commandList->Release();
-		m_commandList = nullptr;
+		m_commandList.Reset();
+	}
+
+	if (m_commandAllocator)
+	{
+		m_commandAllocator.Reset();
 	}
 }

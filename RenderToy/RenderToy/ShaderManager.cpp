@@ -1,6 +1,10 @@
 #include "ShaderManager.h"
 #include "Utils.h"
 
+ShaderManager::ShaderManager() {}
+
+ShaderManager::~ShaderManager() {}
+
 bool ShaderManager::GetShader(const ShaderType& shaderType, char** ppData, UINT& dataSize)
 {
 	dataSize = 0;
@@ -40,10 +44,11 @@ bool ShaderManager::GetShader(const ShaderType& shaderType, char** ppData, UINT&
 	}
 
 	UINT size = (UINT)file.tellg();
-	char* data = new char[dataSize];
+	char* data = (char*)malloc(sizeof(char) * size);
+	memset(data, 0, size);
 	
 	file.seekg(0, std::ios::beg);
-	file.read(reinterpret_cast<char*>(*ppData), dataSize);
+	file.read(data, size);
 	file.close();
 
 	m_cachedShaders[shaderType] = std::unique_ptr<ShaderManager::ShaderStruct>(new ShaderManager::ShaderStruct(data, size));

@@ -68,8 +68,8 @@ bool D3DResource::UpdateUploadBuffer(void* data, UINT size)
 	}
 
 	void* pMappedData;
-	D3D12_RANGE readRange = { 0, 0 };
-	if (FAILED(m_uploadeHeapResource->Map(0, &readRange, &pMappedData)))
+	//D3D12_RANGE readRange = { 0, 0 };
+	if (FAILED(m_uploadeHeapResource->Map(0, nullptr, &pMappedData)))
 	{
 		return false;
 	}
@@ -86,13 +86,11 @@ D3DResource::~D3DResource()
 {
 	if (m_uploadeHeapResource)
 	{
-		m_uploadeHeapResource->Release();
-		m_uploadeHeapResource = nullptr;
+		m_uploadeHeapResource.Reset();
 	}
 
 	if (m_defaultHeapResource)
 	{
-		m_defaultHeapResource->Release();
-		m_defaultHeapResource = nullptr;
+		m_defaultHeapResource.Reset();
 	}
 }

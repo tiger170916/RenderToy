@@ -286,34 +286,29 @@ DescriptorHeapManager::~DescriptorHeapManager()
 {
     if (m_rtvDescriptorHeap)
     {
-        m_rtvDescriptorHeap->Release();
-        m_rtvDescriptorHeap = nullptr;
+        m_rtvDescriptorHeap.Reset();
     }
 
     if (m_dsvDescriptorHeap)
     {
-        m_dsvDescriptorHeap->Release();
-        m_dsvDescriptorHeap = nullptr;
+        m_dsvDescriptorHeap.Reset();
     }
 
     if (m_samplerDescriptorHeap)
     {
-        m_samplerDescriptorHeap->Release();
-        m_samplerDescriptorHeap = nullptr;
+        m_samplerDescriptorHeap.Reset();
     }
 
     if (m_cbvSrvUavRingBuffer)
     {
-        m_cbvSrvUavRingBuffer->Release();
-        m_cbvSrvUavRingBuffer = nullptr;
+        m_cbvSrvUavRingBuffer.Reset();
     }
 
     for (auto& descHeap : m_cbvSrvUavDescriptorHeaps)
     {
         if (descHeap)
         {
-            descHeap->Release();
-            descHeap = nullptr;
+            descHeap.Reset();
         }
     }
 

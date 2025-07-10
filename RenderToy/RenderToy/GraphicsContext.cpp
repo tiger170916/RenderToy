@@ -20,6 +20,14 @@ bool GraphicsContext::Initialize(HWND hwnd)
         return false;
     }
 
+#ifdef _DEBUG
+    ComPtr<ID3D12Debug> debugController;
+    if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
+    {
+        debugController->EnableDebugLayer();
+    }
+#endif
+
     if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(m_idxgiFactory.GetAddressOf()))))
     {
         return false;
@@ -154,19 +162,16 @@ GraphicsContext::~GraphicsContext()
 {
     if (m_idxgiFactory)
     {
-        m_idxgiFactory->Release();
-        m_idxgiFactory = nullptr;
+        m_idxgiFactory.Reset();
     }
 
     if (m_pDevice)
     {
-        m_pDevice->Release();
-        m_pDevice = nullptr;
+        m_pDevice.Reset();
     }
 
     if (m_swapchain)
     {
-        m_swapchain->Release();
-        m_swapchain = nullptr;
+        m_swapchain.Reset();
     }
 }

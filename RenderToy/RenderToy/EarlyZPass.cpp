@@ -37,7 +37,9 @@ bool EarlyZPass::Initialize(ID3D12Device* pDevice, UINT adapterNodeMask, ShaderM
 	depthStencilResourceDesc.Width = width;
 	depthStencilResourceDesc.Height = height;
 	depthStencilResourceDesc.DepthOrArraySize = 1;
-	depthStencilResourceDesc.MipLevels = 1;
+	depthStencilResourceDesc.MipLevels = 0;
+	depthStencilResourceDesc.SampleDesc.Count = 1;
+	depthStencilResourceDesc.SampleDesc.Quality = 0;
 	depthStencilResourceDesc.Format = m_depthStencilFormat;
 	depthStencilResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	depthStencilResourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
@@ -81,7 +83,7 @@ bool EarlyZPass::Initialize(ID3D12Device* pDevice, UINT adapterNodeMask, ShaderM
 		return false;
 	}
 
-	if (FAILED(pDevice->CreateRootSignature(0, rootSignatureData, rootSignatureSize, IID_PPV_ARGS(&pipelineStateDesc.pRootSignature))))
+	if (FAILED(pDevice->CreateRootSignature(adapterNodeMask, rootSignatureData, rootSignatureSize, IID_PPV_ARGS(&pipelineStateDesc.pRootSignature))))
 	{
 		return false;
 	}
@@ -158,13 +160,11 @@ EarlyZPass::~EarlyZPass()
 {
 	if (m_depthStencilViewHeap)
 	{
-		m_depthStencilViewHeap->Release();
-		m_depthStencilViewHeap = nullptr;
+		m_depthStencilViewHeap.Reset();
 	}
 
 	if (m_depthStencilBuffer)
 	{
-		m_depthStencilBuffer->Release();
-		m_depthStencilBuffer = nullptr;
+		m_depthStencilBuffer.Reset();
 	}
 }

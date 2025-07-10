@@ -23,4 +23,8 @@ private:
 public:
 	bool GetShader(const ShaderType& shaderType, char** ppData, UINT& dataSize);
 
+	ShaderManager();
+
+	~ShaderManager();
+
 };

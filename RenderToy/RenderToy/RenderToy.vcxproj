@@ -72,6 +72,7 @@
     <PostBuildEvent>
       <Command>copy /Y "$(ProjectDir)RenderToyApi.h" "$(SolutionDir)Includes\RenderToyApi.h";
 copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)Libs\$(ProjectName).lib";
+copy /Y "$(TargetDir)$(ProjectName).dll" "$(SolutionDir)RenderToyEditor\$(ProjectName).dll";
 copy /Y "$(SolutionDir)FbxSdk\lib\x64\debug\libfbxsdk.dll" "$(SolutionDir)bin\libfbxsdk.dll";</Command>
     </PostBuildEvent>
     <PreBuildEvent>
@@ -102,6 +103,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <PostBuildEvent>
       <Command>copy /Y "$(ProjectDir)RenderToyApi.h" "$(SolutionDir)Includes\RenderToyApi.h";
 copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)Libs\$(ProjectName).lib";
+copy /Y "$(TargetDir)$(ProjectName).dll" "$(SolutionDir)RenderToy\RenderToyEditor\$(ProjectName).dll";
 copy /Y "$(SolutionDir)FbxSdk\lib\x64\release\libfbxsdk.dll" "$(SolutionDir)bin\libfbxsdk.dll";</Command>
     </PostBuildEvent>
     <PreBuildEvent>

@@ -36,8 +36,11 @@ bool Renderer::Initialize(HWND hwnd)
 
 	m_mainCommandBuilder = std::unique_ptr<CommandBuilder>(new CommandBuilder(D3D12_COMMAND_LIST_TYPE_DIRECT));
 	if (!m_mainCommandBuilder->Initialize(m_graphicsContext->GetDevice()))
+	{
+		return false;
+	}
 
-	m_shaderManager = std::unique_ptr<ShaderManager>(new ShaderManager());
+	m_shaderManager = std::make_unique<ShaderManager>();
 
 	// Initialize render passes
 	m_earlyZPass = std::unique_ptr<EarlyZPass>(new EarlyZPass());
