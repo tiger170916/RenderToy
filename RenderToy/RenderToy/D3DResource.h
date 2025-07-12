@@ -14,7 +14,11 @@ private:
 
 	ComPtr<ID3D12Resource> m_defaultHeapResource = nullptr;
 
-	ComPtr<ID3D12Resource> m_uploadeHeapResource = nullptr;
+	ComPtr<ID3D12Resource> m_uploadHeapResource = nullptr;
+
+	D3D12_RESOURCE_STATES m_defaultBufferCurrentState = D3D12_RESOURCE_STATE_COMMON;
+
+	D3D12_RESOURCE_STATES m_uploadBufferCurrentState = D3D12_RESOURCE_STATE_COMMON;
 
 	bool m_initialized = false;
  
@@ -25,9 +29,11 @@ public:
 
 	inline ID3D12Resource* GetDefaultResource() const { return m_defaultHeapResource.Get(); }
 
-	inline ID3D12Resource* GetUploadResource() const { return m_uploadeHeapResource.Get(); }
+	inline ID3D12Resource* GetUploadResource() const { return m_uploadHeapResource.Get(); }
 
 	bool UpdateUploadBuffer(void* data, UINT size);
+
+	bool CopyToDefaultHeap(ID3D12GraphicsCommandList* commandList);
 
 	~D3DResource();
 };

@@ -99,15 +99,32 @@ bool StaticMesh::BuildResource(ID3D12Device* pDevice, DescriptorHeapManager* des
 	return true;
 }
 
-void StaticMesh::Draw(ID3D12GraphicsCommandList* cmdList)
+void StaticMesh::Draw(ID3D12GraphicsCommandList* cmdList, DescriptorHeapManager* descriptorHeapManager)
 {
-	if (!cmdList)
+	if (!cmdList || !descriptorHeapManager)
+	{
+		return;
+	}
+
+	if (!m_instanceConstants->UpdateToGPU())
+	{
+		return;
+	}
+
+	D3D12_GPU_DESCRIPTOR_HANDLE instanceCbHandle;
+	if (!m_instanceConstants->BindConstantBufferViewToPipeline(descriptorHeapManager, instanceCbHandle))
 	{
 		return;
 	}
 
 	const D3D12_VERTEX_BUFFER_VIEW* pVbViews = &m_vertexBufferView;
 	const D3D12_INDEX_BUFFER_VIEW* pIbView = &m_indexBufferView;
+
+	m_vbResource->CopyToDefaultHeap(cmdList);
+	m_ibResource->CopyToDefaultHeap(cmdList);
+
+	cmdList->SetGraphicsRootDescriptorTable(1, instanceCbHandle);
+
 	cmdList->IASetVertexBuffers(0, 1, pVbViews);
 	cmdList->IASetIndexBuffer(pIbView);
 	cmdList->DrawIndexedInstanced((UINT)m_triangles.size(), (UINT)m_instances.size(), 0, 0, 0);

@@ -154,7 +154,7 @@ void EarlyZPass::Frame(std::shared_ptr<World> world, ID3D12GraphicsCommandList* 
 			continue;
 		}
 
-		staticMesh->Draw(commandList);
+		staticMesh->Draw(commandList, descHeapManager);
 	}
 }
 

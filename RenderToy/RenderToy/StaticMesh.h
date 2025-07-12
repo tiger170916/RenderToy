@@ -50,5 +50,6 @@ public:
 
 	bool BuildResource(ID3D12Device* pDevice, DescriptorHeapManager* descriptorHeapManager);
 
-	void Draw(ID3D12GraphicsCommandList* cmdList);
+	void Draw(ID3D12GraphicsCommandList* cmdList, DescriptorHeapManager* descriptorHeapManager);
+
 };

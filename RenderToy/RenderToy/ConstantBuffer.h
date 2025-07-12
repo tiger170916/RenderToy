@@ -18,6 +18,8 @@ private:
 
 	bool m_initialized = false;
 
+	bool m_dirty = false;
+
 public:
 	ConstantBuffer(UINT numInstances = 1)
 	{
@@ -31,9 +33,13 @@ public:
 		m_numInstances = numInstances;
 	}
 
-
+	inline void MarkDirty()
+	{
+		m_dirty = true;
+	}
 
 	T& operator [](int idx) {
+		m_dirty = true;
 		return m_buffer[idx];
 	}
 
@@ -75,6 +81,7 @@ public:
 		m_cbvId = descriptorHeapManager->CreateConstantBufferView(&cbvDesc);
 
 		m_initialized = true;
+		m_dirty = true;
 		return true;
 	}
 
@@ -83,6 +90,11 @@ public:
 		if (!m_initialized)
 		{
 			return false;
+		}
+
+		if (!m_dirty)
+		{
+			return true;
 		}
 
 		if (!m_resource)

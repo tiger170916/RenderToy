@@ -123,6 +123,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="FbxLoader.cpp" />
     <ClCompile Include="GraphicsContext.cpp" />
     <ClCompile Include="GraphicsPipelineState.cpp" />
+    <ClCompile Include="GraphicsUtils.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderPassBase.cpp" />
     <ClCompile Include="RenderToyApi.cpp" />
@@ -146,6 +147,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="GlobalStructs.h" />
     <ClInclude Include="GraphicsContext.h" />
     <ClInclude Include="GraphicsPipelineState.h" />
+    <ClInclude Include="GraphicsUtils.h" />
     <ClInclude Include="Includes.h" />
     <ClInclude Include="Macros.h" />
     <ClInclude Include="MeshStructs.h" />
