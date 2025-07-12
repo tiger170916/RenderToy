@@ -13,6 +13,8 @@ private:
 
 	UINT64 m_dsvId = UINT64_MAX;
 
+	UINT64 m_srvId = UINT64_MAX;
+
 	D3D12_VIEWPORT m_viewport;
 
 	D3D12_RECT m_scissorRect;
@@ -26,5 +28,5 @@ public:
 
 	bool Initialize(GraphicsContext* graphicsContext, ShaderManager* shaderMgr, UINT width, UINT height);
 
-	virtual void Frame(std::shared_ptr<World> world, ID3D12GraphicsCommandList* commandList, GraphicsContext* graphicsContext) override;
+	virtual void Frame(std::shared_ptr<World> world, ID3D12GraphicsCommandList* commandList, GraphicsContext* graphicsContext, PipelineOutputsStruct& outputs) override;
 };

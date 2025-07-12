@@ -153,6 +153,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="LightingPass.h" />
     <ClInclude Include="Macros.h" />
     <ClInclude Include="MeshStructs.h" />
+    <ClInclude Include="PipelineOutputs.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderPassBase.h" />
     <ClInclude Include="RenderPassType.h" />

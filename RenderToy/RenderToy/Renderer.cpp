@@ -114,10 +114,13 @@ void Renderer::Frame()
 		delta = (float)(nowInMicroSecs - m_lastRenderTime) / 1000000.0f;
 	}
 
+	// Outputs which will be passed down to the render pipelines
+	PipelineOutputsStruct pipelineOutputs = {};
+
 	FrameBegin();
 
 	ID3D12GraphicsCommandList* commandList = m_mainCommandBuilder->GetCommandList();
-	m_earlyZPass->Frame(m_activeWorld, commandList, m_graphicsContext.get());
+	m_earlyZPass->Frame(m_activeWorld, commandList, m_graphicsContext.get(), pipelineOutputs);
 
 	FrameEnd();
 

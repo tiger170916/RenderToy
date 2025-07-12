@@ -66,6 +66,21 @@ bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 		return false;
 	}
 
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	srvDesc.Shader4ComponentMapping = D3D12_ENCODE_SHADER_4_COMPONENT_MAPPING(0, 0, 0, 0);
+	srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+	srvDesc.Texture2D.PlaneSlice = 0;
+
+	m_srvId = descHeapManager->CreateShaderResourceView(m_depthStencilBuffer.Get(), &srvDesc);
+	if (m_srvId == UINT64_MAX)
+	{
+		return false;
+	}
+
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
 	descHeapManager->GetDepthStencilViewCpuHandle(m_dsvId, dsvHandle);
 
@@ -126,7 +141,7 @@ bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 	return true;
 }
 
-void EarlyZPass::Frame(std::shared_ptr<World> world, ID3D12GraphicsCommandList* commandList, GraphicsContext* graphicsContext)
+void EarlyZPass::Frame(std::shared_ptr<World> world, ID3D12GraphicsCommandList* commandList, GraphicsContext* graphicsContext, PipelineOutputsStruct& outputs)
 {
 	if (world == nullptr || commandList == nullptr || graphicsContext == nullptr)
 	{
@@ -161,6 +176,11 @@ void EarlyZPass::Frame(std::shared_ptr<World> world, ID3D12GraphicsCommandList* 
 
 		staticMesh->Draw(graphicsContext, commandList);
 	}
+
+	// Depth buffer output
+	PipelineOutput depthBufferOutput = {};
+	depthBufferOutput.SrvId = m_srvId;
+	outputs.Outputs[PipelinePassOutputType::EARLY_Z_PASS_DEPTH_BUFFER] = depthBufferOutput;
 }
 
 EarlyZPass::~EarlyZPass()

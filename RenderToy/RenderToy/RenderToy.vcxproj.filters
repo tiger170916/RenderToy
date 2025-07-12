@@ -166,6 +166,9 @@
     <ClInclude Include="LightingPass.h">
       <Filter>RenderPasses</Filter>
     </ClInclude>
+    <ClInclude Include="PipelineOutputs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\EarlyZPass.hlsl">
