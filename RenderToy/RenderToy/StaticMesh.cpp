@@ -25,13 +25,6 @@ void StaticMesh::AddTriangle(int& v1, int& v2, int& v3)
 void StaticMesh::AddInstance(const Transform& transform)
 {
 	m_instances.push_back(transform);
-
-	XMMATRIX transformMatrix = XMMatrixIdentity();
-	XMMATRIX rotation = XMMatrixRotationRollPitchYaw(transform.Rotation.Pitch, transform.Rotation.Yaw, transform.Rotation.Roll);
-	XMMATRIX translation = XMMatrixTranslation(transform.Translation.X, transform.Translation.Y, transform.Translation.Z);
-	XMMATRIX scale = XMMatrixScaling(transform.Scale.X, transform.Scale.Y, transform.Scale.Z);
-	transformMatrix = scale * rotation * translation;
-	m_transformMatrices.push_back(transformMatrix);
 }
 
 void StaticMesh::EnableRenderPass(const RenderPass& renderPass)
@@ -88,11 +81,6 @@ bool StaticMesh::BuildResource(ID3D12Device* pDevice, DescriptorHeapManager* des
 	m_indexBufferView.SizeInBytes = (UINT)m_triangles.size() * sizeof(UINT);
 
 	m_instanceConstants = std::unique_ptr<ConstantBuffer<MeshInstanceConstants>>(new ConstantBuffer<MeshInstanceConstants>(64));
-	
-	for (int i = 0; i < min(64, m_instances.size()); i++)
-	{
-		//(*m_instanceConstants)[i].TransformMatrix = m_instances[i];
-	}
 
 	m_instanceConstants->Initialize(pDevice, descriptorHeapManager);
 
@@ -104,6 +92,21 @@ void StaticMesh::Draw(ID3D12GraphicsCommandList* cmdList, DescriptorHeapManager*
 	if (!cmdList || !descriptorHeapManager)
 	{
 		return;
+	}
+
+	for (int i = 0; i < m_instances.size(); i++)
+	{
+		MeshInstanceConstants updateCb = {};
+		
+		Transform& transform = m_instances[i];
+		XMMATRIX transformMatrix = XMMatrixIdentity();
+		XMMATRIX rotation = XMMatrixRotationRollPitchYaw(transform.Rotation.Pitch, transform.Rotation.Yaw, transform.Rotation.Roll);
+		XMMATRIX translation = XMMatrixTranslation(transform.Translation.X, transform.Translation.Y, transform.Translation.Z);
+		XMMATRIX scale = XMMatrixScaling(transform.Scale.X, transform.Scale.Y, transform.Scale.Z);
+		transformMatrix = scale * rotation * translation;
+		
+		DirectX::XMStoreFloat4x4(&updateCb.TransformMatrix, DirectX::XMMatrixTranspose(transformMatrix));
+		(*m_instanceConstants)[i] = updateCb;
 	}
 
 	if (!m_instanceConstants->UpdateToGPU())

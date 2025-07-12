@@ -14,6 +14,7 @@ private:
 
 	std::vector<int> m_triangles;
 
+	// Currently instance only contains transform data (extent to a struct)
 	std::vector<Transform> m_instances;
 
 	std::set<RenderPass> m_enabledPasses;
@@ -30,8 +31,6 @@ private:
 	D3D12_INDEX_BUFFER_VIEW m_indexBufferView = {};
 
 	std::unique_ptr<ConstantBuffer<MeshInstanceConstants>> m_instanceConstants = nullptr;
-
-	std::vector<XMMATRIX> m_transformMatrices;
 
 public:
 	StaticMesh();
