@@ -4,20 +4,20 @@ World::World() {}
 
 World::~World() {}
 
-bool World::Initialize(ID3D12Device* pDevice, DescriptorHeapManager* descriptorHeapManager)
+bool World::Initialize(GraphicsContext* graphicsContext)
 {
 	if (m_initialized)
 	{
 		return true;
 	}
 
-	if (!pDevice || !descriptorHeapManager)
+	if (!graphicsContext)
 	{
 		return false;
 	}
 
 	m_uniformFrameConstantBuffer = std::unique_ptr<ConstantBuffer<UniformFrameConstants>>(new ConstantBuffer<UniformFrameConstants>());
-	if (!m_uniformFrameConstantBuffer->Initialize(pDevice, descriptorHeapManager))
+	if (!m_uniformFrameConstantBuffer->Initialize(graphicsContext))
 	{
 		return false;
 	}

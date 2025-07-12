@@ -113,7 +113,7 @@ bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 	pipelineStateDesc.InputLayout.NumElements = 1;
 	pipelineStateDesc.InputLayout.pInputElementDescs = meshInputLayout;
 
-	if (!m_graphicsPipelineState->Initialize(pDevice, adapterNodeMask, shaderMgr, ShaderType::EARLY_Z_PASS_ROOT_SIGNATURE, ShaderType::EARLY_Z_PASS_VERTEX_SHADER, ShaderType::SHADER_TYPE_NONE))
+	if (!m_graphicsPipelineState->Initialize(graphicsContext, shaderMgr, ShaderType::EARLY_Z_PASS_ROOT_SIGNATURE, ShaderType::EARLY_Z_PASS_VERTEX_SHADER, ShaderType::SHADER_TYPE_NONE))
 	{
 		return false;
 	}
@@ -144,7 +144,7 @@ void EarlyZPass::Frame(std::shared_ptr<World> world, ID3D12GraphicsCommandList* 
 	// Bind uniform frame constant buffer
 	D3D12_GPU_DESCRIPTOR_HANDLE uniformFrameGpuHandle;
 
-	world->GetUniformFrameConstantBuffer()->BindConstantBufferViewToPipeline(graphicsContext->GetDescriptorHeapManager(), uniformFrameGpuHandle);
+	world->GetUniformFrameConstantBuffer()->BindConstantBufferViewToPipeline(graphicsContext, uniformFrameGpuHandle);
 	commandList->SetGraphicsRootDescriptorTable(0, uniformFrameGpuHandle);
 
 	for (auto& staticMesh : world->GetAllStaticMeshes())
@@ -154,7 +154,7 @@ void EarlyZPass::Frame(std::shared_ptr<World> world, ID3D12GraphicsCommandList* 
 			continue;
 		}
 
-		staticMesh->Draw(commandList, descHeapManager);
+		staticMesh->Draw(graphicsContext, commandList);
 	}
 }
 

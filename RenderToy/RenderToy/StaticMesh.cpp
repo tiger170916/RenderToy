@@ -37,12 +37,14 @@ bool StaticMesh::PassEnabled(const RenderPass& renderPass)
 	return m_enabledPasses.contains(renderPass);
 }
 
-bool StaticMesh::BuildResource(ID3D12Device* pDevice, DescriptorHeapManager* descriptorHeapManager)
+bool StaticMesh::BuildResource(GraphicsContext* graphicsContext)
 {
-	if (!pDevice || !descriptorHeapManager)
+	if (!graphicsContext)
 	{
 		return false;
 	}
+
+	ID3D12Device* pDevice = graphicsContext->GetDevice();
 
 	// Build vertex buffer resources
 	m_vbResource = std::unique_ptr<D3DResource>(new D3DResource(true));
@@ -59,7 +61,7 @@ bool StaticMesh::BuildResource(ID3D12Device* pDevice, DescriptorHeapManager* des
 	}
 
 	auto vbDesc = CD3DX12_RESOURCE_DESC::Buffer(vertices.size() * sizeof(MeshVertex));
-	if (!m_vbResource->Initialize(pDevice, &vbDesc, vertices.data(), (UINT)vertices.size() * sizeof(MeshVertex)))
+	if (!m_vbResource->Initialize(graphicsContext, &vbDesc, vertices.data(), (UINT)vertices.size() * sizeof(MeshVertex)))
 	{
 		return false;
 	}
@@ -67,7 +69,7 @@ bool StaticMesh::BuildResource(ID3D12Device* pDevice, DescriptorHeapManager* des
 	// Build index buffer resources
 	m_ibResource = std::unique_ptr<D3DResource>(new D3DResource(true));
 	auto ibDesc = CD3DX12_RESOURCE_DESC::Buffer(m_triangles.size() * sizeof(int));
-	if (!m_ibResource->Initialize(pDevice, &ibDesc, m_triangles.data(), (UINT)m_triangles.size() * sizeof(int)))
+	if (!m_ibResource->Initialize(graphicsContext, &ibDesc, m_triangles.data(), (UINT)m_triangles.size() * sizeof(int)))
 	{
 		return false;
 	}
@@ -82,14 +84,14 @@ bool StaticMesh::BuildResource(ID3D12Device* pDevice, DescriptorHeapManager* des
 
 	m_instanceConstants = std::unique_ptr<ConstantBuffer<MeshInstanceConstants>>(new ConstantBuffer<MeshInstanceConstants>(64));
 
-	m_instanceConstants->Initialize(pDevice, descriptorHeapManager);
+	m_instanceConstants->Initialize(graphicsContext);
 
 	return true;
 }
 
-void StaticMesh::Draw(ID3D12GraphicsCommandList* cmdList, DescriptorHeapManager* descriptorHeapManager)
+void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList)
 {
-	if (!cmdList || !descriptorHeapManager)
+	if (!graphicsContext || !cmdList)
 	{
 		return;
 	}
@@ -115,7 +117,7 @@ void StaticMesh::Draw(ID3D12GraphicsCommandList* cmdList, DescriptorHeapManager*
 	}
 
 	D3D12_GPU_DESCRIPTOR_HANDLE instanceCbHandle;
-	if (!m_instanceConstants->BindConstantBufferViewToPipeline(descriptorHeapManager, instanceCbHandle))
+	if (!m_instanceConstants->BindConstantBufferViewToPipeline(graphicsContext, instanceCbHandle))
 	{
 		return;
 	}

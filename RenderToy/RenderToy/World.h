@@ -20,7 +20,7 @@ private:
 public:
 	World();
 
-	bool Initialize(ID3D12Device* pDevice, DescriptorHeapManager* descriptorHeapManager);
+	bool Initialize(GraphicsContext* graphicsContext);
 
 	~World();
 

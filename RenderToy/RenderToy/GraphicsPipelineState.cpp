@@ -5,17 +5,19 @@ GraphicsPipelineState::GraphicsPipelineState() {}
 GraphicsPipelineState::~GraphicsPipelineState() {}
 
 bool GraphicsPipelineState::Initialize(
-	ID3D12Device* pDevice,
-	UINT adapterNodeMask,
+	GraphicsContext* graphicsContext,
 	ShaderManager* shaderManager,
 	ShaderType rootSignature,
 	ShaderType vertexShader,
 	ShaderType pixelShader)
 {
-	if (!pDevice || !shaderManager)
+	if (!graphicsContext || !shaderManager)
 	{
 		return false;
 	}
+
+	ID3D12Device* pDevice = graphicsContext->GetDevice();
+	UINT adapterNodeMask = graphicsContext->GetAdapterNodeMask();
 
 	char* rootSignatureData = nullptr;
 	UINT rootSignatureSize = 0;

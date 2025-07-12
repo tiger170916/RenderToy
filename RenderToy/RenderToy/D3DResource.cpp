@@ -6,17 +6,19 @@ D3DResource::D3DResource(bool needCopyToDefaultHeap)
 {
 }
 
-bool D3DResource::Initialize(ID3D12Device* pDevice, const D3D12_RESOURCE_DESC* pResourceDesc, void* data, UINT dataSize)
+bool D3DResource::Initialize(GraphicsContext* graphicsContext, const D3D12_RESOURCE_DESC* pResourceDesc, void* data, UINT dataSize)
 {
 	if (m_initialized)
 	{
 		return true;
 	}
 
-	if (pDevice == nullptr || pResourceDesc == nullptr || data == nullptr || dataSize <= 0)
+	if (graphicsContext == nullptr || pResourceDesc == nullptr || data == nullptr || dataSize <= 0)
 	{
 		return false;
 	}
+
+	ID3D12Device* pDevice = graphicsContext->GetDevice();
 
 	auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 

@@ -3,6 +3,7 @@
 #include "Includes.h"
 #include "ShaderType.h"
 #include "ShaderManager.h"
+#include "GraphicsContext.h"
 
 class GraphicsPipelineState
 {
@@ -19,8 +20,7 @@ public:
 	~GraphicsPipelineState();
 
 	bool Initialize(
-		ID3D12Device* pDevice,
-		UINT adapterNodeMask,
+		GraphicsContext* graphicsContext,
 		ShaderManager* shaderManager,
 		ShaderType rootSignature,
 		ShaderType vertexShader,

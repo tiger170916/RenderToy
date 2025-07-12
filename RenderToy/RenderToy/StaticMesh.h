@@ -47,8 +47,8 @@ public:
 
 	bool PassEnabled(const RenderPass& renderPass);
 
-	bool BuildResource(ID3D12Device* pDevice, DescriptorHeapManager* descriptorHeapManager);
+	bool BuildResource(GraphicsContext* graphicsContext);
 
-	void Draw(ID3D12GraphicsCommandList* cmdList, DescriptorHeapManager* descriptorHeapManager);
+	void Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList);
 
 };

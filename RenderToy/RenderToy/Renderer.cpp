@@ -51,7 +51,7 @@ bool Renderer::Initialize(HWND hwnd)
 
 	m_activeWorld = std::shared_ptr<World>(new World());
 	m_activeWorld->SetActiveCamera(m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight(), FVector3::Zero(), FRotator::Zero());
-	m_activeWorld->Initialize(m_graphicsContext->GetDevice(), m_graphicsContext->GetDescriptorHeapManager());
+	m_activeWorld->Initialize(m_graphicsContext.get());
 
 	// Test world
 	std::vector<std::shared_ptr<StaticMesh>> meshes;
@@ -64,7 +64,7 @@ bool Renderer::Initialize(HWND hwnd)
 		mesh->EnableRenderPass(RenderPass::DEFFERED_RENDER_PASS);
 		mesh->EnableRenderPass(RenderPass::LIGHTING_PASS);
 
-		mesh->BuildResource(m_graphicsContext->GetDevice(), m_graphicsContext->GetDescriptorHeapManager());
+		mesh->BuildResource(m_graphicsContext.get());
 	}
 
 	m_activeWorld->SpawnStaticMeshes(meshes);

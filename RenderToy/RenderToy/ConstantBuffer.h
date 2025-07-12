@@ -2,7 +2,7 @@
 
 #include "Includes.h"
 #include "D3DResource.h"
-#include "DescriptorHeapManager.h"
+#include "GraphicsContext.h"
 
 template <typename T>
 class ConstantBuffer
@@ -47,28 +47,38 @@ public:
 		return m_buffer[idx];
 	}
 
-	inline bool BindConstantBufferViewToPipeline(DescriptorHeapManager* descriptorHeapManager, D3D12_GPU_DESCRIPTOR_HANDLE& gpuDescriptorHandle)
+	inline bool BindConstantBufferViewToPipeline(GraphicsContext* graphicsContext, D3D12_GPU_DESCRIPTOR_HANDLE& gpuDescriptorHandle)
 	{
+		if (!graphicsContext)
+		{
+			return false;
+		}
+
+		DescriptorHeapManager* descriptorHeapManager = graphicsContext->GetDescriptorHeapManager();
+
 		return descriptorHeapManager->BindCbvSrvUavToPipeline(m_cbvId, gpuDescriptorHandle);
 	}
 
-	bool Initialize(ID3D12Device* pDevice, DescriptorHeapManager* descriptorHeapManager)
+	bool Initialize(GraphicsContext* graphicsContext)
 	{
 		if (m_initialized)
 		{
 			return true;
 		}
 
-		if (!pDevice || !descriptorHeapManager)
+		if (!graphicsContext)
 		{
 			return false;
 		}
+
+		ID3D12Device* pDevice = graphicsContext->GetDevice();
+		DescriptorHeapManager* descriptorHeapManager = graphicsContext->GetDescriptorHeapManager();
 
 		UINT bufferSize = (sizeof(T) * m_numInstances + 255) & ~255;
 		m_resource = std::unique_ptr<D3DResource>(new D3DResource(false));
 
 		auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
-		if (!m_resource->Initialize(pDevice, &bufferDesc, m_buffer.data(), bufferSize))
+		if (!m_resource->Initialize(graphicsContext, &bufferDesc, m_buffer.data(), bufferSize))
 		{
 			return false;
 		}
