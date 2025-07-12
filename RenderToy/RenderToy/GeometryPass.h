@@ -3,7 +3,7 @@
 #include "Includes.h"
 #include "RenderPassBase.h"
 
-class DeferredRenderPass : public RenderPassBase
+class GeometryPass : public RenderPassBase
 {
 private:
 	D3D12_VIEWPORT m_viewport;
@@ -13,9 +13,9 @@ private:
 	bool m_initialized = false;
 
 public:
-	DeferredRenderPass();
+	GeometryPass();
 
-	~DeferredRenderPass();
+	~GeometryPass();
 
 	bool Initialize(GraphicsContext* graphicsContext, ShaderManager* shaderMgr, UINT width, UINT height);
 

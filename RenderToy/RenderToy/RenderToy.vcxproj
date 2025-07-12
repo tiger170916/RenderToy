@@ -116,7 +116,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="CommandBuilder.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="D3DResource.cpp" />
-    <ClCompile Include="DeferredRenderPass.cpp" />
+    <ClCompile Include="GeometryPass.cpp" />
     <ClCompile Include="DescriptorHeapManager.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="EarlyZPass.cpp" />
@@ -141,7 +141,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="ConstantBuffer.h" />
     <ClInclude Include="D3DResource.h" />
     <ClInclude Include="d3dx12.h" />
-    <ClInclude Include="DeferredRenderPass.h" />
+    <ClInclude Include="GeometryPass.h" />
     <ClInclude Include="DescriptorHeapManager.h" />
     <ClInclude Include="EarlyZPass.h" />
     <ClInclude Include="FbxLoader.h" />
@@ -176,6 +176,9 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="Shaders\GeometryPass.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="Shaders\MeshVertex.hlsli">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>

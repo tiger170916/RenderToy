@@ -5,6 +5,7 @@
 #include "World.h"
 #include "ShaderManager.h"
 #include "EarlyZPass.h"
+#include "GeometryPass.h"
 #include "CommandQueue.h"
 #include "CommandBuilder.h"
 

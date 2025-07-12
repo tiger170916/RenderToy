@@ -41,7 +41,7 @@
     <ClCompile Include="StaticMesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DeferredRenderPass.cpp">
+    <ClCompile Include="GeometryPass.cpp">
       <Filter>RenderPasses</Filter>
     </ClCompile>
     <ClCompile Include="EarlyZPass.cpp">
@@ -109,7 +109,7 @@
     <ClInclude Include="Vectors.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DeferredRenderPass.h">
+    <ClInclude Include="GeometryPass.h">
       <Filter>RenderPasses</Filter>
     </ClInclude>
     <ClInclude Include="EarlyZPass.h">
@@ -175,6 +175,9 @@
       <Filter>ShaderSource</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\MeshVertex.hlsli">
+      <Filter>ShaderSource</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\GeometryPass.hlsl">
       <Filter>ShaderSource</Filter>
     </FxCompile>
   </ItemGroup>
