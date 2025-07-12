@@ -10,12 +10,12 @@ StaticMesh::~StaticMesh()
 
 }
 
-void StaticMesh::AddPoint(float& x, float& y, float& z)
+void StaticMesh::AddPoint(const float& x, const float& y, const float& z)
 {
 	m_points.push_back(FVector3(x, y, z));
 }
 
-void StaticMesh::AddTriangle(int& v1, int& v2, int& v3)
+void StaticMesh::AddTriangle(const int& v1, const int& v2, const int& v3)
 {
 	m_triangles.push_back(v1);
 	m_triangles.push_back(v2);

@@ -77,6 +77,9 @@
     <ClCompile Include="GraphicsUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LightingPass.cpp">
+      <Filter>RenderPasses</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -159,6 +162,9 @@
     </ClInclude>
     <ClInclude Include="GraphicsUtils.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LightingPass.h">
+      <Filter>RenderPasses</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -50,7 +50,7 @@ bool Renderer::Initialize(HWND hwnd)
 	}
 
 	m_activeWorld = std::shared_ptr<World>(new World());
-	m_activeWorld->SetActiveCamera(m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight(), FVector3::Zero(), FRotator::Zero());
+	m_activeWorld->SetActiveCamera(m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight(), FVector3(0, 0, -20), FRotator::Zero());
 	m_activeWorld->Initialize(m_graphicsContext.get());
 
 	// Test world

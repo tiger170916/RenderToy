@@ -67,9 +67,9 @@ void FbxLoader::ProcessNode(FbxNode* pNode, std::vector<std::shared_ptr<StaticMe
             FbxVector4* controlPoints = pMesh->GetControlPoints();
             for (int j = 0; j < controlPointCount; ++j)
             {
-                float x = (float)controlPoints[j][0];
-                float y = (float)controlPoints[j][1];
-                float z = (float)controlPoints[j][2];
+                float x = (float)controlPoints[j][0] / 100.0f;
+                float y = (float)controlPoints[j][1] / 100.0f;
+                float z = (float)controlPoints[j][2] / 100.0f;
                 staticMesh->AddPoint(x, y, z);
             }
 

@@ -37,9 +37,9 @@ public:
 
 	~StaticMesh();
 
-	void AddPoint(float& x, float& y, float& z);
+	void AddPoint(const float& x, const float& y, const float& z);
 
-	void AddTriangle(int& v1, int& v2, int& v3);
+	void AddTriangle(const int& v1, const int& v2, const int& v3);
 
 	void AddInstance(const Transform& transform);
 

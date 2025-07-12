@@ -124,6 +124,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="GraphicsContext.cpp" />
     <ClCompile Include="GraphicsPipelineState.cpp" />
     <ClCompile Include="GraphicsUtils.cpp" />
+    <ClCompile Include="LightingPass.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderPassBase.cpp" />
     <ClCompile Include="RenderToyApi.cpp" />
@@ -149,6 +150,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="GraphicsPipelineState.h" />
     <ClInclude Include="GraphicsUtils.h" />
     <ClInclude Include="Includes.h" />
+    <ClInclude Include="LightingPass.h" />
     <ClInclude Include="Macros.h" />
     <ClInclude Include="MeshStructs.h" />
     <ClInclude Include="Renderer.h" />

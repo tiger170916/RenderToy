@@ -11,7 +11,7 @@ struct MeshInstanceConstants
 
 cbuffer cbMeshInstanceConstants : register(b1)
 {
-    MeshInstanceConstants MeshInstances[56];
+    MeshInstanceConstants MeshInstances[64];
     
 };
 

@@ -3,7 +3,7 @@
 Camera::Camera(UINT width, UINT height, FVector3 initPosition, FRotator initRotation)
 	: m_width(width), m_height(height), m_position(initPosition), m_rotator(initRotation)
 {
-	m_projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(0.25f * DirectX::XM_PI, (float)m_width / (float)m_height, 0.5f, 26620000.0f);
+	m_projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(0.25f * DirectX::XM_PI, (float)m_width / (float)m_height, 0.5f, 1000.0f);
 	CalculateViewMatrix();
 }
 

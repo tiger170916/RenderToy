@@ -30,7 +30,7 @@ bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 	depthStencilResourceDesc.Width = width;
 	depthStencilResourceDesc.Height = height;
 	depthStencilResourceDesc.DepthOrArraySize = 1;
-	depthStencilResourceDesc.MipLevels = 0;
+	depthStencilResourceDesc.MipLevels = 1;
 	depthStencilResourceDesc.SampleDesc.Count = 1;
 	depthStencilResourceDesc.SampleDesc.Quality = 0;
 	depthStencilResourceDesc.Format = m_depthStencilFormat;
@@ -73,6 +73,7 @@ bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 		m_depthStencilBuffer.Get(),
 		&dsvDesc,
 		dsvHandle);
+
 
 	m_graphicsPipelineState = std::unique_ptr<GraphicsPipelineState>(new GraphicsPipelineState());
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc = m_graphicsPipelineState->GraphicsPipelineStateDesc();
@@ -118,6 +119,8 @@ bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 		return false;
 	}
 
+	m_viewport = D3D12_VIEWPORT{0.0f, 0.0f, (float)width, (float)height, 0.0f, 1.0f};
+	m_scissorRect = { 0, 0, (long)width, (long)height };
 	m_initialized = true;
 
 	return true;
@@ -140,6 +143,8 @@ void EarlyZPass::Frame(std::shared_ptr<World> world, ID3D12GraphicsCommandList* 
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 	commandList->OMSetRenderTargets(0, nullptr, false, &dsvHandle);
+	commandList->RSSetViewports(1, &m_viewport);
+	commandList->RSSetScissorRects(1, &m_scissorRect);
 
 	// Bind uniform frame constant buffer
 	D3D12_GPU_DESCRIPTOR_HANDLE uniformFrameGpuHandle;

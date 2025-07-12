@@ -13,6 +13,10 @@ private:
 
 	UINT64 m_dsvId = UINT64_MAX;
 
+	D3D12_VIEWPORT m_viewport;
+
+	D3D12_RECT m_scissorRect;
+
 	bool m_initialized = false;
 
 public:
