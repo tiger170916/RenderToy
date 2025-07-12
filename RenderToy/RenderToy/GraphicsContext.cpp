@@ -91,8 +91,14 @@ bool GraphicsContext::Initialize(HWND hwnd)
     m_samplerDescriptorSize = m_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 
     // Create direct command queue
-    m_directCommandQueue = std::unique_ptr<CommandQueue>(new CommandQueue(D3D12_COMMAND_QUEUE_FLAG_NONE, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_QUEUE_PRIORITY_NORMAL, adapterIndex));
-    if (!m_directCommandQueue->Initialize(m_pDevice.Get()))
+    m_swapchainCommandQueue = std::unique_ptr<CommandQueue>(new CommandQueue(D3D12_COMMAND_QUEUE_FLAG_NONE, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_QUEUE_PRIORITY_NORMAL, adapterIndex));
+    if (!m_swapchainCommandQueue->Initialize(m_pDevice.Get()))
+    {
+        return false;
+    }
+
+    m_swapchainCommandBuilder = std::unique_ptr<CommandBuilder>(new CommandBuilder(D3D12_COMMAND_LIST_TYPE_DIRECT));
+    if (!m_swapchainCommandBuilder->Initialize(m_pDevice.Get()))
     {
         return false;
     }
@@ -109,7 +115,7 @@ bool GraphicsContext::Initialize(HWND hwnd)
 
     ComPtr<IDXGISwapChain1> swapchain1 = nullptr;
     if (FAILED(m_idxgiFactory->CreateSwapChainForHwnd(
-        m_directCommandQueue->GetCommandQueue(),        // Swap chain needs the queue so that it can force a flush on it.
+        m_swapchainCommandQueue->GetCommandQueue(),        // Swap chain needs the queue so that it can force a flush on it.
         hwnd,
         &swapChainDesc,
         nullptr,
@@ -126,12 +132,12 @@ bool GraphicsContext::Initialize(HWND hwnd)
 
     for (UINT i = 0; i < m_numFrameBuffers; i++)
     {
-        if (FAILED(m_swapchain->GetBuffer(i, IID_PPV_ARGS(&m_swapchainbuffer[i]))))
+        if (FAILED(m_swapchain->GetBuffer(i, IID_PPV_ARGS(m_swapchainBuffers[i].GetAddressOf()))))
         {
             return false;
         }
 
-        uint64_t rtvId = m_descriptorHeapManager->CreateRenderTargetView(m_swapchainbuffer[i].Get(), nullptr);
+        uint64_t rtvId = m_descriptorHeapManager->CreateRenderTargetView(m_swapchainBuffers[i].Get(), nullptr);
         m_rtvIds[i] = rtvId;
     }
 
@@ -157,6 +163,48 @@ bool GraphicsContext::Initialize(HWND hwnd)
     return true;
 }
 
+bool GraphicsContext::CopyToCurrentBackBuffer()
+{
+    m_swapchainCommandBuilder->Reset();
+
+    ID3D12GraphicsCommandList* commandList = m_swapchainCommandBuilder->GetCommandList();
+
+    D3D12_CPU_DESCRIPTOR_HANDLE rtv;
+    m_descriptorHeapManager->GetRenderTargetViewCpuHandle(m_rtvIds[m_currentBackbuffer], rtv);
+    float clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+    
+    D3D12_RESOURCE_BARRIER transitionFromPresentToRenderTarget = CD3DX12_RESOURCE_BARRIER::Transition(
+        m_swapchainBuffers[m_currentBackbuffer].Get(),
+        D3D12_RESOURCE_STATE_PRESENT,
+        D3D12_RESOURCE_STATE_RENDER_TARGET
+    );
+
+    commandList->ResourceBarrier(1, &transitionFromPresentToRenderTarget);
+    commandList->OMSetRenderTargets(1, &rtv, false, nullptr);
+    commandList->ClearRenderTargetView(rtv, clearColor, 0, NULL);
+
+    D3D12_RESOURCE_BARRIER transitionFromRenderTargetToPresent = CD3DX12_RESOURCE_BARRIER::Transition(
+        m_swapchainBuffers[m_currentBackbuffer].Get(),
+        D3D12_RESOURCE_STATE_RENDER_TARGET,
+        D3D12_RESOURCE_STATE_PRESENT
+    );
+
+    commandList->ResourceBarrier(1, &transitionFromRenderTargetToPresent);
+
+    m_swapchainCommandBuilder->Close();
+    m_swapchainCommandQueue->DispatchCommands(m_swapchainCommandBuilder.get());
+    m_swapchainCommandQueue->SignalAndWait();
+
+    return true;
+}
+
+bool GraphicsContext::PresentCurrentBackBuffer()
+{
+    m_currentBackbuffer = (m_currentBackbuffer + 1) % m_numFrameBuffers;
+
+    return SUCCEEDED(m_swapchain->Present(0, 0));
+
+}
 
 GraphicsContext::~GraphicsContext()
 {

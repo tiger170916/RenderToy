@@ -18,10 +18,10 @@ bool DescriptorHeapManager::Initialize()
     }
 
     // Get desc sizes of all types.
-    UINT m_rtvDescriptorSize = m_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    UINT m_dsvDescriptorSize = m_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-    UINT m_cbvSrvUavDescriptorSize = m_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    UINT m_samplerDescriptorSize = m_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+    m_rtvDescriptorSize = m_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    m_dsvDescriptorSize = m_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+    m_cbvSrvUavDescriptorSize = m_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    m_samplerDescriptorSize = m_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 
     // Create Rtv heap, this heap is used for all render targets, and swapchain buffers
     D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
@@ -217,8 +217,8 @@ bool DescriptorHeapManager::BindCbvSrvUavToPipeline(uint64_t viewId, D3D12_GPU_D
     CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHeapHandleDst(m_cbvSrvUavRingBuffer->GetCPUDescriptorHandleForHeapStart(), m_ringBufferItr, m_cbvSrvUavDescriptorSize);
     m_pDevice->CopyDescriptorsSimple(
         1,
-        cpuHeapHandleSrc,
         cpuHeapHandleDst,
+        cpuHeapHandleSrc,
         D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     // Update the non shader visible heap pointer to ring buffer itr

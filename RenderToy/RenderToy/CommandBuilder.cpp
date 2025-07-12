@@ -28,6 +28,8 @@ bool CommandBuilder::Initialize(ID3D12Device* pDevice)
 		return false;
 	}
 
+	m_commandList->Close();
+
 	m_initialized = true;
 	return true;
 }

@@ -5,30 +5,23 @@ EarlyZPass::EarlyZPass()
 {
 }
 
-bool EarlyZPass::Initialize(ID3D12Device* pDevice, UINT adapterNodeMask, ShaderManager* shaderMgr, UINT width, UINT height)
+bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* shaderMgr, UINT width, UINT height)
 {
 	if (m_initialized)
 	{
 		return true;
 	}
 
-	if (!pDevice || !shaderMgr)
+	if (!graphicsContext || !shaderMgr)
 	{
 		return false;
 	}
+
+	ID3D12Device* pDevice = graphicsContext->GetDevice();
+	UINT adapterNodeMask = graphicsContext->GetAdapterNodeMask();
+	DescriptorHeapManager* descHeapManager = graphicsContext->GetDescriptorHeapManager();
 
 	m_depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
-
-	// depth stencil view heap.
-	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc;
-	dsvHeapDesc.NumDescriptors = 1;
-	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	dsvHeapDesc.NodeMask = 0;
-	if (FAILED(pDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(m_depthStencilViewHeap.GetAddressOf()))))
-	{
-		return false;
-	}
 
 	// Create the depth/stencil buffer and view.
 	D3D12_RESOURCE_DESC depthStencilResourceDesc = {};
@@ -61,12 +54,20 @@ bool EarlyZPass::Initialize(ID3D12Device* pDevice, UINT adapterNodeMask, ShaderM
 		return false;
 	}
 
-	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_depthStencilViewHeap->GetCPUDescriptorHandleForHeapStart();
 	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
 	dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 	dsvDesc.Format = m_depthStencilFormat;
 	dsvDesc.Texture2D.MipSlice = 0;
+
+	m_dsvId = descHeapManager->CreateDepthStencilView(m_depthStencilBuffer.Get(), &dsvDesc);
+	if (m_dsvId == UINT64_MAX)
+	{
+		return false;
+	}
+
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
+	descHeapManager->GetDepthStencilViewCpuHandle(m_dsvId, dsvHandle);
 
 	pDevice->CreateDepthStencilView(
 		m_depthStencilBuffer.Get(),
@@ -76,27 +77,6 @@ bool EarlyZPass::Initialize(ID3D12Device* pDevice, UINT adapterNodeMask, ShaderM
 	m_graphicsPipelineState = std::unique_ptr<GraphicsPipelineState>(new GraphicsPipelineState());
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc = m_graphicsPipelineState->GraphicsPipelineStateDesc();
 
-	char* rootSignatureData = nullptr;
-	UINT rootSignatureSize = 0;
-	if (!shaderMgr->GetShader(ShaderType::EARLY_Z_PASS_ROOT_SIGNATURE, &rootSignatureData, rootSignatureSize))
-	{
-		return false;
-	}
-
-	if (FAILED(pDevice->CreateRootSignature(adapterNodeMask, rootSignatureData, rootSignatureSize, IID_PPV_ARGS(&pipelineStateDesc.pRootSignature))))
-	{
-		return false;
-	}
-
-	char* vertexShaderData = nullptr;
-	UINT vertexShaderSize = 0;
-	if (!shaderMgr->GetShader(ShaderType::EARLY_Z_PASS_VERTEX_SHADER, &vertexShaderData, vertexShaderSize))
-	{
-		return false;
-	}
-
-	pipelineStateDesc.VS.BytecodeLength = vertexShaderSize;
-	pipelineStateDesc.VS.pShaderBytecode = vertexShaderData;
 	pipelineStateDesc.NodeMask = adapterNodeMask;
 	pipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 
@@ -133,17 +113,39 @@ bool EarlyZPass::Initialize(ID3D12Device* pDevice, UINT adapterNodeMask, ShaderM
 	pipelineStateDesc.InputLayout.NumElements = 1;
 	pipelineStateDesc.InputLayout.pInputElementDescs = meshInputLayout;
 
+	if (!m_graphicsPipelineState->Initialize(pDevice, adapterNodeMask, shaderMgr, ShaderType::EARLY_Z_PASS_ROOT_SIGNATURE, ShaderType::EARLY_Z_PASS_VERTEX_SHADER, ShaderType::SHADER_TYPE_NONE))
+	{
+		return false;
+	}
+
 	m_initialized = true;
 
 	return true;
 }
 
-void EarlyZPass::Frame(std::shared_ptr<World> world, ID3D12GraphicsCommandList* commandList)
+void EarlyZPass::Frame(std::shared_ptr<World> world, ID3D12GraphicsCommandList* commandList, GraphicsContext* graphicsContext)
 {
-	if (world == nullptr)
+	if (world == nullptr || commandList == nullptr || graphicsContext == nullptr)
 	{
 		return;
 	}
+
+	DescriptorHeapManager* descHeapManager = graphicsContext->GetDescriptorHeapManager();
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
+	descHeapManager->GetDepthStencilViewCpuHandle(m_dsvId, dsvHandle);
+
+	// Set pso
+	commandList->SetPipelineState(m_graphicsPipelineState->GetPipelineState());
+	commandList->SetGraphicsRootSignature(m_graphicsPipelineState->GetRootSignature());
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	commandList->OMSetRenderTargets(0, nullptr, false, &dsvHandle);
+
+	// Bind uniform frame constant buffer
+	D3D12_GPU_DESCRIPTOR_HANDLE uniformFrameGpuHandle;
+
+	world->GetUniformFrameConstantBuffer()->BindConstantBufferViewToPipeline(graphicsContext->GetDescriptorHeapManager(), uniformFrameGpuHandle);
+	commandList->SetGraphicsRootDescriptorTable(0, uniformFrameGpuHandle);
 
 	for (auto& staticMesh : world->GetAllStaticMeshes())
 	{
@@ -158,11 +160,6 @@ void EarlyZPass::Frame(std::shared_ptr<World> world, ID3D12GraphicsCommandList* 
 
 EarlyZPass::~EarlyZPass()
 {
-	if (m_depthStencilViewHeap)
-	{
-		m_depthStencilViewHeap.Reset();
-	}
-
 	if (m_depthStencilBuffer)
 	{
 		m_depthStencilBuffer.Reset();

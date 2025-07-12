@@ -17,7 +17,7 @@ private:
 	ComPtr<ID3D12Resource> m_uploadeHeapResource = nullptr;
 
 	bool m_initialized = false;
-
+ 
 public:
 	D3DResource(bool needCopyToDefaultHeap);
 

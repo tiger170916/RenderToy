@@ -44,12 +44,13 @@ bool Renderer::Initialize(HWND hwnd)
 
 	// Initialize render passes
 	m_earlyZPass = std::unique_ptr<EarlyZPass>(new EarlyZPass());
-	if (!m_earlyZPass->Initialize(m_graphicsContext->GetDevice(), m_graphicsContext->GetAdapterNodeMask(), m_shaderManager.get(), m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight()))
+	if (!m_earlyZPass->Initialize(m_graphicsContext.get(), m_shaderManager.get(), m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight()))
 	{
 		return false;
 	}
 
 	m_activeWorld = std::shared_ptr<World>(new World());
+	m_activeWorld->SetActiveCamera(m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight(), FVector3::Zero(), FRotator::Zero());
 	m_activeWorld->Initialize(m_graphicsContext->GetDevice(), m_graphicsContext->GetDescriptorHeapManager());
 
 	// Test world
@@ -92,6 +93,8 @@ DWORD WINAPI Renderer::RenderThreadRoutine(LPVOID lpParameter)
 	while (renderer->m_rendering)
 	{
 		renderer->Frame();
+
+		Sleep(50);
 	}
 
 	return true;
@@ -111,22 +114,34 @@ void Renderer::Frame()
 		delta = (float)(nowInMicroSecs - m_lastRenderTime) / 1000000.0f;
 	}
 
+	FrameBegin();
+
+	ID3D12GraphicsCommandList* commandList = m_mainCommandBuilder->GetCommandList();
+	m_earlyZPass->Frame(m_activeWorld, commandList, m_graphicsContext.get());
+
+	FrameEnd();
+
+	m_lastRenderTime = nowInMicroSecs;
+}
+
+void Renderer::FrameBegin()
+{
 	m_mainCommandBuilder->Reset();
 	ID3D12GraphicsCommandList* commandList = m_mainCommandBuilder->GetCommandList();
 
-	Camera* activeWorldCamera = m_activeWorld->GetActiveCamera();
-	UniformFrameConstants uniformFrameConstants = {};
-	DirectX::XMStoreFloat4x4(&uniformFrameConstants.ViewMatrix, DirectX::XMMatrixTranspose(activeWorldCamera->GetViewMatrix()));
-	DirectX::XMStoreFloat4x4(&uniformFrameConstants.ProjectionMatrix, DirectX::XMMatrixTranspose(activeWorldCamera->GetProjectionMatrix()));
-	ConstantBuffer<UniformFrameConstants>* activeUniformFrameConstantBuffer = m_activeWorld->GetUniformFrameConstantBuffer();
-	(*activeUniformFrameConstantBuffer)[0] = uniformFrameConstants;
-	activeUniformFrameConstantBuffer->UpdateToGPU();
+	ID3D12DescriptorHeap* cbvSrvUavDescHeap = m_graphicsContext->GetDescriptorHeapManager()->GetCbvSrvUavShaderVisibleRingBufferHeap();
+	commandList->SetDescriptorHeaps(1, &cbvSrvUavDescHeap);
 
-	D3D12_GPU_DESCRIPTOR_HANDLE uniformFrameGpuHandle = {};
-	activeUniformFrameConstantBuffer->BindConstantBufferViewToPipeline(m_graphicsContext->GetDescriptorHeapManager(), uniformFrameGpuHandle);
-	commandList->SetGraphicsRootDescriptorTable(0, uniformFrameGpuHandle);
+	m_activeWorld->BeginRender();
+}
 
-	m_earlyZPass->Frame(m_activeWorld, commandList);
+void Renderer::FrameEnd()
+{
+	m_mainCommandBuilder->Close();
+	m_mainCommandQueue->DispatchCommands(m_mainCommandBuilder.get());
+	m_mainCommandQueue->SignalAndWait();
 
-	m_lastRenderTime = nowInMicroSecs;
+	// Copy final render result to swapchain backbuffer and present
+	m_graphicsContext->CopyToCurrentBackBuffer();
+	m_graphicsContext->PresentCurrentBackBuffer();
 }

@@ -58,11 +58,11 @@ public:
 			return false;
 		}
 
-		UINT bufferSize = (sizeof(T) + 255) & ~255;
+		UINT bufferSize = (sizeof(T) * m_numInstances + 255) & ~255;
 		m_resource = std::unique_ptr<D3DResource>(new D3DResource(false));
 
 		auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
-		if (!m_resource->Initialize(pDevice, &bufferDesc, m_buffer.data(), (UINT)m_numInstances * sizeof(T)))
+		if (!m_resource->Initialize(pDevice, &bufferDesc, m_buffer.data(), bufferSize))
 		{
 			return false;
 		}
@@ -90,7 +90,7 @@ public:
 			return false;
 		}
 
-		return m_resource->UpdateUploadBuffer(m_buffer.data(), (UINT)m_buffer.size() * sizeof(T));
+		return m_resource->UpdateUploadBuffer(m_buffer.data(), m_numInstances * sizeof(T));
 	}
 
 	~ConstantBuffer()

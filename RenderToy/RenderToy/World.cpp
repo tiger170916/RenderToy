@@ -22,8 +22,19 @@ bool World::Initialize(ID3D12Device* pDevice, DescriptorHeapManager* descriptorH
 		return false;
 	}
 
+
 	m_initialized = true;
 	return true;
+}
+
+void World::SetActiveCamera(UINT width, UINT height, FVector3 position, FRotator rotator)
+{
+	if (m_activeCamera)
+	{
+		m_activeCamera.reset();
+	}
+
+	m_activeCamera = std::unique_ptr<Camera>(new Camera(width, height, position, rotator));
 }
 
 void World::SpawnStaticMesh(std::shared_ptr<StaticMesh> staticMesh)
@@ -37,4 +48,15 @@ void World::SpawnStaticMeshes(std::vector<std::shared_ptr<StaticMesh>>& staticMe
 	{
 		m_staticMeshes.push_back(mesh);
 	}
+}
+
+bool World::BeginRender()
+{
+	UniformFrameConstants uniformFrameConstants = {};
+	DirectX::XMStoreFloat4x4(&uniformFrameConstants.ViewMatrix, DirectX::XMMatrixTranspose(m_activeCamera->GetViewMatrix()));
+	DirectX::XMStoreFloat4x4(&uniformFrameConstants.ProjectionMatrix, DirectX::XMMatrixTranspose(m_activeCamera->GetProjectionMatrix()));
+	(*m_uniformFrameConstantBuffer)[0] = uniformFrameConstants;
+	m_uniformFrameConstantBuffer->UpdateToGPU();
+
+	return true;
 }

@@ -2,6 +2,7 @@
 
 #include "Includes.h"
 #include "CommandQueue.h"
+#include "CommandBuilder.h"
 #include "DescriptorHeapManager.h"
 
 class GraphicsContext
@@ -19,9 +20,11 @@ private:
 
 	ComPtr<IDXGISwapChain3> m_swapchain = nullptr;
 
-	ComPtr<ID3D12Resource> m_swapchainbuffer[3];
+	ComPtr<ID3D12Resource> m_swapchainBuffers[3];
 
-	std::unique_ptr<CommandQueue> m_directCommandQueue = nullptr;
+	std::unique_ptr<CommandQueue> m_swapchainCommandQueue = nullptr;
+
+	std::unique_ptr<CommandBuilder> m_swapchainCommandBuilder = nullptr;
 
 	std::unique_ptr<DescriptorHeapManager> m_descriptorHeapManager = nullptr;
 
@@ -60,6 +63,11 @@ public:
 	inline const UINT GetAdapterNodeMask() const { return m_adapterNodeMask; }
 
 	inline DescriptorHeapManager* GetDescriptorHeapManager() const { return m_descriptorHeapManager.get(); }
+
+	bool CopyToCurrentBackBuffer();
+
+	bool PresentCurrentBackBuffer();
+
 
 	~GraphicsContext();
 };

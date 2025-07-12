@@ -30,7 +30,7 @@ typedef struct FVector3
 		return temp;
 	}
 
-} FRotation, FTranslation, FScale;
+} FTranslation, FScale;
 
 struct FRotator
 {

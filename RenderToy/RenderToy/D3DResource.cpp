@@ -46,7 +46,7 @@ bool D3DResource::Initialize(ID3D12Device* pDevice, const D3D12_RESOURCE_DESC* p
 			&defaultHeapProperties, // a default heap
 			D3D12_HEAP_FLAG_NONE, // no flags
 			pResourceDesc, // resource description for a buffer
-			D3D12_RESOURCE_STATE_COPY_DEST, // we will start this heap in the copy destination state since we will copy data
+			D3D12_RESOURCE_STATE_COMMON, // we will start this heap in the copy destination state since we will copy data
 			// from the upload heap to this heap
 			nullptr, // optimized clear value must be null for this type of resource. used for render targets and depth/stencil buffers
 			IID_PPV_ARGS(m_defaultHeapResource.GetAddressOf()))))
@@ -68,8 +68,8 @@ bool D3DResource::UpdateUploadBuffer(void* data, UINT size)
 	}
 
 	void* pMappedData;
-	//D3D12_RANGE readRange = { 0, 0 };
-	if (FAILED(m_uploadeHeapResource->Map(0, nullptr, &pMappedData)))
+	D3D12_RANGE readRange = { 0, size };
+	if (FAILED(m_uploadeHeapResource->Map(0, &readRange, &pMappedData)))
 	{
 		return false;
 	}

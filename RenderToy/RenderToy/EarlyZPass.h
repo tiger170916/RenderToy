@@ -7,11 +7,11 @@
 class EarlyZPass : public RenderPassBase
 {
 private:
-	ComPtr<ID3D12DescriptorHeap> m_depthStencilViewHeap = nullptr;
-
 	ComPtr<ID3D12Resource> m_depthStencilBuffer = nullptr;
 
 	DXGI_FORMAT m_depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
+
+	UINT64 m_dsvId = UINT64_MAX;
 
 	bool m_initialized = false;
 
@@ -20,7 +20,7 @@ public:
 
 	~EarlyZPass();
 
-	bool Initialize(ID3D12Device* pDevice, UINT adapterNodeMask, ShaderManager* shaderMgr, UINT width, UINT height);
+	bool Initialize(GraphicsContext* graphicsContext, ShaderManager* shaderMgr, UINT width, UINT height);
 
-	virtual void Frame(std::shared_ptr<World> world, ID3D12GraphicsCommandList* commandList) override;
+	virtual void Frame(std::shared_ptr<World> world, ID3D12GraphicsCommandList* commandList, GraphicsContext* graphicsContext) override;
 };

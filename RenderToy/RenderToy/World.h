@@ -28,9 +28,13 @@ public:
 
 	void SpawnStaticMeshes(std::vector<std::shared_ptr<StaticMesh>>& staticMeshes);
 
+	void SetActiveCamera(UINT width, UINT height, FVector3 position, FRotator rotator);
+
 	const std::vector<std::shared_ptr<StaticMesh>>& GetAllStaticMeshes() const { return m_staticMeshes; }
 
 	inline Camera* GetActiveCamera() const { return m_activeCamera.get(); }
 
 	inline ConstantBuffer<UniformFrameConstants>* GetUniformFrameConstantBuffer() const { return m_uniformFrameConstantBuffer.get(); }
+
+	bool BeginRender();
 };
