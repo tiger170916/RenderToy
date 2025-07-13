@@ -42,7 +42,7 @@ bool ShaderTypeCodeGen::GenerateCode()
                 shaderFiles.push_back(fileName);
                 shaderEnums.push_back(fileNameWithoutExt);
 
-                std::cout << "Found shader type" << fileNameWithoutExt << std::endl;
+                std::cout << "Found shader type [" << fileNameWithoutExt << "]" << std::endl;
             }
         }
     }
@@ -74,7 +74,7 @@ bool ShaderTypeCodeGen::GenerateCode()
     }
 
     headerFile << "};\n";
-    headerFile << "std::string GetShaderRelativePath(const ShaderType & type);\n";
+    headerFile << "std::wstring GetShaderRelativePath(const ShaderType & type);\n";
 
     headerFile.close();
 
@@ -87,26 +87,26 @@ bool ShaderTypeCodeGen::GenerateCode()
     }
 
     cppFile << "#include \"ShaderType.h\"\n"
-            << "std::string GetShaderRelativePath(const ShaderType & type)\n"
+            << "std::wstring GetShaderRelativePath(const ShaderType & type)\n"
             << "{\n"
             << "    switch (type)\n"
             << "    {\n";
 
     cppFile << "    case ShaderType::SHADER_TYPE_NONE:\n"
             << "    {\n"
-            << "        return std::string("");\n"
+            << "        return std::wstring("");\n"
             << "    }\n";
 
     for (int i = 0; i < shaderFiles.size(); i++)
     {
         cppFile << "    case ShaderType::" << shaderEnums[i] << ":\n"
                 << "    {\n"
-                << "        return std::string(\"" << shaderFiles[i] << "\");\n"
+                << "        return std::wstring(L\"" << shaderFiles[i] << "\");\n"
                 << "    }\n";
     }
 
     cppFile << "    }\n"
-            << "    return std::string();\n"
+            << "    return std::wstring();\n"
             << "}\n";
     cppFile.close();
 
