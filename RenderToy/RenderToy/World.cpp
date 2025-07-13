@@ -50,7 +50,7 @@ void World::SpawnStaticMeshes(std::vector<std::shared_ptr<StaticMesh>>& staticMe
 	}
 }
 
-bool World::BeginRender()
+bool World::FrameBegin()
 {
 	UniformFrameConstants uniformFrameConstants = {};
 	DirectX::XMStoreFloat4x4(&uniformFrameConstants.ViewMatrix, DirectX::XMMatrixTranspose(m_activeCamera->GetViewMatrix()));

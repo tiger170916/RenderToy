@@ -28,23 +28,10 @@ bool Renderer::Initialize(HWND hwnd)
 		return false;
 	}
 
-	m_mainCommandQueue = std::unique_ptr<CommandQueue>(new CommandQueue(D3D12_COMMAND_QUEUE_FLAG_NONE, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_QUEUE_PRIORITY_NORMAL, m_graphicsContext->GetAdapterNodeMask()));
-	if (!m_mainCommandQueue->Initialize(m_graphicsContext->GetDevice()))
-	{
-		return false;
-	}
-
-	m_mainCommandBuilder = std::unique_ptr<CommandBuilder>(new CommandBuilder(D3D12_COMMAND_LIST_TYPE_DIRECT));
-	if (!m_mainCommandBuilder->Initialize(m_graphicsContext->GetDevice()))
-	{
-		return false;
-	}
-
 	m_shaderManager = std::make_unique<ShaderManager>();
 
-	// Initialize render passes
-	m_earlyZPass = std::unique_ptr<EarlyZPass>(new EarlyZPass());
-	if (!m_earlyZPass->Initialize(m_graphicsContext.get(), m_shaderManager.get(), m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight()))
+	m_renderPipeline = std::unique_ptr<RenderPipeline>(new RenderPipeline());
+	if (!m_renderPipeline->Initialize(m_graphicsContext.get(), m_shaderManager.get()))
 	{
 		return false;
 	}
@@ -61,7 +48,7 @@ bool Renderer::Initialize(HWND hwnd)
 	{
 		mesh->AddInstance(Transform::Identity());
 		mesh->EnableRenderPass(RenderPass::EARLY_Z_PASS);
-		mesh->EnableRenderPass(RenderPass::DEFFERED_RENDER_PASS);
+		mesh->EnableRenderPass(RenderPass::GEOMETRY_PASS);
 		mesh->EnableRenderPass(RenderPass::LIGHTING_PASS);
 
 		mesh->BuildResource(m_graphicsContext.get());
@@ -114,13 +101,9 @@ void Renderer::Frame()
 		delta = (float)(nowInMicroSecs - m_lastRenderTime) / 1000000.0f;
 	}
 
-	// Outputs which will be passed down to the render pipelines
-	PipelineOutputsStruct pipelineOutputs = {};
-
 	FrameBegin();
 
-	ID3D12GraphicsCommandList* commandList = m_mainCommandBuilder->GetCommandList();
-	m_earlyZPass->Frame(m_activeWorld, commandList, m_graphicsContext.get(), pipelineOutputs);
+	m_renderPipeline->Frame(m_graphicsContext.get(), m_activeWorld.get());
 
 	FrameEnd();
 
@@ -129,20 +112,14 @@ void Renderer::Frame()
 
 void Renderer::FrameBegin()
 {
-	m_mainCommandBuilder->Reset();
-	ID3D12GraphicsCommandList* commandList = m_mainCommandBuilder->GetCommandList();
+	m_activeWorld->FrameBegin();
 
-	ID3D12DescriptorHeap* cbvSrvUavDescHeap = m_graphicsContext->GetDescriptorHeapManager()->GetCbvSrvUavShaderVisibleRingBufferHeap();
-	commandList->SetDescriptorHeaps(1, &cbvSrvUavDescHeap);
-
-	m_activeWorld->BeginRender();
+	m_renderPipeline->FrameBegin();
 }
 
 void Renderer::FrameEnd()
 {
-	m_mainCommandBuilder->Close();
-	m_mainCommandQueue->DispatchCommands(m_mainCommandBuilder.get());
-	m_mainCommandQueue->SignalAndWait();
+	m_renderPipeline->FrameEnd();
 
 	// Copy final render result to swapchain backbuffer and present
 	m_graphicsContext->CopyToCurrentBackBuffer();

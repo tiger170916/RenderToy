@@ -15,6 +15,18 @@ std::wstring GetShaderRelativePath(const ShaderType & type)
     {
         return std::wstring(L"early_z_pass_vertex_shader.cso");
     }
+    case ShaderType::GEOMETRY_PASS_PIXEL_SHADER:
+    {
+        return std::wstring(L"geometry_pass_pixel_shader.cso");
+    }
+    case ShaderType::GEOMETRY_PASS_ROOT_SIGNATURE:
+    {
+        return std::wstring(L"geometry_pass_root_signature.cso");
+    }
+    case ShaderType::GEOMETRY_PASS_VERTEX_SHADER:
+    {
+        return std::wstring(L"geometry_pass_vertex_shader.cso");
+    }
     }
     return std::wstring();
 }

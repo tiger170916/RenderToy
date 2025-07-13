@@ -80,6 +80,12 @@
     <ClCompile Include="LightingPass.cpp">
       <Filter>RenderPasses</Filter>
     </ClCompile>
+    <ClCompile Include="RenderPipeline.cpp">
+      <Filter>RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="PipelineOutputs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -168,6 +174,9 @@
     </ClInclude>
     <ClInclude Include="PipelineOutputs.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPipeline.h">
+      <Filter>RenderPasses</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

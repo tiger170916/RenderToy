@@ -1,27 +1,31 @@
 #include "EarlyZPass.h"
 #include "Macros.h"
+#include "GraphicsUtils.h"
 
 EarlyZPass::EarlyZPass()
 {
 }
 
-bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* shaderMgr, UINT width, UINT height)
+bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* shaderManager, PipelineResourceStates* pipelineResourceStates)
 {
 	if (m_initialized)
 	{
 		return true;
 	}
 
-	if (!graphicsContext || !shaderMgr)
+	if (!graphicsContext || !shaderManager || !pipelineResourceStates)
 	{
 		return false;
 	}
+
+	const UINT& width = graphicsContext->GetHwndWidth();
+	const UINT& height = graphicsContext->GetHwndHeight();
 
 	ID3D12Device* pDevice = graphicsContext->GetDevice();
 	UINT adapterNodeMask = graphicsContext->GetAdapterNodeMask();
 	DescriptorHeapManager* descHeapManager = graphicsContext->GetDescriptorHeapManager();
 
-	m_depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
+	m_depthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
 	// Create the depth/stencil buffer and view.
 	D3D12_RESOURCE_DESC depthStencilResourceDesc = {};
@@ -45,7 +49,7 @@ bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 	D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 	if (FAILED(pDevice->CreateCommittedResource(
 		&heapProperties,
-		D3D12_HEAP_FLAG_NONE,
+		D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES,
 		&depthStencilResourceDesc,
 		D3D12_RESOURCE_STATE_DEPTH_WRITE,
 		&optClear,
@@ -53,6 +57,9 @@ bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 	{
 		return false;
 	}
+
+	// Add early Z depth buffer initial state
+	pipelineResourceStates->AddResourceState(m_depthStencilBuffer.Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
 	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
 	dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
@@ -67,8 +74,8 @@ bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 	}
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
-	srvDesc.Shader4ComponentMapping = D3D12_ENCODE_SHADER_4_COMPONENT_MAPPING(0, 0, 0, 0);
-	srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MostDetailedMip = 0;
 	srvDesc.Texture2D.MipLevels = 1;
@@ -80,15 +87,6 @@ bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 	{
 		return false;
 	}
-
-	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
-	descHeapManager->GetDepthStencilViewCpuHandle(m_dsvId, dsvHandle);
-
-	pDevice->CreateDepthStencilView(
-		m_depthStencilBuffer.Get(),
-		&dsvDesc,
-		dsvHandle);
-
 
 	m_graphicsPipelineState = std::unique_ptr<GraphicsPipelineState>(new GraphicsPipelineState());
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc = m_graphicsPipelineState->GraphicsPipelineStateDesc();
@@ -122,14 +120,14 @@ bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 	pipelineStateDesc.RasterizerState = rasterizerDesc;
 	pipelineStateDesc.DepthStencilState = depthStencilDesc;
 	pipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	pipelineStateDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+	pipelineStateDesc.DSVFormat = m_depthStencilFormat;
 	pipelineStateDesc.SampleDesc.Count = 1;
 	pipelineStateDesc.SampleDesc.Quality = 0;
 	pipelineStateDesc.SampleMask = UINT_MAX;
 	pipelineStateDesc.InputLayout.NumElements = 1;
 	pipelineStateDesc.InputLayout.pInputElementDescs = meshInputLayout;
 
-	if (!m_graphicsPipelineState->Initialize(graphicsContext, shaderMgr, ShaderType::EARLY_Z_PASS_ROOT_SIGNATURE, ShaderType::EARLY_Z_PASS_VERTEX_SHADER, ShaderType::SHADER_TYPE_NONE))
+	if (!m_graphicsPipelineState->Initialize(graphicsContext, shaderManager, ShaderType::EARLY_Z_PASS_ROOT_SIGNATURE, ShaderType::EARLY_Z_PASS_VERTEX_SHADER, ShaderType::SHADER_TYPE_NONE))
 	{
 		return false;
 	}
@@ -141,7 +139,7 @@ bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 	return true;
 }
 
-void EarlyZPass::Frame(std::shared_ptr<World> world, ID3D12GraphicsCommandList* commandList, GraphicsContext* graphicsContext, PipelineOutputsStruct& outputs)
+void EarlyZPass::Frame(World* world, ID3D12GraphicsCommandList* commandList, GraphicsContext* graphicsContext, PipelineResourceStates* pipelineResourceStates, PipelineOutputsStruct& outputs)
 {
 	if (world == nullptr || commandList == nullptr || graphicsContext == nullptr)
 	{
@@ -155,6 +153,15 @@ void EarlyZPass::Frame(std::shared_ptr<World> world, ID3D12GraphicsCommandList* 
 	// Set pso
 	commandList->SetPipelineState(m_graphicsPipelineState->GetPipelineState());
 	commandList->SetGraphicsRootSignature(m_graphicsPipelineState->GetRootSignature());
+
+	D3D12_RESOURCE_STATES earlyZPassDepthBufferOldState;
+	pipelineResourceStates->GetState(m_depthStencilBuffer.Get(), earlyZPassDepthBufferOldState);
+	if (earlyZPassDepthBufferOldState != D3D12_RESOURCE_STATE_DEPTH_WRITE)
+	{
+		GraphicsUtils::ResourceBarrierTransition(m_depthStencilBuffer.Get(), commandList, earlyZPassDepthBufferOldState, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+		pipelineResourceStates->ChangeState(m_depthStencilBuffer.Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	}
+
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 	commandList->OMSetRenderTargets(0, nullptr, false, &dsvHandle);
@@ -179,7 +186,9 @@ void EarlyZPass::Frame(std::shared_ptr<World> world, ID3D12GraphicsCommandList* 
 
 	// Depth buffer output
 	PipelineOutput depthBufferOutput = {};
+	depthBufferOutput.pResource = m_depthStencilBuffer.Get();
 	depthBufferOutput.SrvId = m_srvId;
+
 	outputs.Outputs[PipelinePassOutputType::EARLY_Z_PASS_DEPTH_BUFFER] = depthBufferOutput;
 }
 

@@ -5,5 +5,8 @@ enum class ShaderType
     SHADER_TYPE_NONE = 0,
     EARLY_Z_PASS_ROOT_SIGNATURE = 1,
     EARLY_Z_PASS_VERTEX_SHADER = 2,
+    GEOMETRY_PASS_PIXEL_SHADER = 3,
+    GEOMETRY_PASS_ROOT_SIGNATURE = 4,
+    GEOMETRY_PASS_VERTEX_SHADER = 5,
 };
 std::wstring GetShaderRelativePath(const ShaderType & type);

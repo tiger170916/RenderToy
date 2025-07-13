@@ -4,6 +4,6 @@
 enum class RenderPass
 {
 	EARLY_Z_PASS = 1,
-	DEFFERED_RENDER_PASS = 2,
+	GEOMETRY_PASS = 2,
 	LIGHTING_PASS = 3,
 };

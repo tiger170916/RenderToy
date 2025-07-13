@@ -2,12 +2,11 @@
 #include "Includes.h"
 #include "GraphicsContext.h"
 #include "GraphicsPipelineState.h"
-#include "World.h"
-#include "ShaderManager.h"
-#include "EarlyZPass.h"
-#include "GeometryPass.h"
 #include "CommandQueue.h"
 #include "CommandBuilder.h"
+#include "RenderPipeline.h"
+#include "World.h"
+#include "ShaderManager.h"
 
 /// <summary>
 /// Renderer singleton class
@@ -28,14 +27,9 @@ private:
 private:
 	std::shared_ptr<World> m_activeWorld = nullptr;	// TODO: switch between differnt scenes
 
-	// Render passes
-	std::unique_ptr<EarlyZPass> m_earlyZPass = nullptr;
+	std::unique_ptr<RenderPipeline> m_renderPipeline = nullptr;
 
 	std::unique_ptr<ShaderManager> m_shaderManager = nullptr;
-
-	std::unique_ptr<CommandQueue> m_mainCommandQueue = nullptr;
-
-	std::unique_ptr<CommandBuilder> m_mainCommandBuilder = nullptr;
 
 public:
 	~Renderer();
