@@ -4,9 +4,10 @@
 #include "GraphicsPipelineState.h"
 #include "CommandQueue.h"
 #include "CommandBuilder.h"
-#include "RenderPipeline.h"
+
 #include "World.h"
 #include "ShaderManager.h"
+#include "RenderGraph.h"
 
 /// <summary>
 /// Renderer singleton class
@@ -27,9 +28,9 @@ private:
 private:
 	std::shared_ptr<World> m_activeWorld = nullptr;	// TODO: switch between differnt scenes
 
-	std::unique_ptr<RenderPipeline> m_renderPipeline = nullptr;
-
 	std::unique_ptr<ShaderManager> m_shaderManager = nullptr;
+
+	std::unique_ptr<RenderGraph> m_mainRenderGraph = nullptr;
 
 public:
 	~Renderer();

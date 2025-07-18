@@ -163,25 +163,31 @@ bool GraphicsContext::Initialize(HWND hwnd)
     return true;
 }
 
-bool GraphicsContext::CopyToCurrentBackBuffer()
+bool GraphicsContext::CopyToCurrentBackBuffer(ID3D12Resource* copySrcResource)
 {
+    if (!copySrcResource)
+    {
+        return false;
+    }
+
     m_swapchainCommandBuilder->Reset();
 
     ID3D12GraphicsCommandList* commandList = m_swapchainCommandBuilder->GetCommandList();
 
     D3D12_CPU_DESCRIPTOR_HANDLE rtv;
     m_descriptorHeapManager->GetRenderTargetViewCpuHandle(m_rtvIds[m_currentBackbuffer], rtv);
-    float clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
-    
-    D3D12_RESOURCE_BARRIER transitionFromPresentToRenderTarget = CD3DX12_RESOURCE_BARRIER::Transition(
+
+    D3D12_RESOURCE_BARRIER transitionFromPresentToCopyDest = CD3DX12_RESOURCE_BARRIER::Transition(
+        m_swapchainBuffers[m_currentBackbuffer].Get(),
+        D3D12_RESOURCE_STATE_PRESENT,
+        D3D12_RESOURCE_STATE_COPY_DEST
+    );
+
+    D3D12_RESOURCE_BARRIER transitionFromCopyDestToRenderTarget = CD3DX12_RESOURCE_BARRIER::Transition(
         m_swapchainBuffers[m_currentBackbuffer].Get(),
         D3D12_RESOURCE_STATE_PRESENT,
         D3D12_RESOURCE_STATE_RENDER_TARGET
     );
-
-    commandList->ResourceBarrier(1, &transitionFromPresentToRenderTarget);
-    commandList->OMSetRenderTargets(1, &rtv, false, nullptr);
-    commandList->ClearRenderTargetView(rtv, clearColor, 0, NULL);
 
     D3D12_RESOURCE_BARRIER transitionFromRenderTargetToPresent = CD3DX12_RESOURCE_BARRIER::Transition(
         m_swapchainBuffers[m_currentBackbuffer].Get(),
@@ -189,6 +195,12 @@ bool GraphicsContext::CopyToCurrentBackBuffer()
         D3D12_RESOURCE_STATE_PRESENT
     );
 
+    commandList->ResourceBarrier(1, &transitionFromPresentToCopyDest);
+    commandList->CopyResource(m_swapchainBuffers[m_currentBackbuffer].Get(), copySrcResource);
+    commandList->ResourceBarrier(1, &transitionFromCopyDestToRenderTarget);
+    commandList->OMSetRenderTargets(1, &rtv, false, nullptr);
+    //float clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+    //commandList->ClearRenderTargetView(rtv, clearColor, 0, NULL);
     commandList->ResourceBarrier(1, &transitionFromRenderTargetToPresent);
 
     m_swapchainCommandBuilder->Close();

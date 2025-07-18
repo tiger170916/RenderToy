@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -67,7 +67,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Rpcrt4.lib;libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(ProjectDir)RenderToyApi.h" "$(SolutionDir)Includes\RenderToyApi.h";
@@ -98,7 +98,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Rpcrt4.lib;libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(ProjectDir)RenderToyApi.h" "$(SolutionDir)Includes\RenderToyApi.h";
@@ -115,6 +115,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CommandBuilder.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
+    <ClCompile Include="D3DFence.cpp" />
     <ClCompile Include="D3DResource.cpp" />
     <ClCompile Include="GeometryPass.cpp" />
     <ClCompile Include="DescriptorHeapManager.cpp" />
@@ -124,11 +125,14 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="GraphicsContext.cpp" />
     <ClCompile Include="GraphicsPipelineState.cpp" />
     <ClCompile Include="GraphicsUtils.cpp" />
+    <ClCompile Include="GuidComparator.cpp" />
     <ClCompile Include="LightingPass.cpp" />
-    <ClCompile Include="PipelineOutputs.cpp" />
+    <ClCompile Include="PassBase.cpp" />
+    <ClCompile Include="PassFactory.cpp" />
+    <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="RenderGraph.cpp" />
     <ClCompile Include="RenderPassBase.cpp" />
-    <ClCompile Include="RenderPipeline.cpp" />
     <ClCompile Include="RenderToyApi.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="ShaderType.cpp" />
@@ -141,6 +145,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="CommandBuilder.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="ConstantBuffer.h" />
+    <ClInclude Include="D3DFence.h" />
     <ClInclude Include="D3DResource.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="GeometryPass.h" />
@@ -151,15 +156,19 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="GraphicsContext.h" />
     <ClInclude Include="GraphicsPipelineState.h" />
     <ClInclude Include="GraphicsUtils.h" />
+    <ClInclude Include="GuidComparator.h" />
     <ClInclude Include="Includes.h" />
     <ClInclude Include="LightingPass.h" />
     <ClInclude Include="Macros.h" />
     <ClInclude Include="MeshStructs.h" />
-    <ClInclude Include="PipelineOutputs.h" />
+    <ClInclude Include="PassBase.h" />
+    <ClInclude Include="PassDefines.h" />
+    <ClInclude Include="PassFactory.h" />
+    <ClInclude Include="PassType.h" />
+    <ClInclude Include="Pipeline.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="RenderGraph.h" />
     <ClInclude Include="RenderPassBase.h" />
-    <ClInclude Include="RenderPassType.h" />
-    <ClInclude Include="RenderPipeline.h" />
     <ClInclude Include="RenderToyApi.h" />
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="ShaderType.h" />
@@ -180,6 +189,9 @@ $(SolutionDir)bin\CodeGen.exe</Command>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\GeometryPass.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Shaders\LightingPass.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Shaders\MeshVertex.hlsli">

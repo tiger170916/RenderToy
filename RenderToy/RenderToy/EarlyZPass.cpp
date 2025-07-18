@@ -2,18 +2,25 @@
 #include "Macros.h"
 #include "GraphicsUtils.h"
 
-EarlyZPass::EarlyZPass()
+EarlyZPass::EarlyZPass(GUID passGuid)
+	: RenderPassBase(passGuid)
 {
+	m_passType = PassType::EARLY_Z_PASS;
 }
 
-bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* shaderManager, PipelineResourceStates* pipelineResourceStates)
+bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* shaderManager)
 {
 	if (m_initialized)
 	{
 		return true;
 	}
 
-	if (!graphicsContext || !shaderManager || !pipelineResourceStates)
+	if (!graphicsContext || !shaderManager)
+	{
+		return false;
+	}
+
+	if (!PassBase::Initialize(graphicsContext, shaderManager))
 	{
 		return false;
 	}
@@ -58,8 +65,8 @@ bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 		return false;
 	}
 
-	// Add early Z depth buffer initial state
-	pipelineResourceStates->AddResourceState(m_depthStencilBuffer.Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	// Initiali state of depth stencil buffer
+	m_resourceStates[m_depthStencilBuffer.Get()] = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 
 	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
 	dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
@@ -139,12 +146,16 @@ bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 	return true;
 }
 
-void EarlyZPass::Frame(World* world, ID3D12GraphicsCommandList* commandList, GraphicsContext* graphicsContext, PipelineResourceStates* pipelineResourceStates, PipelineOutputsStruct& outputs)
+bool EarlyZPass::PopulateCommands(World* world, GraphicsContext* graphicsContext)
 {
-	if (world == nullptr || commandList == nullptr || graphicsContext == nullptr)
+	if (world == nullptr || graphicsContext == nullptr)
 	{
-		return;
+		return false;
 	}
+
+	PassBase::PopulateCommands(world, graphicsContext);
+
+	ID3D12GraphicsCommandList* commandList = m_commandBuilder->GetCommandList();
 
 	DescriptorHeapManager* descHeapManager = graphicsContext->GetDescriptorHeapManager();
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
@@ -154,13 +165,7 @@ void EarlyZPass::Frame(World* world, ID3D12GraphicsCommandList* commandList, Gra
 	commandList->SetPipelineState(m_graphicsPipelineState->GetPipelineState());
 	commandList->SetGraphicsRootSignature(m_graphicsPipelineState->GetRootSignature());
 
-	D3D12_RESOURCE_STATES earlyZPassDepthBufferOldState;
-	pipelineResourceStates->GetState(m_depthStencilBuffer.Get(), earlyZPassDepthBufferOldState);
-	if (earlyZPassDepthBufferOldState != D3D12_RESOURCE_STATE_DEPTH_WRITE)
-	{
-		GraphicsUtils::ResourceBarrierTransition(m_depthStencilBuffer.Get(), commandList, earlyZPassDepthBufferOldState, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-		pipelineResourceStates->ChangeState(m_depthStencilBuffer.Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
-	}
+	ResourceBarrierTransition(m_depthStencilBuffer.Get(), commandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
@@ -176,7 +181,7 @@ void EarlyZPass::Frame(World* world, ID3D12GraphicsCommandList* commandList, Gra
 
 	for (auto& staticMesh : world->GetAllStaticMeshes())
 	{
-		if (!staticMesh->PassEnabled(RenderPass::EARLY_Z_PASS))
+		if (!staticMesh->PassEnabled(PassType::EARLY_Z_PASS))
 		{
 			continue;
 		}
@@ -184,12 +189,9 @@ void EarlyZPass::Frame(World* world, ID3D12GraphicsCommandList* commandList, Gra
 		staticMesh->Draw(graphicsContext, commandList);
 	}
 
-	// Depth buffer output
-	PipelineOutput depthBufferOutput = {};
-	depthBufferOutput.pResource = m_depthStencilBuffer.Get();
-	depthBufferOutput.SrvId = m_srvId;
+	m_commandBuilder->Close();
 
-	outputs.Outputs[PipelinePassOutputType::EARLY_Z_PASS_DEPTH_BUFFER] = depthBufferOutput;
+	return true;
 }
 
 EarlyZPass::~EarlyZPass()

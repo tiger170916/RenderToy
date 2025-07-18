@@ -20,40 +20,6 @@ void GraphicsUtils::ResourceBarrierTransition(
     pCommandList->ResourceBarrier(1, &barrier);
 }
 
-bool GraphicsUtils::PipelineResourceBarrierTransition(
-	ID3D12Resource* pResource,
-	PipelineResourceStates* pipelineResourceStates,
-	ID3D12GraphicsCommandList* pCommandList,
-	D3D12_RESOURCE_STATES stateAfter)
-{
-	if (!pipelineResourceStates)
-	{
-		return false;
-	}
-
-	// Get before state of the pipeline resource
-	D3D12_RESOURCE_STATES stateBefore;
-	if (!pipelineResourceStates->GetState(pResource, stateBefore))
-	{
-		return false;
-	}
-
-	if (stateBefore == stateAfter)
-	{
-		return true;
-	}
-
-	D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		pResource,
-		stateBefore,
-		stateAfter);
-
-	pCommandList->ResourceBarrier(1, &barrier);
-	pipelineResourceStates->ChangeState(pResource, stateAfter);
-
-	return false;
-}
-
 bool GraphicsUtils::CreateDepthStencilResource(
 	ID3D12Device* pDevice,
 	DescriptorHeapManager* pDescHeapMgr,

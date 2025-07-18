@@ -30,6 +30,10 @@ public:
 
 	bool DispatchCommands(CommandBuilder* cmdBuilder);
 
+	void WaitForFence(ID3D12Fence* pFence, uint64_t fenceValue);
+
+	void Signal(ID3D12Fence* pFence, uint64_t fenceValue);
+
 	void SignalAndWait();
 
 	inline ID3D12CommandQueue* GetCommandQueue() const { return m_commandQueue.Get(); }

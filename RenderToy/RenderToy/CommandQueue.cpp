@@ -69,6 +69,26 @@ void CommandQueue::SignalAndWait()
 	}
 }
 
+void CommandQueue::WaitForFence(ID3D12Fence* pFence, uint64_t fenceValue)
+{
+	if (!pFence)
+	{
+		return;
+	}
+
+	m_commandQueue->Wait(pFence, fenceValue);
+}
+
+void CommandQueue::Signal(ID3D12Fence* pFence, uint64_t fenceValue)
+{
+	if (!pFence)
+	{
+		return;
+	}
+
+	m_commandQueue->Signal(pFence, fenceValue);
+}
+
 CommandQueue::~CommandQueue()
 {
 	if (m_fence)

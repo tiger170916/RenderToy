@@ -64,7 +64,7 @@ public:
 
 	inline DescriptorHeapManager* GetDescriptorHeapManager() const { return m_descriptorHeapManager.get(); }
 
-	bool CopyToCurrentBackBuffer();
+	bool CopyToCurrentBackBuffer(ID3D12Resource* copySrcResource);
 
 	bool PresentCurrentBackBuffer();
 

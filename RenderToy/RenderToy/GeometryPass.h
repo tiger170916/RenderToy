@@ -24,12 +24,23 @@ private:
 
 	UINT64 m_diffuseRtvId = UINT64_MAX;
 
+	UINT64 m_diffuseSrvId = UINT64_MAX;
+
 public:
-	GeometryPass();
+	GeometryPass(GUID passGuid);
 
 	~GeometryPass();
 
-	virtual bool Initialize(GraphicsContext* graphicsContext, ShaderManager* shaderManager, PipelineResourceStates* pipelineResourceStates) override;
+	// Interface
+	virtual bool Initialize(GraphicsContext* graphicsContext, ShaderManager* shaderManager) override;
 
-	virtual void Frame(World* world, ID3D12GraphicsCommandList* commandList, GraphicsContext* graphicsContext, PipelineResourceStates* pipelineResourceStates, PipelineOutputsStruct& outputs) override;
+	virtual bool PopulateCommands(World* world, GraphicsContext* graphicsContext) override;
+
+public:
+	// public resoure getter
+	inline bool DiffuseBufferBarrierTransition(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter) { return ResourceBarrierTransition(m_diffuseBuffer.Get(), commandList, stateAfter); }
+
+	inline const UINT64 GetDiffuseBufferRtvId() const { return m_diffuseRtvId; }
+
+	inline const UINT64 GetDiffuseBufferSrvId() const { return m_diffuseSrvId; }
 };

@@ -27,12 +27,12 @@ void StaticMesh::AddInstance(const Transform& transform)
 	m_instances.push_back(transform);
 }
 
-void StaticMesh::EnableRenderPass(const RenderPass& renderPass)
+void StaticMesh::EnablePass(const PassType& renderPass)
 {
 	m_enabledPasses.insert(renderPass);
 }
 
-bool StaticMesh::PassEnabled(const RenderPass& renderPass)
+bool StaticMesh::PassEnabled(const PassType& renderPass)
 {
 	return m_enabledPasses.contains(renderPass);
 }

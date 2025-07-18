@@ -20,11 +20,20 @@ private:
 	D3D12_RECT m_scissorRect;
 
 public:
-	EarlyZPass();
+	EarlyZPass(GUID passGuid);
 
 	~EarlyZPass();
 
-	virtual bool Initialize(GraphicsContext* graphicsContext, ShaderManager* shaderManager, PipelineResourceStates* pipelineResourceStates) override;
+	// Interface
+	virtual bool Initialize(GraphicsContext* graphicsContext, ShaderManager* shaderManager) override;
 
-	virtual void Frame(World* world, ID3D12GraphicsCommandList* commandList, GraphicsContext* graphicsContext, PipelineResourceStates* pipelineResourceStates, PipelineOutputsStruct& outputs) override;
+	virtual bool PopulateCommands(World* world, GraphicsContext* graphicsContext) override;
+
+public:
+	// public resource getters
+	inline bool DepthBufferBarrierTransition(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter) { return ResourceBarrierTransition(m_depthStencilBuffer.Get(), commandList, stateAfter); }
+
+	inline const UINT64 GetDepthBufferDsvId() const { return m_dsvId; }
+
+	inline const UINT64 GetDepthBufferSrvId() const { return m_dsvId; }
 };

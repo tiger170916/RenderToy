@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "FbxLoader.h"
+#include "GraphicsUtils.h"
 
 Renderer::~Renderer()
 {
@@ -30,11 +31,12 @@ bool Renderer::Initialize(HWND hwnd)
 
 	m_shaderManager = std::make_unique<ShaderManager>();
 
-	m_renderPipeline = std::unique_ptr<RenderPipeline>(new RenderPipeline());
-	if (!m_renderPipeline->Initialize(m_graphicsContext.get(), m_shaderManager.get()))
+	m_mainRenderGraph = std::unique_ptr<RenderGraph>(new RenderGraph("myMainRenderGraph.json"));
+	if (!m_mainRenderGraph->Initialize(m_graphicsContext.get(), m_shaderManager.get()))
 	{
 		return false;
 	}
+
 
 	m_activeWorld = std::shared_ptr<World>(new World());
 	m_activeWorld->SetActiveCamera(m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight(), FVector3(0, 0, -20), FRotator::Zero());
@@ -42,14 +44,13 @@ bool Renderer::Initialize(HWND hwnd)
 
 	// Test world
 	std::vector<std::shared_ptr<StaticMesh>> meshes;
-	FbxLoader* fbxLoader = new FbxLoader("C:\\Users\\erlie\\Desktop\\Assets\\medieval-house-2\\source\\House2\\House2.fbx");
+	FbxLoader* fbxLoader = new FbxLoader("myFbxPass");
 	fbxLoader->Load(meshes);
 	for (auto& mesh : meshes)
 	{
 		mesh->AddInstance(Transform::Identity());
-		mesh->EnableRenderPass(RenderPass::EARLY_Z_PASS);
-		mesh->EnableRenderPass(RenderPass::GEOMETRY_PASS);
-		mesh->EnableRenderPass(RenderPass::LIGHTING_PASS);
+		mesh->EnablePass(PassType::EARLY_Z_PASS);
+		mesh->EnablePass(PassType::GEOMETRY_PASS);
 
 		mesh->BuildResource(m_graphicsContext.get());
 	}
@@ -103,7 +104,7 @@ void Renderer::Frame()
 
 	FrameBegin();
 
-	m_renderPipeline->Frame(m_graphicsContext.get(), m_activeWorld.get());
+	m_mainRenderGraph->PopulateCommandLists(m_activeWorld.get(), m_graphicsContext.get());
 
 	FrameEnd();
 
@@ -113,15 +114,11 @@ void Renderer::Frame()
 void Renderer::FrameBegin()
 {
 	m_activeWorld->FrameBegin();
-
-	m_renderPipeline->FrameBegin();
 }
 
 void Renderer::FrameEnd()
 {
-	m_renderPipeline->FrameEnd();
+	m_mainRenderGraph->ExecuteCommands();
 
-	// Copy final render result to swapchain backbuffer and present
-	m_graphicsContext->CopyToCurrentBackBuffer();
 	m_graphicsContext->PresentCurrentBackBuffer();
 }

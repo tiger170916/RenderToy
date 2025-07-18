@@ -1,10 +1,12 @@
 #include "GeometryPass.h"
+#include "EarlyZPass.h"
 #include "GraphicsUtils.h"
 #include "Macros.h"
 
-GeometryPass::GeometryPass()
+GeometryPass::GeometryPass(GUID passGuid)
+	: RenderPassBase(passGuid)
 {
-
+	m_passType = PassType::GEOMETRY_PASS;
 }
 
 GeometryPass::~GeometryPass()
@@ -12,14 +14,19 @@ GeometryPass::~GeometryPass()
 
 }
 
-bool GeometryPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* shaderManager, PipelineResourceStates* pipelineResourceStates)
+bool GeometryPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* shaderManager)
 {
 	if (m_initialized)
 	{
 		return true;
 	}
 
-	if (!graphicsContext || !shaderManager || !pipelineResourceStates)
+	if (!graphicsContext || !shaderManager)
+	{
+		return false;
+	}
+
+	if (!PassBase::Initialize(graphicsContext, shaderManager))
 	{
 		return false;
 	}
@@ -46,7 +53,7 @@ bool GeometryPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 		return false;
 	}
 
-	pipelineResourceStates->AddResourceState(m_depthStencilBuffer.Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	m_resourceStates[m_depthStencilBuffer.Get()] = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 
 	if (!GraphicsUtils::CreateRenderTargetResource(
 		pDevice,
@@ -62,7 +69,22 @@ bool GeometryPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 		return false;
 	}
 
-	pipelineResourceStates->AddResourceState(m_diffuseBuffer.Get(), D3D12_RESOURCE_STATE_PRESENT);
+	m_resourceStates[m_diffuseBuffer.Get()] = D3D12_RESOURCE_STATE_PRESENT;
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC diffuseSrvDesc;
+	diffuseSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	diffuseSrvDesc.Format = m_diffuseRenderTargetFormat;
+	diffuseSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	diffuseSrvDesc.Texture2D.MostDetailedMip = 0;
+	diffuseSrvDesc.Texture2D.MipLevels = 1;
+	diffuseSrvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+	diffuseSrvDesc.Texture2D.PlaneSlice = 0;
+
+	m_diffuseSrvId = descHeapManager->CreateShaderResourceView(m_diffuseBuffer.Get(), &diffuseSrvDesc);
+	if (m_diffuseSrvId == UINT64_MAX)
+	{
+		return false;
+	}
 
 	m_graphicsPipelineState = std::unique_ptr<GraphicsPipelineState>(new GraphicsPipelineState());
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc = m_graphicsPipelineState->GraphicsPipelineStateDesc();
@@ -119,12 +141,16 @@ bool GeometryPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 	return true;
 }
 
-void GeometryPass::Frame(World* world, ID3D12GraphicsCommandList* commandList, GraphicsContext* graphicsContext, PipelineResourceStates* pipelineResourceStates, PipelineOutputsStruct& outputs)
+bool GeometryPass::PopulateCommands(World* world, GraphicsContext* graphicsContext)
 {
-	if (world == nullptr || commandList == nullptr || graphicsContext == nullptr)
+	if (world == nullptr || graphicsContext == nullptr)
 	{
-		return;
+		return false;
 	}
+
+	PassBase::PopulateCommands(world, graphicsContext);
+
+	ID3D12GraphicsCommandList* commandList = m_commandBuilder->GetCommandList();
 
 	DescriptorHeapManager* descHeapManager = graphicsContext->GetDescriptorHeapManager();
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
@@ -133,10 +159,7 @@ void GeometryPass::Frame(World* world, ID3D12GraphicsCommandList* commandList, G
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvs[4];
 	descHeapManager->GetRenderTargetViewCpuHandle(m_diffuseRtvId, rtvs[0]);
 
-	if (!GraphicsUtils::PipelineResourceBarrierTransition(m_diffuseBuffer.Get(), pipelineResourceStates, commandList, D3D12_RESOURCE_STATE_RENDER_TARGET))
-	{
-		return;
-	}
+	ResourceBarrierTransition(m_diffuseBuffer.Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 	// Set pso
 	commandList->SetPipelineState(m_graphicsPipelineState->GetPipelineState());
@@ -154,21 +177,20 @@ void GeometryPass::Frame(World* world, ID3D12GraphicsCommandList* commandList, G
 	world->GetUniformFrameConstantBuffer()->BindConstantBufferViewToPipeline(graphicsContext, uniformFrameGpuHandle);
 	commandList->SetGraphicsRootDescriptorTable(0, uniformFrameGpuHandle);
 
-	if (outputs.Outputs.contains(PipelinePassOutputType::EARLY_Z_PASS_DEPTH_BUFFER))
+	// Set depth buffer in earlyZBuffer dependency pass srv
+	EarlyZPass* dependencyEarlyZPass = (EarlyZPass*)GetDependencyPassOfType(PassType::EARLY_Z_PASS);
+	if (dependencyEarlyZPass)
 	{
-		PipelineOutput& earlyZPassDepthBufferOutput = outputs.Outputs[PipelinePassOutputType::EARLY_Z_PASS_DEPTH_BUFFER];
-
-		// Change the state of earlyZBuffer to COMMON 
-		GraphicsUtils::PipelineResourceBarrierTransition(earlyZPassDepthBufferOutput.pResource, pipelineResourceStates, commandList, D3D12_RESOURCE_STATE_COMMON);
+		dependencyEarlyZPass->DepthBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COMMON);
 
 		D3D12_GPU_DESCRIPTOR_HANDLE earlyZPassBufferHandle;
-		descHeapManager->BindCbvSrvUavToPipeline(earlyZPassDepthBufferOutput.SrvId, earlyZPassBufferHandle);
+		descHeapManager->BindCbvSrvUavToPipeline(dependencyEarlyZPass->GetDepthBufferSrvId(), earlyZPassBufferHandle);
 		commandList->SetGraphicsRootDescriptorTable(2, earlyZPassBufferHandle);
 	}
 
 	for (auto& staticMesh : world->GetAllStaticMeshes())
 	{
-		if (!staticMesh->PassEnabled(RenderPass::GEOMETRY_PASS))
+		if (!staticMesh->PassEnabled(PassType::GEOMETRY_PASS))
 		{
 			continue;
 		}
@@ -176,5 +198,7 @@ void GeometryPass::Frame(World* world, ID3D12GraphicsCommandList* commandList, G
 		staticMesh->Draw(graphicsContext, commandList);
 	}
 
-	// Output
+	m_commandBuilder->Close();
+
+	return true;
 }

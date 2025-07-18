@@ -15,6 +15,9 @@
     <Filter Include="ShaderSource">
       <UniqueIdentifier>{1e08837f-14d6-4328-a219-a0ac10131e9f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Pipelines">
+      <UniqueIdentifier>{0aab36f6-a5b6-47fb-9a12-b9425a6b72a5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -80,10 +83,22 @@
     <ClCompile Include="LightingPass.cpp">
       <Filter>RenderPasses</Filter>
     </ClCompile>
-    <ClCompile Include="RenderPipeline.cpp">
+    <ClCompile Include="PassBase.cpp">
       <Filter>RenderPasses</Filter>
     </ClCompile>
-    <ClCompile Include="PipelineOutputs.cpp">
+    <ClCompile Include="PassFactory.cpp">
+      <Filter>RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="GuidComparator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderGraph.cpp">
+      <Filter>Pipelines</Filter>
+    </ClCompile>
+    <ClCompile Include="Pipeline.cpp">
+      <Filter>Pipelines</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DFence.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -139,9 +154,6 @@
     <ClInclude Include="World.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="RenderPassType.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="D3DResource.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -172,11 +184,29 @@
     <ClInclude Include="LightingPass.h">
       <Filter>RenderPasses</Filter>
     </ClInclude>
-    <ClInclude Include="PipelineOutputs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderPipeline.h">
+    <ClInclude Include="PassBase.h">
       <Filter>RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="PassFactory.h">
+      <Filter>RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="PassDefines.h">
+      <Filter>RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="GuidComparator.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PassType.h">
+      <Filter>RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGraph.h">
+      <Filter>Pipelines</Filter>
+    </ClInclude>
+    <ClInclude Include="Pipeline.h">
+      <Filter>Pipelines</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DFence.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -187,6 +217,9 @@
       <Filter>ShaderSource</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\GeometryPass.hlsl">
+      <Filter>ShaderSource</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\LightingPass.hlsl">
       <Filter>ShaderSource</Filter>
     </FxCompile>
   </ItemGroup>

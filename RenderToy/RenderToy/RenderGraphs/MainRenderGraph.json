@@ -1,0 +1,39 @@
+{
+    "RenderGraph": {
+        "Pipelines": [
+            {
+                "Name": "DeferredShadingPipeline",
+                "Guid": "07dad73e-be11-4e92-9472-2b2e059f4dc1",
+                "Passes": [
+                    {
+                        "Name": "EarlyZPass",
+                        "Guid": "2c25ed19-c9d0-49d1-95df-00c4cc79924c",
+                        "Type": "EARLY_Z_PASS"
+                    },
+                    {
+                        "Name": "GeometryPass",
+                        "Guid": "264ac49f-685b-45d2-b3ff-7882dbab72e2",
+                        "Type": "GEOMETRY_PASS"
+                    },
+                    {
+                        "Name": "LightingPass",
+                        "Guid": "8bb18fb8-38ab-4a8b-8962-3d0da37be869",
+                        "Type": "LIGHTING_PASS"
+                    }
+                ]
+            }
+        ],
+
+        "Dependencies": [
+            {
+                "Name": "GeometryPass",
+                "Dependencies": [ "EarlyZPass" ]
+            },
+
+            {
+                "Name": "LightingPass",
+                "Dependencies": [ "GeometryPass" ]
+            }
+        ]
+    }
+}

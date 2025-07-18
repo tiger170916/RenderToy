@@ -2,6 +2,13 @@
 
 std::filesystem::path Utils::g_workingDir;
 
+std::map<std::string, PassType> Utils::g_passTypeStringLookup
+{
+	{"EARLY_Z_PASS", PassType::EARLY_Z_PASS },
+	{"GEOMETRY_PASS", PassType::GEOMETRY_PASS },
+	{"LIGHTING_PASS", PassType::LIGHTING_PASS },
+};
+
 std::filesystem::path Utils::GetWorkingDirectory()
 {
 	if (g_workingDir.empty())
@@ -18,4 +25,14 @@ std::filesystem::path Utils::GetWorkingDirectory()
 	}
 
 	return g_workingDir;
+}
+
+PassType Utils::GetPassTypeFromString(std::string str)
+{
+	if (g_passTypeStringLookup.contains(str))
+	{
+		return g_passTypeStringLookup[str];
+	}
+
+	return PassType::NONE;
 }

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Includes.h"
-#include "PipelineOutputs.h"
 
 class DescriptorHeapManager;
 /// <summary>
@@ -14,12 +13,6 @@ public:
 		ID3D12Resource* pResource, 
 		ID3D12GraphicsCommandList* pCommandList, 
 		D3D12_RESOURCE_STATES stateBefore,
-		D3D12_RESOURCE_STATES stateAfter);
-
-	static bool PipelineResourceBarrierTransition(
-		ID3D12Resource* pResource,
-		PipelineResourceStates* pipelineResourceStates,
-		ID3D12GraphicsCommandList* pCommandList,
 		D3D12_RESOURCE_STATES stateAfter);
 
 	static bool CreateDepthStencilResource(
