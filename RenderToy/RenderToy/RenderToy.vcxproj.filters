@@ -18,6 +18,9 @@
     <Filter Include="Pipelines">
       <UniqueIdentifier>{0aab36f6-a5b6-47fb-9a12-b9425a6b72a5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty">
+      <UniqueIdentifier>{f81bdcd3-8154-4ae5-933e-018028594d8c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -99,6 +102,9 @@
       <Filter>Pipelines</Filter>
     </ClCompile>
     <ClCompile Include="D3DFence.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Swapchain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -206,6 +212,12 @@
       <Filter>Pipelines</Filter>
     </ClInclude>
     <ClInclude Include="D3DFence.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\json.hpp">
+      <Filter>3rdParty</Filter>
+    </ClInclude>
+    <ClInclude Include="Swapchain.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

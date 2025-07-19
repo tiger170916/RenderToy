@@ -4,6 +4,7 @@
 #include "GraphicsPipelineState.h"
 #include "CommandQueue.h"
 #include "CommandBuilder.h"
+#include "Swapchain.h"
 
 #include "World.h"
 #include "ShaderManager.h"
@@ -31,6 +32,8 @@ private:
 	std::unique_ptr<ShaderManager> m_shaderManager = nullptr;
 
 	std::unique_ptr<RenderGraph> m_mainRenderGraph = nullptr;
+
+	std::unique_ptr<Swapchain> m_swapchain = nullptr;
 
 public:
 	~Renderer();

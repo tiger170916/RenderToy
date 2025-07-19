@@ -18,19 +18,19 @@ private:
 
 	ComPtr<ID3D12Device> m_pDevice = nullptr;
 
-	ComPtr<IDXGISwapChain3> m_swapchain = nullptr;
+	//ComPtr<IDXGISwapChain3> m_swapchain = nullptr;
 
-	ComPtr<ID3D12Resource> m_swapchainBuffers[3];
+	//ComPtr<ID3D12Resource> m_swapchainBuffers[3];
 
-	std::unique_ptr<CommandQueue> m_swapchainCommandQueue = nullptr;
+	//std::unique_ptr<CommandQueue> m_swapchainCommandQueue = nullptr;
 
-	std::unique_ptr<CommandBuilder> m_swapchainCommandBuilder = nullptr;
+	//std::unique_ptr<CommandBuilder> m_swapchainCommandBuilder = nullptr;
 
 	std::unique_ptr<DescriptorHeapManager> m_descriptorHeapManager = nullptr;
 
-	D3D12_VIEWPORT m_viewport;
+	//D3D12_VIEWPORT m_viewport;
 
-	D3D12_RECT m_scissorRect;
+	//D3D12_RECT m_scissorRect;
 
 	UINT m_rtvDescriptorSize = 0;
 	UINT m_dsvDescriptorSize = 0;
@@ -40,9 +40,9 @@ private:
 	UINT m_width = 0;
 	UINT m_height = 0;
 
-	uint64_t m_rtvIds[4] = {};		// Max size of render target is 4
+	//uint64_t m_rtvIds[4] = {};		// Max size of render target is 4
 
-	UINT m_numFrameBuffers = 2;
+	//UINT m_numFrameBuffers = 2;
 
 	UINT m_currentBackbuffer = 0;
 
@@ -60,13 +60,17 @@ public:
 
 	inline ID3D12Device* GetDevice() const { return m_pDevice.Get(); }
 
+	inline IDXGIFactory2* GetDxgiFactory() const { return m_idxgiFactory.Get(); }
+
 	inline const UINT GetAdapterNodeMask() const { return m_adapterNodeMask; }
+
+	inline const HWND GetHwnd() const { return m_hwnd; }
 
 	inline DescriptorHeapManager* GetDescriptorHeapManager() const { return m_descriptorHeapManager.get(); }
 
-	bool CopyToCurrentBackBuffer(ID3D12Resource* copySrcResource);
+	//bool CopyToCurrentBackBuffer(ID3D12Resource* copySrcResource);
 
-	bool PresentCurrentBackBuffer();
+	//bool PresentCurrentBackBuffer();
 
 
 	~GraphicsContext();

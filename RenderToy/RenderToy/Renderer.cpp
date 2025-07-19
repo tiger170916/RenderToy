@@ -31,7 +31,13 @@ bool Renderer::Initialize(HWND hwnd)
 
 	m_shaderManager = std::make_unique<ShaderManager>();
 
-	m_mainRenderGraph = std::unique_ptr<RenderGraph>(new RenderGraph("myMainRenderGraph.json"));
+	m_swapchain = std::unique_ptr<Swapchain>(new Swapchain());
+	if (!m_swapchain->Initialize(m_graphicsContext.get())) 
+	{
+		return false;
+	}
+
+	m_mainRenderGraph = std::unique_ptr<RenderGraph>(new RenderGraph("C:\\ZemingGit\\RenderToy\\RenderToy\\RenderGraphs\\MainRenderGraph.json"));
 	if (!m_mainRenderGraph->Initialize(m_graphicsContext.get(), m_shaderManager.get()))
 	{
 		return false;
@@ -44,7 +50,7 @@ bool Renderer::Initialize(HWND hwnd)
 
 	// Test world
 	std::vector<std::shared_ptr<StaticMesh>> meshes;
-	FbxLoader* fbxLoader = new FbxLoader("myFbxPass");
+	FbxLoader* fbxLoader = new FbxLoader("C:\\Users\\erlie\\Desktop\\Assets\\medieval-house-2\\source\\House2\\House2.fbx");
 	fbxLoader->Load(meshes);
 	for (auto& mesh : meshes)
 	{
@@ -120,5 +126,9 @@ void Renderer::FrameEnd()
 {
 	m_mainRenderGraph->ExecuteCommands();
 
-	m_graphicsContext->PresentCurrentBackBuffer();
+	// Wait for all gpu work done...
+	m_mainRenderGraph->WaitForRenderFinalOutputDone();
+	Sleep(15);
+	m_swapchain->CopyToBackbuffer(m_mainRenderGraph->GetFinalRenderOutputResource());
+	m_swapchain->Present();
 }

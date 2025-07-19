@@ -22,6 +22,8 @@ public:
 
 	void CommandQueueSignal(ID3D12CommandQueue* commandQueue);
 
+	void CommandQueueSignalAndSetEvent(ID3D12CommandQueue* commandQueue, HANDLE hEvent);
+
 	inline ID3D12Fence* GetFence() { return m_fence.Get(); }
 
 	inline uint64_t GetCurrentFenceValue() const { return m_fenceValue; }

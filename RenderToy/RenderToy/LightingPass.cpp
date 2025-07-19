@@ -104,12 +104,14 @@ bool LightingPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 	m_scissorRect = { 0, 0, (long)width, (long)height };
 
 	m_rectangleMesh = std::unique_ptr<StaticMesh>(new StaticMesh());
-	m_rectangleMesh->AddPoint(0.0f, 0.0f, 0.1f);
-	m_rectangleMesh->AddPoint(1.0f, 0.0f, 0.1f);
+	m_rectangleMesh->AddPoint(-1.0f, -1.0f, 0.1f);
+	m_rectangleMesh->AddPoint(1.0f, -1.0f, 0.1f);
 	m_rectangleMesh->AddPoint(1.0f, 1.0f, 0.1f);
-	m_rectangleMesh->AddPoint(0.0f, 1.0f, 0.1f);
+	m_rectangleMesh->AddPoint(-1.0f, 1.0f, 0.1f);
 	m_rectangleMesh->AddTriangle(0, 2, 1);
 	m_rectangleMesh->AddTriangle(0, 3, 2);
+	// Add an instance with trival transform, since this info is not gonna used.
+	m_rectangleMesh->AddInstance(Transform::Identity());
 	if (!m_rectangleMesh->BuildResource(graphicsContext))
 	{
 		return false;
@@ -157,7 +159,15 @@ bool LightingPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 	// Draw fullscreen rectangle
 	m_rectangleMesh->Draw(graphicsContext, commandList);
 
+	// Transit the render target buffer to copy src state, since this might be copied out as final render result.
+	ResourceBarrierTransition(m_renderTarget.Get(), commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);
+
 	m_commandBuilder->Close();
 
 	return true;
+}
+
+ID3D12Resource* LightingPass::GetFinalRenderPassOutputResource() const
+{
+	return m_renderTarget.Get();
 }

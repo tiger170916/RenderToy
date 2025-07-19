@@ -42,3 +42,15 @@ void D3DFence::CommandQueueSignal(ID3D12CommandQueue* commandQueue)
 	m_fenceValue += 1;
 	commandQueue->Signal(m_fence.Get(), m_fenceValue);
 }
+
+void D3DFence::CommandQueueSignalAndSetEvent(ID3D12CommandQueue* commandQueue, HANDLE hEvent)
+{
+	if (!commandQueue)
+	{
+		return;
+	}
+
+	m_fenceValue += 1;
+	commandQueue->Signal(m_fence.Get(), m_fenceValue);
+	m_fence->SetEventOnCompletion(m_fenceValue, hEvent);
+}

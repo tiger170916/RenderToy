@@ -27,7 +27,8 @@ bool RenderGraph::Initialize(GraphicsContext* graphicsContext, ShaderManager* sh
 
 	// Read json file
 	std::vector<RenderGraph::PipelineStruct> pipelines;
-	if (!ParseFile(pipelines))
+	std::string finalRenderOutputPass;
+	if (!ParseFile(pipelines, finalRenderOutputPass))
 	{
 		return false;
 	}
@@ -66,15 +67,20 @@ bool RenderGraph::Initialize(GraphicsContext* graphicsContext, ShaderManager* sh
 
 			prevPass = pPass;
 			m_allPasses.push_back(pPass);
+
+			if (finalRenderOutputPass.compare(passStruct.Name) == 0)
+			{
+				m_finalRenderOutputPass = pPass;
+			}
 		}
 	}
 
-	FlattenRenderGraph(firstPass);
-
-	if (!Validate())
+	if (!m_finalRenderOutputPass && !finalRenderOutputPass.empty())
 	{
 		return false;
 	}
+
+	FlattenRenderGraph(firstPass);
 
 	for (int i = 0; i < m_pipelines.size(); i++)
 	{
@@ -93,8 +99,20 @@ bool RenderGraph::Initialize(GraphicsContext* graphicsContext, ShaderManager* sh
 		}
 	}
 
+	if (!Validate())
+	{
+		return false;
+	}
+
 	m_startingFence = std::unique_ptr<D3DFence>(new D3DFence());
 	if (!m_startingFence->Initialize(graphicsContext->GetDevice()))
+	{
+		return false;
+	}
+
+	m_renderOutputWorkDoneEvent= CreateEventA(NULL, true, false, NULL);
+
+	if (!m_renderOutputWorkDoneEvent)
 	{
 		return false;
 	}
@@ -153,6 +171,16 @@ bool RenderGraph::PopulateCommandLists(World* world, GraphicsContext* graphicsCo
 	return true;
 }
 
+ID3D12Resource* RenderGraph::GetFinalRenderOutputResource()
+{
+	if (m_finalRenderOutputPass)
+	{
+		return m_finalRenderOutputPass->GetFinalRenderPassOutputResource();
+	}
+
+	return nullptr;
+}
+
 Pipeline* RenderGraph::GetParentPipeline(PassBase* pass)
 {
 	for (auto& pipeline : m_pipelines)
@@ -195,7 +223,15 @@ bool RenderGraph::ExecuteCommands()
 		commandQueue->DispatchCommands(commandBuilder);
 
 		// Signal
-		pass->CommandQueueSignal(commandQueue->GetCommandQueue());
+		if (pass == m_finalRenderOutputPass)
+		{
+			// Set the render work done event when the current pass is the final render stage.
+			pass->CommandQueueSignalAndSetEvent(commandQueue->GetCommandQueue(), m_renderOutputWorkDoneEvent);
+		}
+		else
+		{
+			pass->CommandQueueSignal(commandQueue->GetCommandQueue());
+		}
 	}
 
 	// Can signal to start processing
@@ -237,13 +273,27 @@ bool RenderGraph::Validate()
 		return false;
 	}
 
-	// TODO: Dependency validation
+	if (m_finalRenderOutputPass && !m_finalRenderOutputPass->GetFinalRenderPassOutputResource())
+	{
+		return false;
+	}
+
+	// TODO: Dependency validations
 	return true;
 }
 
-bool RenderGraph::ParseFile(std::vector<RenderGraph::PipelineStruct>& outPipelines)
+void RenderGraph::WaitForRenderFinalOutputDone()
+{
+	if (m_finalRenderOutputPass)
+	{
+		WaitForSingleObject(m_renderOutputWorkDoneEvent, INFINITE);
+	}
+}
+
+bool RenderGraph::ParseFile(std::vector<RenderGraph::PipelineStruct>& outPipelines, std::string& outFinalRenderOutputPass)
 {
 	outPipelines.clear();
+	outFinalRenderOutputPass.clear();
 
 	if (!std::filesystem::exists(m_filePath))
 	{
@@ -326,9 +376,14 @@ bool RenderGraph::ParseFile(std::vector<RenderGraph::PipelineStruct>& outPipelin
 				}
 			}
 
-			if (data.contains("Dependencies") && data["Dependencies"].is_array())
+			if (renderGraph.contains("Dependencies") && renderGraph["Dependencies"].is_array())
 			{
 			
+			}
+
+			if (renderGraph.contains("FinalRenderOutputPass") && renderGraph["FinalRenderOutputPass"].is_string())
+			{
+				outFinalRenderOutputPass = renderGraph["FinalRenderOutputPass"];
 			}
 		}
 	}

@@ -91,6 +91,7 @@ bool GraphicsContext::Initialize(HWND hwnd)
     m_samplerDescriptorSize = m_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 
     // Create direct command queue
+    /*
     m_swapchainCommandQueue = std::unique_ptr<CommandQueue>(new CommandQueue(D3D12_COMMAND_QUEUE_FLAG_NONE, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_QUEUE_PRIORITY_NORMAL, adapterIndex));
     if (!m_swapchainCommandQueue->Initialize(m_pDevice.Get()))
     {
@@ -139,13 +140,14 @@ bool GraphicsContext::Initialize(HWND hwnd)
 
         uint64_t rtvId = m_descriptorHeapManager->CreateRenderTargetView(m_swapchainBuffers[i].Get(), nullptr);
         m_rtvIds[i] = rtvId;
-    }
+    }*/
 
     RECT rect;
     GetWindowRect(hwnd, &rect);
     m_width = rect.right - rect.left;
     m_height = rect.bottom - rect.top;
     
+    /*
     // Create the viewport.
     m_viewport.TopLeftX = 0.0f;
     m_viewport.TopLeftY = 0.0f;
@@ -156,13 +158,14 @@ bool GraphicsContext::Initialize(HWND hwnd)
 
     // Create the scissor rectangles.
     m_scissorRect = { 0, 0, (long)m_width, (long)m_height };
-
+    */
     m_hwnd = hwnd;
     m_initialized = true;
 
     return true;
 }
 
+/*
 bool GraphicsContext::CopyToCurrentBackBuffer(ID3D12Resource* copySrcResource)
 {
     if (!copySrcResource)
@@ -216,7 +219,7 @@ bool GraphicsContext::PresentCurrentBackBuffer()
 
     return SUCCEEDED(m_swapchain->Present(0, 0));
 
-}
+}*/
 
 GraphicsContext::~GraphicsContext()
 {
@@ -230,8 +233,8 @@ GraphicsContext::~GraphicsContext()
         m_pDevice.Reset();
     }
 
-    if (m_swapchain)
-    {
-        m_swapchain.Reset();
-    }
+    //if (m_swapchain)
+    //{
+    //    m_swapchain.Reset();
+    //}
 }

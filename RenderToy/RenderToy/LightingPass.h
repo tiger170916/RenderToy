@@ -30,6 +30,8 @@ public:
 
 	virtual bool PopulateCommands(World* world, GraphicsContext* graphicsContext) override;
 
+	virtual ID3D12Resource* GetFinalRenderPassOutputResource() const override;
+
 public:
 	// public resource getter
 	inline bool RenderTargetBufferBarrierTransition(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter) { return ResourceBarrierTransition(m_renderTarget.Get(), commandList, stateAfter); }

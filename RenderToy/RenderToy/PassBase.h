@@ -46,6 +46,9 @@ public:
 
 	virtual bool PopulateCommands(World* world, GraphicsContext* graphicsContext);
 
+	// A pass that can be used as final stage of render pass has to override this function, and return the corresponding buffer.
+	virtual ID3D12Resource* GetFinalRenderPassOutputResource() const;
+
 	// Add a dependency to this pass
 	void AddDependency(PassBase* dependencyPass);
 
@@ -66,7 +69,11 @@ public:
 
 	inline void SignalFence() { m_fence->Signal(); }
 
+	// Signal the fence when complete
 	inline void CommandQueueSignal(ID3D12CommandQueue* pCommandQueue) { m_fence->CommandQueueSignal(pCommandQueue); }
+
+	// Signal the fence when complete and set an event
+	inline void CommandQueueSignalAndSetEvent(ID3D12CommandQueue* pCommandQueue, HANDLE hEvent) { m_fence->CommandQueueSignalAndSetEvent(pCommandQueue, hEvent); }
 
 	inline uint64_t GetCurrentFenceValue() { return m_fence->GetCurrentFenceValue(); }
 };

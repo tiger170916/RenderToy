@@ -40,9 +40,11 @@ MeshVertexOut VertexShaderMain(MeshVertexIn vertexIn, uint instanceID : SV_Insta
 [RootSignature(LightingPassRootsignature)]
 float4 PixelShaderMain(MeshVertexOut vertexOut) : SV_Target0
 {
-    PS_OUTPUT output;
+    float width;
+    float height;
+    diffuseBuffer.GetDimensions(width, height);
     
-    float4 pos = vertexOut.pos / vertexOut.pos.w;
+    float2 uv = vertexOut.pos.xy / float2(width, height) / vertexOut.pos.w;
 
-    return diffuseBuffer.SampleLevel(pointSampler, pos.xy, 0);
+    return diffuseBuffer.SampleLevel(pointSampler, uv, 0);
 }

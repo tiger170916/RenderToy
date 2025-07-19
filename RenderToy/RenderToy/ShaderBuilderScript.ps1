@@ -41,7 +41,9 @@ $geometryPassPixelShaderPdbOutput = $outputDir + "geometry_pass_pixel_shader.pdb
 $lightingPassFile = $shaderDir + "LightingPass.hlsl"
 $lightingPassRootSignatureOutput = $outputDir + "lighting_pass_root_signature.cso"
 $lightingPassVertexShaderOutput = $outputDir + "lighting_pass_vertex_shader.cso"
+$lightingPassVertexShaderPdbOutput = $outputDir + "lighting_pass_vertex_shader.pdb"
 $lightingPassPixelShaderOutput = $outputDir + "lighting_pass_pixel_shader.cso"
+$lightingPassPixelShaderPdbOutput = $outputDir + "lighting_pass_pixel_shader.pdb"
 
 Write-Host "LightingPass shader file: $lightingPassFile"
 Write-Host "LightingPass root signature output: $lightingPassRootSignatureOutput"
@@ -51,7 +53,7 @@ Write-Host "LightingPass pixel shader output: $lightingPassPixelShaderOutput"
 # Compile root signature
 & $dxc /T rootsig_1_1 $lightingPassFile /E "LightingPassRootsignature" /Fo $lightingPassRootSignatureOutput /nologo
 # Compile vertex shader
-& $dxc /T vs_6_6 $lightingPassFile /E"VertexShaderMain" /Fo $lightingPassVertexShaderOutput /nologo
+& $dxc /T vs_6_6 $lightingPassFile /E"VertexShaderMain" /Fo $lightingPassVertexShaderOutput /Zi /Fd $lightingPassVertexShaderPdbOutput /nologo
 # Compile pixel shader
 & $dxc /T ps_6_6 $lightingPassFile /E"PixelShaderMain" /Fo $lightingPassPixelShaderOutput /Zi /Fd $lightingPassPixelShaderPdbOutput /nologo
 

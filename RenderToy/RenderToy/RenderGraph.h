@@ -42,6 +42,10 @@ private:
 	// Fence indicating that all pipelines are ready to execute commands
 	std::unique_ptr<D3DFence> m_startingFence;
 
+	PassBase* m_finalRenderOutputPass = nullptr;
+
+	HANDLE m_renderOutputWorkDoneEvent = NULL;
+
 	bool m_initialized = false;
 
 public:
@@ -55,10 +59,14 @@ public:
 
 	bool ExecuteCommands();
 
+	ID3D12Resource* GetFinalRenderOutputResource();
+
+	void WaitForRenderFinalOutputDone();
+
 private:
 	bool Validate();
 
-	bool ParseFile(std::vector<PipelineStruct>& outPipelines);
+	bool ParseFile(std::vector<PipelineStruct>& outPipelines, std::string& outFinalRenderOutputPass);
 
 	void FlattenRenderGraph(PassBase* randomPass);
 

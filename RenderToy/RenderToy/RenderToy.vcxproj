@@ -137,10 +137,12 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="ShaderType.cpp" />
     <ClCompile Include="StaticMesh.cpp" />
+    <ClCompile Include="Swapchain.cpp" />
     <ClCompile Include="Utils.cpp" />
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="3rdParty\json.hpp" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CommandBuilder.h" />
     <ClInclude Include="CommandQueue.h" />
@@ -173,6 +175,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="ShaderType.h" />
     <ClInclude Include="StaticMesh.h" />
+    <ClInclude Include="Swapchain.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="Vectors.h" />
     <ClInclude Include="World.h" />
