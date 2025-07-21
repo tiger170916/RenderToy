@@ -6,40 +6,54 @@
 #include "ConstantBuffer.h"
 #include "MeshStructs.h"
 #include "PassType.h"
+#include "Material.h"
 
 class StaticMesh
 {
-private:
-	std::vector<FVector3> m_points;
+public:
+	struct MeshVertex
+	{
+		FVector3 Position;
+		FVector3 Normal;
+		FVector2 UvSets[8];
+	};
 
-	std::vector<int> m_triangles;
+private:
+	std::map<int, std::vector<StaticMesh::MeshVertex>> m_meshParts; // material id : mesh
+
+	std::vector<std::unique_ptr<Material>> m_materials;
+
+	int m_numUvs = 0;
 
 	// Currently instance only contains transform data (extent to a struct)
 	std::vector<Transform> m_instances;
 
 	std::set<PassType> m_enabledPasses;
 
-	// TODO: change to multiple resources
 	// Vertex buffer resource
-	std::unique_ptr<D3DResource> m_vbResource = nullptr;
+	std::vector<std::unique_ptr<D3DResource>> m_vbResources;
 
-	// Index buffer resource
-	std::unique_ptr<D3DResource> m_ibResource = nullptr;
+	std::vector<UINT> m_vertexCounts;
 
-	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView = {};
+	std::vector<D3D12_VERTEX_BUFFER_VIEW> m_vertexBufferViews;
 
-	D3D12_INDEX_BUFFER_VIEW m_indexBufferView = {};
 
-	std::unique_ptr<ConstantBuffer<MeshInstanceConstants>> m_instanceConstants = nullptr;
+	std::unique_ptr<ConstantBuffer<MeshInstanceConstants>> m_instanceConstants;
 
 public:
 	StaticMesh();
 
 	~StaticMesh();
 
-	void AddPoint(const float& x, const float& y, const float& z);
+	void AddTriangle(const int& part, const MeshVertex& v1, const MeshVertex& v2, const MeshVertex& v3);
 
-	void AddTriangle(const int& v1, const int& v2, const int& v3);
+	void AddMaterial();
+
+	void SetNumUvs(const int num) { m_numUvs = num; }
+
+	//void AddPoint(const float& x, const float& y, const float& z);
+
+	//void AddTriangle(const int& v1, const int& v2, const int& v3);
 
 	void AddInstance(const Transform& transform);
 

@@ -1,5 +1,34 @@
 #pragma once
 
+struct FVector2
+{
+	float X;
+	float Y;
+
+	static FVector2 One()
+	{
+		return FVector2(1.0f, 1.0f);
+	}
+
+	static FVector2 Zero()
+	{
+		return FVector2(0.0f, 0.0f);
+	}
+
+	FVector2& operator+=(const FVector2& rhs) {
+		this->X += rhs.X;
+		this->Y += rhs.Y;
+
+		return *this;
+	}
+
+	FVector2 operator+(const FVector2& rhs) const {
+		FVector2 temp = *this;
+		temp += rhs;
+		return temp;
+	}
+};
+
 typedef struct FVector3
 {
 	float X;

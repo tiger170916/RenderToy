@@ -32,6 +32,11 @@ void Camera::CalculateViewMatrix()
 		XMVectorSet(upDirection.X, upDirection.Y, upDirection.Z, 1.0f));
 }
 
+void Camera::Frame(float delta)
+{
+
+}
+
 Camera::~Camera()
 {
 

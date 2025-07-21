@@ -23,7 +23,9 @@ private:
 
 	const FVector3 m_basisRight = FVector3(1.0f, 0.0f, 0.0f);
 
-	const FVector3 m_basisUp = FVector3(0.0f, 1.0f, 0.0f);;
+	const FVector3 m_basisUp = FVector3(0.0f, 1.0f, 0.0f);
+
+	bool m_cinematic = true;
 
 public:
 	Camera(UINT width, UINT height, FVector3 initPosition, FRotator initRotation);
@@ -33,6 +35,8 @@ public:
 	inline XMMATRIX GetViewMatrix() const { return m_viewMatrix; }
 
 	inline XMMATRIX GetProjectionMatrix() const { return m_projectionMatrix; }
+
+	void Frame(float delta);
 
 private:
 	void CalculateViewMatrix();

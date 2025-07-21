@@ -104,12 +104,27 @@ bool LightingPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 	m_scissorRect = { 0, 0, (long)width, (long)height };
 
 	m_rectangleMesh = std::unique_ptr<StaticMesh>(new StaticMesh());
-	m_rectangleMesh->AddPoint(-1.0f, -1.0f, 0.1f);
-	m_rectangleMesh->AddPoint(1.0f, -1.0f, 0.1f);
-	m_rectangleMesh->AddPoint(1.0f, 1.0f, 0.1f);
-	m_rectangleMesh->AddPoint(-1.0f, 1.0f, 0.1f);
-	m_rectangleMesh->AddTriangle(0, 2, 1);
-	m_rectangleMesh->AddTriangle(0, 3, 2);
+	StaticMesh::MeshVertex point1
+	{
+		.Position = FVector3(-1.0f, -1.0f, 0.1f),
+	};
+	StaticMesh::MeshVertex point2
+	{
+		.Position = FVector3(1.0f, -1.0f, 0.1f),
+	};
+	StaticMesh::MeshVertex point3
+	{
+		.Position = FVector3(1.0f, 1.0f, 0.1f),
+	};
+
+	StaticMesh::MeshVertex point4
+	{
+		.Position = FVector3(-1.0f, 1.0f, 0.1f),
+	};
+
+	m_rectangleMesh->AddTriangle(-1, point1, point3, point2);
+	m_rectangleMesh->AddTriangle(-1, point1, point4, point3);
+
 	// Add an instance with trival transform, since this info is not gonna used.
 	m_rectangleMesh->AddInstance(Transform::Identity());
 	if (!m_rectangleMesh->BuildResource(graphicsContext))

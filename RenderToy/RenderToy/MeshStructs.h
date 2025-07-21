@@ -1,7 +1,7 @@
 #pragma once
 #include "Includes.h"
 
-struct MeshVertex
+struct MeshVertexDx
 {
 	float position[3];
 };

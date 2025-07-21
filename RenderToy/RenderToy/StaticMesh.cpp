@@ -10,16 +10,21 @@ StaticMesh::~StaticMesh()
 
 }
 
-void StaticMesh::AddPoint(const float& x, const float& y, const float& z)
+void StaticMesh::AddMaterial()
 {
-	m_points.push_back(FVector3(x, y, z));
+
 }
 
-void StaticMesh::AddTriangle(const int& v1, const int& v2, const int& v3)
+void StaticMesh::AddTriangle(const int& part, const MeshVertex& v1, const MeshVertex& v2, const MeshVertex& v3)
 {
-	m_triangles.push_back(v1);
-	m_triangles.push_back(v2);
-	m_triangles.push_back(v3);
+	if (!m_meshParts.contains(part))
+	{
+		m_meshParts[part] = std::vector<MeshVertex>();
+	}
+
+	m_meshParts[part].push_back(v1);
+	m_meshParts[part].push_back(v2);
+	m_meshParts[part].push_back(v3);
 }
 
 void StaticMesh::AddInstance(const Transform& transform)
@@ -46,45 +51,51 @@ bool StaticMesh::BuildResource(GraphicsContext* graphicsContext)
 
 	ID3D12Device* pDevice = graphicsContext->GetDevice();
 
-	// Build vertex buffer resources
-	m_vbResource = std::unique_ptr<D3DResource>(new D3DResource(true));
-
-	std::vector<MeshVertex> vertices;
-	for (int i = 0; i < m_points.size(); i++)
+	for (auto& pair : m_meshParts)
 	{
-		MeshVertex v = {};
-		v.position[0] = m_points[i].X;
-		v.position[1] = m_points[i].Y;
-		v.position[2] = m_points[i].Z;
+		const int& materialIdx = pair.first;
+		std::vector<MeshVertex>& vertices = pair.second;
+		if (vertices.empty())
+		{
+			continue;
+		}
 
-		vertices.push_back(v);
+		std::vector<MeshVertexDx> verticesDx;
+		for (int i = 0; i < vertices.size(); i++)
+		{
+			const MeshVertex& vert = vertices[i];
+			MeshVertexDx vertDx = {};
+			vertDx.position[0] = vert.Position.X;
+			vertDx.position[1] = vert.Position.Y;
+			vertDx.position[2] = vert.Position.Z;
+			verticesDx.push_back(vertDx);
+		}
+
+		D3DResource* vertexBufferResource = new D3DResource(true);
+		// Create vb 
+		auto vbDesc = CD3DX12_RESOURCE_DESC::Buffer(verticesDx.size() * sizeof(MeshVertexDx));
+		if (!vertexBufferResource->Initialize(graphicsContext, &vbDesc, verticesDx.data(), (UINT)verticesDx.size() * sizeof(MeshVertexDx)))
+		{
+			return false;
+		}
+		m_vbResources.push_back(std::unique_ptr<D3DResource>(vertexBufferResource));
+
+		// Create vb view
+		D3D12_VERTEX_BUFFER_VIEW vertexBufferView = {};
+		vertexBufferView.BufferLocation = vertexBufferResource->GetDefaultResource()->GetGPUVirtualAddress();
+		vertexBufferView.StrideInBytes = sizeof(MeshVertexDx);
+		vertexBufferView.SizeInBytes = (UINT)verticesDx.size() * sizeof(MeshVertexDx);
+
+		m_vertexBufferViews.push_back(vertexBufferView);
+		m_vertexCounts.push_back((UINT)vertices.size());
 	}
 
-	auto vbDesc = CD3DX12_RESOURCE_DESC::Buffer(vertices.size() * sizeof(MeshVertex));
-	if (!m_vbResource->Initialize(graphicsContext, &vbDesc, vertices.data(), (UINT)vertices.size() * sizeof(MeshVertex)))
+	//model cb
+	m_instanceConstants = std::unique_ptr< ConstantBuffer<MeshInstanceConstants>>(new ConstantBuffer<MeshInstanceConstants>(64));
+	if (!m_instanceConstants->Initialize(graphicsContext))
 	{
 		return false;
 	}
-
-	// Build index buffer resources
-	m_ibResource = std::unique_ptr<D3DResource>(new D3DResource(true));
-	auto ibDesc = CD3DX12_RESOURCE_DESC::Buffer(m_triangles.size() * sizeof(int));
-	if (!m_ibResource->Initialize(graphicsContext, &ibDesc, m_triangles.data(), (UINT)m_triangles.size() * sizeof(int)))
-	{
-		return false;
-	}
-
-	m_vertexBufferView.BufferLocation = m_vbResource->GetDefaultResource()->GetGPUVirtualAddress();
-	m_vertexBufferView.StrideInBytes = sizeof(MeshVertex);
-	m_vertexBufferView.SizeInBytes = (UINT)vertices.size() * sizeof(MeshVertex);
-
-	m_indexBufferView.BufferLocation = m_ibResource->GetDefaultResource()->GetGPUVirtualAddress();
-	m_indexBufferView.Format = DXGI_FORMAT_R32_UINT; // 32-bit unsigned integer
-	m_indexBufferView.SizeInBytes = (UINT)m_triangles.size() * sizeof(UINT);
-
-	m_instanceConstants = std::unique_ptr<ConstantBuffer<MeshInstanceConstants>>(new ConstantBuffer<MeshInstanceConstants>(64));
-
-	m_instanceConstants->Initialize(graphicsContext);
 
 	return true;
 }
@@ -95,6 +106,7 @@ void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandLis
 	{
 		return;
 	}
+
 
 	for (int i = 0; i < m_instances.size(); i++)
 	{
@@ -115,22 +127,20 @@ void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandLis
 	{
 		return;
 	}
-
+	
 	D3D12_GPU_DESCRIPTOR_HANDLE instanceCbHandle;
 	if (!m_instanceConstants->BindConstantBufferViewToPipeline(graphicsContext, instanceCbHandle))
 	{
 		return;
 	}
 
-	const D3D12_VERTEX_BUFFER_VIEW* pVbViews = &m_vertexBufferView;
-	const D3D12_INDEX_BUFFER_VIEW* pIbView = &m_indexBufferView;
+	for (int i = 0; i < m_vbResources.size(); i++)
+	{
+		const D3D12_VERTEX_BUFFER_VIEW* pVbViews = &m_vertexBufferViews[i];
 
-	m_vbResource->CopyToDefaultHeap(cmdList);
-	m_ibResource->CopyToDefaultHeap(cmdList);
-
-	cmdList->SetGraphicsRootDescriptorTable(1, instanceCbHandle);
-
-	cmdList->IASetVertexBuffers(0, 1, pVbViews);
-	cmdList->IASetIndexBuffer(pIbView);
-	cmdList->DrawIndexedInstanced((UINT)m_triangles.size(), (UINT)m_instances.size(), 0, 0, 0);
+		m_vbResources[i]->CopyToDefaultHeap(cmdList);
+		cmdList->SetGraphicsRootDescriptorTable(1, instanceCbHandle);
+		cmdList->IASetVertexBuffers(0, 1, pVbViews);
+		cmdList->DrawInstanced(m_vertexCounts[i], (UINT)m_instances.size(), 0, 0);
+	}
 }

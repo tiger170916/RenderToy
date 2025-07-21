@@ -45,23 +45,43 @@ bool Renderer::Initialize(HWND hwnd)
 
 
 	m_activeWorld = std::shared_ptr<World>(new World());
-	m_activeWorld->SetActiveCamera(m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight(), FVector3(0, 0, -20), FRotator::Zero());
+	m_activeWorld->SetActiveCamera(m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight(), FVector3(0, 3.0, -12.5), FRotator::Zero());
 	m_activeWorld->Initialize(m_graphicsContext.get());
 
 	// Test world
 	std::vector<std::shared_ptr<StaticMesh>> meshes;
-	FbxLoader* fbxLoader = new FbxLoader("C:\\Users\\erlie\\Desktop\\Assets\\medieval-house-2\\source\\House2\\House2.fbx");
+	std::vector<std::shared_ptr<StaticMesh>> lightBulbMesh;
+
+	FbxLoader* fbxLoader = new FbxLoader("C:\\Users\\erlie\\Desktop\\Assets\\abandoned-house\\source\\abandonhouse.fbx");
+	FbxLoader* lightBulbLoader = new FbxLoader("C:\\Users\\erlie\\Desktop\\Assets\\cc0-light-bulb\\source\\LightBulb.fbx", 5);
 	fbxLoader->Load(meshes);
+	lightBulbLoader->Load(lightBulbMesh);
 	for (auto& mesh : meshes)
 	{
-		mesh->AddInstance(Transform::Identity());
+		Transform transform = Transform::Identity();
+		transform.Rotation.Pitch = -DirectX::XM_PI * 0.5f;
+		mesh->AddInstance(transform);
 		mesh->EnablePass(PassType::EARLY_Z_PASS);
 		mesh->EnablePass(PassType::GEOMETRY_PASS);
 
 		mesh->BuildResource(m_graphicsContext.get());
 	}
 
+
+	for (int i = 0; i < lightBulbMesh.size(); i++)
+	{
+		Transform lightBulbTransform = Transform::Identity();
+		lightBulbTransform.Translation = FVector3(5.0f, 6.5f, 0.0f);
+		lightBulbTransform.Rotation.Pitch = DirectX::XM_PI * 0.5f;
+		lightBulbMesh[i]->AddInstance(lightBulbTransform);
+		lightBulbMesh[i]->EnablePass(PassType::EARLY_Z_PASS);
+		lightBulbMesh[i]->EnablePass(PassType::GEOMETRY_PASS);
+
+		lightBulbMesh[i]->BuildResource(m_graphicsContext.get());
+	}
+
 	m_activeWorld->SpawnStaticMeshes(meshes);
+	m_activeWorld->SpawnStaticMeshes(lightBulbMesh);
 
 	m_initialized = true;
 	return true;

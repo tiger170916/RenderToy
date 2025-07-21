@@ -12,8 +12,10 @@ private:
 
 	FbxManager* m_fbxManager = nullptr;
 
+	float m_scale;
+
 public:
-	FbxLoader(std::string fileName);
+	FbxLoader(std::string fileName, float scale = 1.0f);
 
 	bool Load(std::vector<std::shared_ptr<StaticMesh>> & outMeshes);
 
@@ -21,4 +23,6 @@ public:
 
 private:
 	void ProcessNode(FbxNode* pNode, std::vector<std::shared_ptr<StaticMesh>>& outMeshes);
+
+	void ProcessMesh(FbxNode* pNode, FbxMesh* pMesh, std::vector<std::shared_ptr<StaticMesh>>& outMeshes);
 };

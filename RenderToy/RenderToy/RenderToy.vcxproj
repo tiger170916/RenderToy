@@ -57,7 +57,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>RENDER_TOY_EXPORT;_DEBUG;RENDERTOY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>FBXSDK_SHARED;RENDER_TOY_EXPORT;_DEBUG;RENDERTOY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -86,7 +86,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>RENDER_TOY_EXPORT;NDEBUG;RENDERTOY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>FBXSDK_SHARED;RENDER_TOY_EXPORT;NDEBUG;RENDERTOY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -127,6 +127,9 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="GraphicsUtils.cpp" />
     <ClCompile Include="GuidComparator.cpp" />
     <ClCompile Include="LightingPass.cpp" />
+    <ClCompile Include="Lights\LightExtension.cpp" />
+    <ClCompile Include="Lights\PointLight.cpp" />
+    <ClCompile Include="Material.cpp" />
     <ClCompile Include="PassBase.cpp" />
     <ClCompile Include="PassFactory.cpp" />
     <ClCompile Include="Pipeline.cpp" />
@@ -134,10 +137,13 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="RenderGraph.cpp" />
     <ClCompile Include="RenderPassBase.cpp" />
     <ClCompile Include="RenderToyApi.cpp" />
+    <ClCompile Include="ResourceStreamer.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="ShaderType.cpp" />
     <ClCompile Include="StaticMesh.cpp" />
     <ClCompile Include="Swapchain.cpp" />
+    <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="Utils.cpp" />
     <ClCompile Include="World.cpp" />
   </ItemGroup>
@@ -161,7 +167,10 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="GuidComparator.h" />
     <ClInclude Include="Includes.h" />
     <ClInclude Include="LightingPass.h" />
+    <ClInclude Include="Lights\LightExtension.h" />
+    <ClInclude Include="Lights\PointLight.h" />
     <ClInclude Include="Macros.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="MeshStructs.h" />
     <ClInclude Include="PassBase.h" />
     <ClInclude Include="PassDefines.h" />
@@ -172,10 +181,13 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="RenderGraph.h" />
     <ClInclude Include="RenderPassBase.h" />
     <ClInclude Include="RenderToyApi.h" />
+    <ClInclude Include="ResourceStreamer.h" />
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="ShaderType.h" />
     <ClInclude Include="StaticMesh.h" />
     <ClInclude Include="Swapchain.h" />
+    <ClInclude Include="Texture.h" />
+    <ClInclude Include="TextureManager.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="Vectors.h" />
     <ClInclude Include="World.h" />
