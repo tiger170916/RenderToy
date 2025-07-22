@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Includes.h"
-#include "Texture.h"
 #include "ConstantBuffer.h"
 #include "GraphicsContext.h"
+#include "TextureManager.h"
 
 struct MaterialConstants
 {

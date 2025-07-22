@@ -115,6 +115,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CommandBuilder.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
+    <ClCompile Include="CriticalSection.cpp" />
     <ClCompile Include="D3DFence.cpp" />
     <ClCompile Include="D3DResource.cpp" />
     <ClCompile Include="GeometryPass.cpp" />
@@ -153,6 +154,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="CommandBuilder.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="ConstantBuffer.h" />
+    <ClInclude Include="CriticalSection.h" />
     <ClInclude Include="D3DFence.h" />
     <ClInclude Include="D3DResource.h" />
     <ClInclude Include="d3dx12.h" />
@@ -185,6 +187,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="ShaderType.h" />
     <ClInclude Include="StaticMesh.h" />
+    <ClInclude Include="StreamInterface.h" />
     <ClInclude Include="Swapchain.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureManager.h" />

@@ -128,6 +128,9 @@
     <ClCompile Include="ResourceStreamer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CriticalSection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -257,6 +260,12 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="ResourceStreamer.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StreamInterface.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CriticalSection.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -7,6 +7,7 @@
 #include "MeshStructs.h"
 #include "PassType.h"
 #include "Material.h"
+#include "Lights/PointLight.h"
 
 class StaticMesh
 {
@@ -37,8 +38,9 @@ private:
 
 	std::vector<D3D12_VERTEX_BUFFER_VIEW> m_vertexBufferViews;
 
-
 	std::unique_ptr<ConstantBuffer<MeshInstanceConstants>> m_instanceConstants;
+
+	std::vector<std::shared_ptr<LightExtension>> m_lightExtensions;
 
 public:
 	StaticMesh();
@@ -51,10 +53,6 @@ public:
 
 	void SetNumUvs(const int num) { m_numUvs = num; }
 
-	//void AddPoint(const float& x, const float& y, const float& z);
-
-	//void AddTriangle(const int& v1, const int& v2, const int& v3);
-
 	void AddInstance(const Transform& transform);
 
 	void EnablePass(const PassType& renderPass);
@@ -64,5 +62,10 @@ public:
 	bool BuildResource(GraphicsContext* graphicsContext);
 
 	void Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList);
+
+	void AttachLightExtension(LightExtension* light);
+
+	bool HasLightExtensions() const { return !m_lightExtensions.empty(); }
+	std::vector<std::shared_ptr<LightExtension>> GetLightExtensions() { return m_lightExtensions; }
 
 };

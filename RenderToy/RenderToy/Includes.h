@@ -6,6 +6,7 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <queue>
 #include <filesystem>
 #include <fstream>
 #include <dxgi1_4.h>

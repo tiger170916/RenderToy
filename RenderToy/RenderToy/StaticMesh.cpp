@@ -144,3 +144,13 @@ void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandLis
 		cmdList->DrawInstanced(m_vertexCounts[i], (UINT)m_instances.size(), 0, 0);
 	}
 }
+
+void StaticMesh::AttachLightExtension(LightExtension* light)
+{
+	if (light == nullptr)
+	{
+		return;
+	}
+
+	m_lightExtensions.push_back(std::shared_ptr<LightExtension>(light));
+}

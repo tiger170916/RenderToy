@@ -77,6 +77,10 @@ bool Renderer::Initialize(HWND hwnd)
 		lightBulbMesh[i]->EnablePass(PassType::EARLY_Z_PASS);
 		lightBulbMesh[i]->EnablePass(PassType::GEOMETRY_PASS);
 
+		// Create a light extension, and attach to the light bulb model
+		PointLight* pointLight = new PointLight(FVector3::Zero(), FVector3(1.0f, 1.0f, 1.0f));
+		lightBulbMesh[i]->AttachLightExtension(pointLight);
+
 		lightBulbMesh[i]->BuildResource(m_graphicsContext.get());
 	}
 
