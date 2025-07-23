@@ -4,7 +4,15 @@
 
 Renderer::~Renderer()
 {
+}
 
+void Renderer::RenderStop()
+{
+	if (m_resourceStreamer)
+	{
+		m_resourceStreamer->StopStreaming();
+		m_resourceStreamer.reset();
+	}
 }
 
 Renderer* Renderer::Get()
@@ -30,6 +38,14 @@ bool Renderer::Initialize(HWND hwnd)
 	}
 
 	m_shaderManager = std::make_unique<ShaderManager>();
+
+	m_textureManager = std::unique_ptr<TextureManager>(new TextureManager());
+
+	m_resourceStreamer = std::unique_ptr<ResourceStreamer>(new ResourceStreamer());
+	if (!m_resourceStreamer->StartStreaming(m_graphicsContext.get()))
+	{
+		return false;
+	}
 
 	m_swapchain = std::unique_ptr<Swapchain>(new Swapchain());
 	if (!m_swapchain->Initialize(m_graphicsContext.get())) 
@@ -64,7 +80,7 @@ bool Renderer::Initialize(HWND hwnd)
 		mesh->EnablePass(PassType::EARLY_Z_PASS);
 		mesh->EnablePass(PassType::GEOMETRY_PASS);
 
-		mesh->BuildResource(m_graphicsContext.get());
+		mesh->BuildResource(m_graphicsContext.get(), m_textureManager.get());
 	}
 
 
@@ -81,7 +97,7 @@ bool Renderer::Initialize(HWND hwnd)
 		PointLight* pointLight = new PointLight(FVector3::Zero(), FVector3(1.0f, 1.0f, 1.0f));
 		lightBulbMesh[i]->AttachLightExtension(pointLight);
 
-		lightBulbMesh[i]->BuildResource(m_graphicsContext.get());
+		lightBulbMesh[i]->BuildResource(m_graphicsContext.get(), m_textureManager.get());
 	}
 
 	m_activeWorld->SpawnStaticMeshes(meshes);

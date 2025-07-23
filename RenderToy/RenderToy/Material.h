@@ -23,11 +23,11 @@ private:
 	std::filesystem::path m_normalTexturePath;
 	std::filesystem::path m_ambientOcclusionTexturePath;
 
-	Texture* m_baseColorTexture = nullptr;
-	Texture* m_metallicTexture = nullptr;
-	Texture* m_roughnessTexture = nullptr;
-	Texture* m_normalTexture = nullptr;
-	Texture* m_ambientOcclusionTexture = nullptr;
+	std::shared_ptr<Texture> m_baseColorTexture = nullptr;
+	std::shared_ptr<Texture> m_metallicTexture = nullptr;
+	std::shared_ptr<Texture> m_roughnessTexture = nullptr;
+	std::shared_ptr<Texture> m_normalTexture = nullptr;
+	std::shared_ptr<Texture> m_ambientOcclusionTexture = nullptr;
 
 	std::unique_ptr<ConstantBuffer<MaterialConstants>> m_materialConstantBuffer = nullptr;
 
@@ -35,8 +35,18 @@ private:
 
 public:
 	Material();
+
+	void SetBaseColorTexturePath(std::filesystem::path path) { m_baseColorTexturePath = path; }
+
+	void SetMetallicTexturePath(std::filesystem::path path) { m_metallicTexturePath = path; }
+
+	void SetRoughnessTexturePath(std::filesystem::path path) { m_roughnessTexturePath = path; }
+
+	void SetNormalTexturePath(std::filesystem::path path) { m_normalTexturePath = path; }
+
+	void SetAmbientOcclusionTexturePath(std::filesystem::path path) { m_ambientOcclusionTexturePath = path; }
 	
-	bool Initialize(GraphicsContext* graphicsContext);
+	bool Initialize(GraphicsContext* graphicsContext, TextureManager* textureManager);
 
 	~Material();
 

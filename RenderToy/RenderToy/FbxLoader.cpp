@@ -254,8 +254,20 @@ void FbxLoader::ProcessMesh(FbxNode* pNode, FbxMesh* pMesh, std::vector<std::sha
         }
 
         Material* newMaterial = new Material();
-        staticMesh->AddMaterial();
+        
+        std::filesystem::path fbxPath = m_fileName;
+        std::filesystem::path baseColor = fbxPath.replace_filename("BaseColor.png");
+        std::filesystem::path metallic = fbxPath.replace_filename("Metallic.png");
+        std::filesystem::path roughness = fbxPath.replace_filename("Roughness.png");
+        std::filesystem::path normal = fbxPath.replace_filename("Normal.png");
+        std::filesystem::path ambientOcclusion = fbxPath.replace_filename("AmbientOcclusion.png");
+        newMaterial->SetBaseColorTexturePath(baseColor);
+        newMaterial->SetMetallicTexturePath(metallic);
+        newMaterial->SetRoughnessTexturePath(roughness);
+        newMaterial->SetNormalTexturePath(normal);
+        newMaterial->SetAmbientOcclusionTexturePath(ambientOcclusion);
 
+        staticMesh->AddMaterial(newMaterial);
     }
 }
 

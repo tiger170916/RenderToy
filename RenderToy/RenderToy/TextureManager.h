@@ -9,12 +9,12 @@ class TextureManager
 private:
 	std::unique_ptr<CriticalSection> m_criticalSection;
 
-	std::map<std::filesystem::path, std::unique_ptr<Texture>> m_textures;
+	std::map<std::filesystem::path, std::shared_ptr<Texture>> m_textures;
 
 public:
 	TextureManager();
 
-	Texture* LoadTexture(std::filesystem::path path);
+	std::shared_ptr<Texture> LoadTexture(std::filesystem::path path);
 
 	~TextureManager();
 };

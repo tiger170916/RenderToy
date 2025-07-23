@@ -5,7 +5,7 @@ ResourceStreamer::ResourceStreamer()
 	m_criticalSection = std::unique_ptr<CriticalSection>(new CriticalSection());
 }
 
-bool ResourceStreamer::StreamIn(StreamInterface* resource, UINT priority)
+bool ResourceStreamer::StreamIn(std::shared_ptr<StreamInterface> resource, UINT priority)
 {
 	if (!resource)
 	{
@@ -21,15 +21,15 @@ bool ResourceStreamer::StreamIn(StreamInterface* resource, UINT priority)
 
 	if (priority == 0)
 	{
-		m_p0Queue.push(resource);
+		m_taskQueues[0].push(resource);
 	}
 	else if (priority == 1)
 	{
-		m_p1Queue.push(resource);
+		m_taskQueues[1].push(resource);
 	}
 	else
 	{
-		m_p2Queue.push(resource);
+		m_taskQueues[2].push(resource);
 	}
 
 	m_criticalSection->ExitCriticalSection();
@@ -37,13 +37,188 @@ bool ResourceStreamer::StreamIn(StreamInterface* resource, UINT priority)
 	return false;
 }
 
-bool ResourceStreamer::StreamOut(StreamInterface* resource)
+bool ResourceStreamer::StartStreaming(GraphicsContext* graphicsContext)
+{
+	if (m_running)
+	{
+		return true;
+	}
+
+	if (!graphicsContext)
+	{
+		return false;
+	}
+
+	m_graphicsContext = graphicsContext;
+
+	for (int i = 0; i < 3; i++)
+	{
+		// Initialize command queues
+		m_commandQueues[i] = std::unique_ptr<CommandQueue>(new CommandQueue(D3D12_COMMAND_QUEUE_FLAG_NONE, D3D12_COMMAND_LIST_TYPE_COPY, D3D12_COMMAND_QUEUE_PRIORITY_HIGH, graphicsContext->GetAdapterNodeMask()));
+		if (!m_commandQueues[i]->Initialize(graphicsContext->GetDevice()))
+		{
+			return false;
+		}
+
+		// Initialize command builders
+		m_commandBuilders[i] = std::unique_ptr<CommandBuilder>(new CommandBuilder(D3D12_COMMAND_LIST_TYPE_COPY));
+		if (!m_commandBuilders[i]->Initialize(graphicsContext->GetDevice()))
+		{
+			return false;
+		}
+	}
+
+	m_running = true;
+
+	// Create streaming in threads
+	m_threadHandles[0] = CreateThread(NULL, 0, StreamInPriority0ThreadProc, this, NULL, nullptr);
+	m_threadHandles[1] = CreateThread(NULL, 0, StreamInPriority1ThreadProc, this, NULL, nullptr);
+	m_threadHandles[2] = CreateThread(NULL, 0, StreamInPriority2ThreadProc, this, NULL, nullptr);
+
+	return true;
+}
+
+void ResourceStreamer::StopStreaming()
+{
+	if (!m_running)
+	{
+		return;
+	}
+
+	m_running = false;
+	WaitForMultipleObjects(3, m_threadHandles, true, 2000);
+	m_threadHandles[0] = NULL;
+	m_threadHandles[1] = NULL;
+	m_threadHandles[2] = NULL;
+	m_threadHandles[3] = NULL;
+}
+
+bool ResourceStreamer::StreamOut(std::shared_ptr<StreamInterface>)
 {
 	return false;
 }
 
-DWORD WINAPI ResourceStreamer::StreamInThreadProc(_In_ LPVOID lpParameter)
+void ResourceStreamer::StreamInInternal(const UINT& priority, const UINT& maxBatchSize, const bool& immediateCycleBack, const UINT& sleepTime, std::vector<std::shared_ptr<StreamInterface>>& streamingInObjects)
 {
+	m_criticalSection->EnterCriticalSection();
+
+	if (!m_taskQueues[priority].empty())
+	{
+		for (int i = 0; i < min(maxBatchSize, m_taskQueues[priority].size()); i++)
+		{
+			streamingInObjects.push_back(m_taskQueues[priority].front().lock());
+
+			m_taskQueues[priority].pop();
+		}
+	}
+
+	m_criticalSection->ExitCriticalSection();
+
+	bool hasResourceToCopy = false;
+	for (auto& streamingInObj : streamingInObjects)
+	{
+		if (!streamingInObj)
+		{
+			continue;
+		}
+
+		if (streamingInObj->IsInMemory())
+		{
+			continue;
+		}
+
+		if (streamingInObj->StreamIn(m_graphicsContext))
+		{
+			hasResourceToCopy = true;
+		}
+	}
+
+	if (hasResourceToCopy)
+	{
+		m_commandBuilders[priority]->Reset();
+		ID3D12GraphicsCommandList* commandList = m_commandBuilders[priority]->GetCommandList();
+
+		for (auto& streamingInObj : streamingInObjects)
+		{
+			if (!streamingInObj)
+			{
+				continue;
+			}
+
+			if (!streamingInObj->IsInMemory() || streamingInObj->HasCopiedToDefaultHeap())
+			{
+				continue;
+			}
+
+			streamingInObj->ScheduleForCopyToDefaultHeap(commandList);
+		}
+
+		m_commandBuilders[priority]->Close();
+		m_commandQueues[priority]->DispatchCommands(m_commandBuilders[priority].get());
+		m_commandQueues[priority]->SignalAndWait();
+	}
+
+	if (!immediateCycleBack)
+	{
+		Sleep(sleepTime);
+	}
+	else if (m_taskQueues[priority].empty())
+	{
+		Sleep(sleepTime);
+	}
+}
+
+DWORD WINAPI ResourceStreamer::StreamInPriority0ThreadProc(_In_ LPVOID lpParameter)
+{
+	ResourceStreamer* streamer = (ResourceStreamer*)lpParameter;
+	if (!streamer)
+	{
+		return 0;
+	}
+	
+	
+	std::vector<std::shared_ptr<StreamInterface>> streamingInObjects;
+	while (streamer->m_running)
+	{
+		streamer->StreamInInternal(0, 100, true, 1, streamingInObjects);
+	}
+
+	return 1;
+}
+
+DWORD WINAPI ResourceStreamer::StreamInPriority1ThreadProc(_In_ LPVOID lpParameter)
+{
+	ResourceStreamer* streamer = (ResourceStreamer*)lpParameter;
+	if (!streamer)
+	{
+		return 0;
+	}
+
+
+	std::vector<std::shared_ptr<StreamInterface>> streamingInObjects;
+	while (streamer->m_running)
+	{
+		streamer->StreamInInternal(1, 50, false, 10, streamingInObjects);
+	}
+
+	return 1;
+}
+
+DWORD WINAPI ResourceStreamer::StreamInPriority2ThreadProc(_In_ LPVOID lpParameter)
+{
+	ResourceStreamer* streamer = (ResourceStreamer*)lpParameter;
+	if (!streamer)
+	{
+		return 0;
+	}
+
+
+	std::vector<std::shared_ptr<StreamInterface>> streamingInObjects;
+	while (streamer->m_running)
+	{
+		streamer->StreamInInternal(2, 10, false, 50, streamingInObjects);
+	}
+
 	return 1;
 }
 

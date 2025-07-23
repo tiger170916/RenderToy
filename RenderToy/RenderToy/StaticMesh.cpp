@@ -10,9 +10,9 @@ StaticMesh::~StaticMesh()
 
 }
 
-void StaticMesh::AddMaterial()
+void StaticMesh::AddMaterial(Material* material)
 {
-
+	m_materials.push_back(std::unique_ptr<Material>(material));
 }
 
 void StaticMesh::AddTriangle(const int& part, const MeshVertex& v1, const MeshVertex& v2, const MeshVertex& v3)
@@ -42,7 +42,7 @@ bool StaticMesh::PassEnabled(const PassType& renderPass)
 	return m_enabledPasses.contains(renderPass);
 }
 
-bool StaticMesh::BuildResource(GraphicsContext* graphicsContext)
+bool StaticMesh::BuildResource(GraphicsContext* graphicsContext, TextureManager* textureManager)
 {
 	if (!graphicsContext)
 	{
@@ -95,6 +95,20 @@ bool StaticMesh::BuildResource(GraphicsContext* graphicsContext)
 	if (!m_instanceConstants->Initialize(graphicsContext))
 	{
 		return false;
+	}
+
+	// Initialize materials
+	if (textureManager)
+	{
+		for (auto& material : m_materials)
+		{
+			if (!material)
+			{
+				continue;
+			}
+
+			material->Initialize(graphicsContext, textureManager);
+		}
 	}
 
 	return true;

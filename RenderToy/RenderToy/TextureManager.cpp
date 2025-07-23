@@ -5,7 +5,7 @@ TextureManager::TextureManager()
 	m_criticalSection = std::unique_ptr<CriticalSection>(new CriticalSection());
 }
 
-Texture* TextureManager::LoadTexture(std::filesystem::path path)
+std::shared_ptr<Texture> TextureManager::LoadTexture(std::filesystem::path path)
 {
 	if (!std::filesystem::exists(path))
 	{
@@ -16,15 +16,14 @@ Texture* TextureManager::LoadTexture(std::filesystem::path path)
 
 	if (m_textures.contains(path))
 	{
-		return m_textures[path].get();
+		return m_textures[path];
 	}
 
-	Texture* newTexture = new Texture(path);
-	m_textures[path] = std::unique_ptr<Texture>(newTexture);
+	m_textures[path] = std::shared_ptr<Texture>(new Texture(path));
 
 	m_criticalSection->ExitCriticalSection();
 
-	return newTexture;
+	return m_textures[path];
 }
 
 TextureManager::~TextureManager()

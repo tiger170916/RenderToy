@@ -127,7 +127,7 @@ bool LightingPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 
 	// Add an instance with trival transform, since this info is not gonna used.
 	m_rectangleMesh->AddInstance(Transform::Identity());
-	if (!m_rectangleMesh->BuildResource(graphicsContext))
+	if (!m_rectangleMesh->BuildResource(graphicsContext, nullptr))
 	{
 		return false;
 	}

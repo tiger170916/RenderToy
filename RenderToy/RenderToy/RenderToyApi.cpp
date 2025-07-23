@@ -15,5 +15,8 @@ bool StartRendering()
 
 bool FinalizeRenderer()
 {
-	return false;
+	Renderer* renderer = Renderer::Get();
+	renderer->RenderStop();
+
+	return true;
 }

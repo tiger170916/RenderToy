@@ -7,6 +7,7 @@
 #include "MeshStructs.h"
 #include "PassType.h"
 #include "Material.h"
+#include "TextureManager.h"
 #include "Lights/PointLight.h"
 
 class StaticMesh
@@ -49,7 +50,7 @@ public:
 
 	void AddTriangle(const int& part, const MeshVertex& v1, const MeshVertex& v2, const MeshVertex& v3);
 
-	void AddMaterial();
+	void AddMaterial(Material* material);
 
 	void SetNumUvs(const int num) { m_numUvs = num; }
 
@@ -59,13 +60,13 @@ public:
 
 	bool PassEnabled(const PassType& renderPass);
 
-	bool BuildResource(GraphicsContext* graphicsContext);
+	bool BuildResource(GraphicsContext* graphicsContext, TextureManager* textureManager);
 
 	void Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList);
 
 	void AttachLightExtension(LightExtension* light);
 
 	bool HasLightExtensions() const { return !m_lightExtensions.empty(); }
-	std::vector<std::shared_ptr<LightExtension>> GetLightExtensions() { return m_lightExtensions; }
 
+	std::vector<std::shared_ptr<LightExtension>> GetLightExtensions() { return m_lightExtensions; }
 };
