@@ -62,7 +62,7 @@ bool GeometryPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 		height,
 		m_diffuseRenderTargetFormat,
 		D3D12_RESOURCE_FLAG_NONE,
-		m_diffuseBufferClearValue,
+		m_bufferClearValue,
 		m_diffuseBuffer.GetAddressOf(),
 		m_diffuseRtvId))
 	{
@@ -86,14 +86,78 @@ bool GeometryPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 		return false;
 	}
 
+	if (!GraphicsUtils::CreateRenderTargetResource(
+		pDevice,
+		descHeapManager,
+		width,
+		height,
+		m_metallicRoughnessRenderTargetFormat,
+		D3D12_RESOURCE_FLAG_NONE,
+		m_bufferClearValue,
+		m_metallicRoughnessBuffer.GetAddressOf(),
+		m_metallicRoughnessRtvId))
+	{
+		return false;
+	}
+
+	m_resourceStates[m_metallicRoughnessBuffer.Get()] = D3D12_RESOURCE_STATE_PRESENT;
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC metallicRoughnessSrvDesc;
+	metallicRoughnessSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	metallicRoughnessSrvDesc.Format = m_metallicRoughnessRenderTargetFormat;
+	metallicRoughnessSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	metallicRoughnessSrvDesc.Texture2D.MostDetailedMip = 0;
+	metallicRoughnessSrvDesc.Texture2D.MipLevels = 1;
+	metallicRoughnessSrvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+	metallicRoughnessSrvDesc.Texture2D.PlaneSlice = 0;
+
+	m_metallicRoughnessSrvId = descHeapManager->CreateShaderResourceView(m_metallicRoughnessBuffer.Get(), &metallicRoughnessSrvDesc);
+	if (m_metallicRoughnessSrvId == UINT64_MAX)
+	{
+		return false;
+	}
+
+	if (!GraphicsUtils::CreateRenderTargetResource(
+		pDevice,
+		descHeapManager,
+		width,
+		height,
+		m_normalTargetFormat,
+		D3D12_RESOURCE_FLAG_NONE,
+		m_bufferClearValue,
+		m_normalBuffer.GetAddressOf(),
+		m_normalRtvId))
+	{
+		return false;
+	}
+
+	m_resourceStates[m_normalBuffer.Get()] = D3D12_RESOURCE_STATE_PRESENT;
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC normalSrvDesc;
+	normalSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	normalSrvDesc.Format = m_normalTargetFormat;
+	normalSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	normalSrvDesc.Texture2D.MostDetailedMip = 0;
+	normalSrvDesc.Texture2D.MipLevels = 1;
+	normalSrvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+	normalSrvDesc.Texture2D.PlaneSlice = 0;
+
+	m_normalSrvId= descHeapManager->CreateShaderResourceView(m_normalBuffer.Get(), &normalSrvDesc);
+	if (m_normalSrvId == UINT64_MAX)
+	{
+		return false;
+	}
+
 	m_graphicsPipelineState = std::unique_ptr<GraphicsPipelineState>(new GraphicsPipelineState());
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc = m_graphicsPipelineState->GraphicsPipelineStateDesc();
 
 	pipelineStateDesc.NodeMask = adapterNodeMask;
 	pipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	pipelineStateDesc.DSVFormat = m_depthStencilFormat;
-	pipelineStateDesc.NumRenderTargets = 1;
+	pipelineStateDesc.NumRenderTargets = 3;
 	pipelineStateDesc.RTVFormats[0] = m_diffuseRenderTargetFormat;
+	pipelineStateDesc.RTVFormats[1] = m_metallicRoughnessRenderTargetFormat;
+	pipelineStateDesc.RTVFormats[2] = m_normalTargetFormat;
 
 	D3D12_DEPTH_STENCIL_DESC depthStencilDesc = {
 		TRUE,
@@ -125,7 +189,7 @@ bool GeometryPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 	pipelineStateDesc.SampleDesc.Count = 1;
 	pipelineStateDesc.SampleDesc.Quality = 0;
 	pipelineStateDesc.SampleMask = UINT_MAX;
-	pipelineStateDesc.InputLayout.NumElements = 1;
+	pipelineStateDesc.InputLayout.NumElements = NUM_IA_MESH_LAYOUT;
 	pipelineStateDesc.InputLayout.pInputElementDescs = meshInputLayout;
 
 	if (!m_graphicsPipelineState->Initialize(graphicsContext, shaderManager, ShaderType::GEOMETRY_PASS_ROOT_SIGNATURE, ShaderType::GEOMETRY_PASS_VERTEX_SHADER, ShaderType::GEOMETRY_PASS_PIXEL_SHADER))
@@ -158,16 +222,21 @@ bool GeometryPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvs[4];
 	descHeapManager->GetRenderTargetViewCpuHandle(m_diffuseRtvId, rtvs[0]);
+	descHeapManager->GetRenderTargetViewCpuHandle(m_metallicRoughnessRtvId, rtvs[1]);
+	descHeapManager->GetRenderTargetViewCpuHandle(m_normalRtvId, rtvs[2]);
 
 	ResourceBarrierTransition(m_diffuseBuffer.Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
+	ResourceBarrierTransition(m_metallicRoughnessBuffer.Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	ResourceBarrierTransition(m_normalBuffer.Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	// Set pso
 	commandList->SetPipelineState(m_graphicsPipelineState->GetPipelineState());
 	commandList->SetGraphicsRootSignature(m_graphicsPipelineState->GetRootSignature());
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-	commandList->ClearRenderTargetView(rtvs[0], m_diffuseBufferClearValue, 0, NULL);
-	commandList->OMSetRenderTargets(1, rtvs, false, &dsvHandle);
+	commandList->ClearRenderTargetView(rtvs[0], m_bufferClearValue, 0, NULL);
+	commandList->ClearRenderTargetView(rtvs[1], m_bufferClearValue, 0, NULL);
+	commandList->ClearRenderTargetView(rtvs[2], m_bufferClearValue, 0, NULL);
+	commandList->OMSetRenderTargets(3, rtvs, false, &dsvHandle);
 	commandList->RSSetViewports(1, &m_viewport);
 	commandList->RSSetScissorRects(1, &m_scissorRect);
 
@@ -195,7 +264,7 @@ bool GeometryPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 			continue;
 		}
 
-		staticMesh->Draw(graphicsContext, commandList);
+		staticMesh->Draw(graphicsContext, commandList, true);
 	}
 
 	m_commandBuilder->Close();

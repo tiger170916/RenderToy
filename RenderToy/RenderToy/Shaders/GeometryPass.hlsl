@@ -11,21 +11,50 @@
     "DescriptorTable(" \
         "SRV(t0, numDescriptors = 1)" \
     ")," \
+    "DescriptorTable(" \
+        "SRV(t1, numDescriptors = 1)" \
+    ")," \
+    "DescriptorTable(" \
+        "SRV(t2, numDescriptors = 1)" \
+    ")," \
+    "DescriptorTable(" \
+        "SRV(t3, numDescriptors = 1)" \
+    ")," \
+    "DescriptorTable(" \
+        "SRV(t4, numDescriptors = 1)" \
+    ")," \
     "StaticSampler(s0, "\
         "addressU = TEXTURE_ADDRESS_CLAMP," \
         "addressV = TEXTURE_ADDRESS_CLAMP," \
         "addressW = TEXTURE_ADDRESS_CLAMP," \
         "filter = FILTER_MIN_MAG_MIP_POINT" \
+    "),"\
+    "StaticSampler(s1, "\
+        "addressU = TEXTURE_ADDRESS_CLAMP," \
+        "addressV = TEXTURE_ADDRESS_CLAMP," \
+        "addressW = TEXTURE_ADDRESS_CLAMP," \
+        "filter = FILTER_MIN_MAG_MIP_LINEAR" \
     ")"
 
 struct PS_OUTPUT
 {
-    float4 Diffuse : SV_Target0;
+    float4 BaseColor            : SV_Target0;
+    
+    float2 MetallicRoughness    : SV_Target1;
+    
+    float4 Normal               : SV_Target2;
 };
 
-Texture2D<float4> depthBuffer  : register(t0);
+Texture2D<float4> depthBuffer       : register(t0);
+Texture2D<float4> baseColorTex      : register(t1);
+Texture2D<float4> metallicTex       : register(t2);
+Texture2D<float4> roughnessTex      : register(t3);
+Texture2D<float4> normalTex         : register(t4);
 
-SamplerState      pointSampler : register(s0);
+
+SamplerState      pointSampler      : register(s0);
+
+SamplerState      linearSampler     : register(s1);
 
 [RootSignature(GeometryPassRootsignature)]
 MeshVertexOut VertexShaderMain(MeshVertexIn vertexIn, uint instanceID : SV_InstanceID)
@@ -37,9 +66,10 @@ MeshVertexOut VertexShaderMain(MeshVertexIn vertexIn, uint instanceID : SV_Insta
     float4 pos = mul(float4(vertexIn.pos, 1.0f), MeshInstances[instanceID].TransformMatrix);
     pos = mul(pos, gView);
     pos = mul(pos, gProjection);
-    
+    output.uv = vertexIn.uv;
     output.pos = pos;
-
+    output.instanceId = instanceID;
+    
     return output;
 }
 
@@ -48,13 +78,31 @@ PS_OUTPUT PixelShaderMain(MeshVertexOut vertexOut)
 {
     PS_OUTPUT output;
     
-    float4 pos = vertexOut.pos / vertexOut.pos.w;
+    float width;
+    float height;
+    depthBuffer.GetDimensions(width, height);
+    
+    float2 pixelPos = vertexOut.pos.xy / vertexOut.pos.w;
+    float2 screenUv = (float2)pixelPos / float2(width, height);
+    
     // Early out if the shading point is behind
-    if (depthBuffer.SampleLevel(pointSampler, pos.xy, 0).x < pos.z)
+    if (depthBuffer.SampleLevel(pointSampler, screenUv, 0).x < vertexOut.pos.z)
     {
         return output;
     }
     
-    output.Diffuse = float4(0.5f, 0.5f, 0.5f, 1.0f);
+    float2 uv = float2(vertexOut.uv.x, 1.0f - vertexOut.uv.y);
+    float metallic = metallicTex.SampleLevel(linearSampler, uv, 0).x;
+    float roughness = roughnessTex.SampleLevel(linearSampler, uv, 0).x;
+    
+    float3 normal3 = normalTex.SampleLevel(linearSampler, uv, 0).xyz;
+    normal3.xyz = (normal3.xyz * 2.0f) - 1.0f;
+    float4 normal4 = mul(float4(normal3, 1.0f), MeshInstances[vertexOut.instanceId].TransformMatrix);
+    normal4 = normal4 / normal4.w;
+    normal3 = normalize(normal3.xyz);
+    
+    output.BaseColor = baseColorTex.SampleLevel(linearSampler, float2(vertexOut.uv.x, 1.0f - vertexOut.uv.y), 0);
+    output.MetallicRoughness = float2(metallic, roughness);
+    output.Normal = float4((normal3.xyz + 1.0f) / 2.0f, 0.0f);
     return output;
 }

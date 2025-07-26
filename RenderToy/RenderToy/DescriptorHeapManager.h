@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Includes.h"
+#include "CriticalSection.h"
 
 /// <summary>
 /// A descriptor heap manager, which keeps view creation and binding abstract
@@ -51,6 +52,8 @@ private:
 	ID3D12Device* m_pDevice = nullptr;
 
 	UINT m_adapterNodeMask = 0;
+
+	std::unique_ptr<CriticalSection> m_criticalSection = nullptr;
 
 	bool m_initialized = false;
 

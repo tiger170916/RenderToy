@@ -4,6 +4,8 @@
 struct MeshVertexDx
 {
 	float position[3];
+
+	float UV0[2];
 };
 
 struct MeshInstanceConstants

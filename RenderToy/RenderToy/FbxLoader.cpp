@@ -206,15 +206,15 @@ void FbxLoader::ProcessMesh(FbxNode* pNode, FbxMesh* pMesh, std::vector<std::sha
             int uvIdx1 = 0, uvIdx2 = 0, uvIdx3 = 0;
             if (elementUv->GetMappingMode() == FbxGeometryElement::eByControlPoint)
             {
-                int uvIdx1 = lUseIndex ? elementUv->GetIndexArray().GetAt(pointIdx1) : pointIdx1;
-                int uvIdx2 = lUseIndex ? elementUv->GetIndexArray().GetAt(pointIdx2) : pointIdx2;
-                int uvIdx3 = lUseIndex ? elementUv->GetIndexArray().GetAt(pointIdx3) : pointIdx3;
+                uvIdx1 = lUseIndex ? elementUv->GetIndexArray().GetAt(pointIdx1) : pointIdx1;
+                uvIdx2 = lUseIndex ? elementUv->GetIndexArray().GetAt(pointIdx2) : pointIdx2;
+                uvIdx3 = lUseIndex ? elementUv->GetIndexArray().GetAt(pointIdx3) : pointIdx3;
             }
             else if (elementUv->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
             {
-                int uvIdx1 = lUseIndex ? elementUv->GetIndexArray().GetAt(vertexIdx1) : vertexIdx1;
-                int uvIdx2 = lUseIndex ? elementUv->GetIndexArray().GetAt(vertexIdx1 + 1) : vertexIdx1 + 1;
-                int uvIdx3 = lUseIndex ? elementUv->GetIndexArray().GetAt(vertexIdx1 + 2) : vertexIdx1 + 2;
+                uvIdx1 = lUseIndex ? elementUv->GetIndexArray().GetAt(vertexIdx1) : vertexIdx1;
+                uvIdx2 = lUseIndex ? elementUv->GetIndexArray().GetAt(vertexIdx1 + 1) : vertexIdx1 + 1;
+                uvIdx3 = lUseIndex ? elementUv->GetIndexArray().GetAt(vertexIdx1 + 2) : vertexIdx1 + 2;
             }
             else
             {
@@ -236,10 +236,10 @@ void FbxLoader::ProcessMesh(FbxNode* pNode, FbxMesh* pMesh, std::vector<std::sha
     staticMesh->SetNumUvs(numUvSets);
 
     // Get all materials
-    int materialCount = pNode->GetSrcObjectCount<FbxSurfaceMaterial>();
-    for (int materialIdx = 0; materialIdx < materialCount; materialIdx++)
-    {
-        FbxSurfaceMaterial* material = pNode->GetSrcObject<FbxSurfaceMaterial>(materialIdx);
+    //int materialCount = pNode->GetSrcObjectCount<FbxSurfaceMaterial>();
+    //for (int materialIdx = 0; materialIdx < materialCount; materialIdx++)
+    //{
+        FbxSurfaceMaterial* material = pNode->GetSrcObject<FbxSurfaceMaterial>(0);
         if (material)
         {
             FbxProperty prop = material->FindProperty(FbxSurfaceMaterial::sDiffuse);
@@ -268,7 +268,7 @@ void FbxLoader::ProcessMesh(FbxNode* pNode, FbxMesh* pMesh, std::vector<std::sha
         newMaterial->SetAmbientOcclusionTexturePath(ambientOcclusion);
 
         staticMesh->AddMaterial(newMaterial);
-    }
+   //}
 }
 
 void FbxLoader::ProcessNode(FbxNode* pNode, std::vector<std::shared_ptr<StaticMesh>>& outMeshes)

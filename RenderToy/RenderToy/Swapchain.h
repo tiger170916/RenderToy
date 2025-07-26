@@ -22,6 +22,8 @@ private:
 
 	UINT m_currentBackbuffer = 0;
 
+	const float m_rtClearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+
 	bool m_initialized = false;
 
 public:
@@ -31,7 +33,7 @@ public:
 
 	bool Initialize(GraphicsContext* graphicsContext);
 
-	bool CopyToBackbuffer(ID3D12Resource* resource);
+	bool CopyToBackbuffer(GraphicsContext* graphicsContext, ID3D12Resource* resource);
 
 	bool Present();
 };

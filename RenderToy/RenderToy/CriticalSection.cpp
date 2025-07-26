@@ -3,7 +3,7 @@
 CriticalSection::CriticalSection(DWORD timeout)
 	: m_timeout(timeout)
 {
-	m_lock = CreateMutexA(NULL, true, NULL);
+	m_lock = CreateSemaphoreA(NULL, 1, 1, NULL);
 }
 
 CriticalSection::~CriticalSection()
@@ -17,10 +17,10 @@ CriticalSection::~CriticalSection()
 
 void CriticalSection::EnterCriticalSection()
 {
-	WaitForSingleObject(m_lock, m_timeout);
+	WaitForSingleObject(m_lock, INFINITE);
 }
 
 void CriticalSection::ExitCriticalSection()
 {
-	ReleaseMutex(m_lock);
+	ReleaseSemaphore(m_lock, 1, nullptr);
 }

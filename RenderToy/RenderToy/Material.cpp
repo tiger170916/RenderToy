@@ -33,10 +33,10 @@ bool Material::Initialize(GraphicsContext* graphicsContext, TextureManager* text
 		m_normalTexture = textureManager->LoadTexture(m_normalTexturePath);
 	}
 
-	if (std::filesystem::exists(m_ambientOcclusionTexturePath))
-	{
-		m_ambientOcclusionTexture = textureManager->LoadTexture(m_ambientOcclusionTexturePath);
-	}
+	//if (std::filesystem::exists(m_ambientOcclusionTexturePath))
+	//{
+	//	m_ambientOcclusionTexture = textureManager->LoadTexture(m_ambientOcclusionTexturePath);
+	//}
 
 	m_initialized = true;
 

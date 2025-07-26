@@ -7,7 +7,7 @@ class CriticalSection
 private:
 	HANDLE m_lock = NULL;
 
-	bool m_timeout;
+	DWORD m_timeout;
 
 public:
 	CriticalSection(DWORD timeout = INFINITE);

@@ -92,7 +92,7 @@ bool LightingPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 	pipelineStateDesc.SampleDesc.Count = 1;
 	pipelineStateDesc.SampleDesc.Quality = 0;
 	pipelineStateDesc.SampleMask = UINT_MAX;
-	pipelineStateDesc.InputLayout.NumElements = 1;
+	pipelineStateDesc.InputLayout.NumElements = NUM_IA_MESH_LAYOUT;
 	pipelineStateDesc.InputLayout.pInputElementDescs = meshInputLayout;
 
 	if (!m_graphicsPipelineState->Initialize(graphicsContext, shaderManager, ShaderType::LIGHTING_PASS_ROOT_SIGNATURE, ShaderType::LIGHTING_PASS_VERTEX_SHADER, ShaderType::LIGHTING_PASS_PIXEL_SHADER))
@@ -166,13 +166,21 @@ bool LightingPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 	if (dependencyGeometryPass)
 	{
 		dependencyGeometryPass->DiffuseBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COMMON);
-		D3D12_GPU_DESCRIPTOR_HANDLE geometryPassDiffuseBufferHandle;
+		dependencyGeometryPass->MetallicRoughnessBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COMMON);
+		dependencyGeometryPass->NormalBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COMMON);
+
+		D3D12_GPU_DESCRIPTOR_HANDLE geometryPassDiffuseBufferHandle, geometryPassMetallicRoughnessBufferHandle, geometryPassNormalBufferHandle;
 		descHeapManager->BindCbvSrvUavToPipeline(dependencyGeometryPass->GetDiffuseBufferSrvId(), geometryPassDiffuseBufferHandle);
+		descHeapManager->BindCbvSrvUavToPipeline(dependencyGeometryPass->GetMetallicRoughnessBufferSrvId(), geometryPassMetallicRoughnessBufferHandle);
+		descHeapManager->BindCbvSrvUavToPipeline(dependencyGeometryPass->GetNormalBufferSrvId(), geometryPassNormalBufferHandle);
+
 		commandList->SetGraphicsRootDescriptorTable(2, geometryPassDiffuseBufferHandle);
+		commandList->SetGraphicsRootDescriptorTable(3, geometryPassMetallicRoughnessBufferHandle);
+		commandList->SetGraphicsRootDescriptorTable(4, geometryPassNormalBufferHandle);
 	}
 
 	// Draw fullscreen rectangle
-	m_rectangleMesh->Draw(graphicsContext, commandList);
+	m_rectangleMesh->Draw(graphicsContext, commandList, false);
 
 	// Transit the render target buffer to copy src state, since this might be copied out as final render result.
 	ResourceBarrierTransition(m_renderTarget.Get(), commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);

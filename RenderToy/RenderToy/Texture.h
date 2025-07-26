@@ -43,6 +43,8 @@ public:
 
 	virtual bool ScheduleForCopyToDefaultHeap(ID3D12GraphicsCommandList* cmdList) override;
 
+	bool BindShaderResourceViewToPipeline(GraphicsContext* graphicsContext, D3D12_GPU_DESCRIPTOR_HANDLE& outGpuDescHandle);
+
 private:
 	inline void Convert16BitsTo8Bits(uint16_t* in, uint8_t& out){out = *in / 256;}
 };

@@ -18,10 +18,16 @@ cbuffer cbMeshInstanceConstants : register(b1)
 struct MeshVertexIn
 {
     float3 pos : POSITION;
+    
+    float2 uv  : UV0;
 };
 
 struct MeshVertexOut
 {
     float4 pos : SV_Position;
+    
+    float2 uv  : UV0;
+    
+    uint instanceId : SV_InstanceID;
 };
 

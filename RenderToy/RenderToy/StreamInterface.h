@@ -5,10 +5,14 @@
 
 class StreamInterface
 {
+friend class ResourceStreamer;
 protected:
 	bool m_inUploadHeapMemory = false;
 
 	bool m_copiedToDefaultHeap = false;
+
+protected:
+	inline void SetCopiedToDefaultHeap(bool copied) { m_copiedToDefaultHeap = copied; }
 
 public:
 	// Interfaces

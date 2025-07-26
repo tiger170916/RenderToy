@@ -21,12 +21,24 @@ private:
 
 	D3D12_RESOURCE_STATES m_uploadBufferCurrentState = D3D12_RESOURCE_STATE_COMMON;
 
+	bool m_isTexture = false;
+
+	UINT m_width = 0;
+
+	UINT m_height = 0;
+
+	UINT m_depth = 0;
+
+	DXGI_FORMAT m_dxgiFormat = DXGI_FORMAT_UNKNOWN;
+
+	UINT m_stride = 0;
+
 	bool m_initialized = false;
  
 public:
 	D3DResource(bool needCopyToDefaultHeap);
 
-	bool Initialize(GraphicsContext* graphicsContext, const D3D12_RESOURCE_DESC* pResourceDesc, void* data, UINT dataSize);
+	bool Initialize(GraphicsContext* graphicsContext, D3D12_RESOURCE_DESC* pResourceDesc, void* data, UINT dataSize, UINT stride);
 
 	inline ID3D12Resource* GetDefaultResource() const { return m_defaultHeapResource.Get(); }
 

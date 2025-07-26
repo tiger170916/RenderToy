@@ -1,4 +1,5 @@
 #include "ResourceStreamer.h"
+#include "GraphicsUtils.h"
 
 ResourceStreamer::ResourceStreamer()
 {
@@ -34,7 +35,7 @@ bool ResourceStreamer::StreamIn(std::shared_ptr<StreamInterface> resource, UINT 
 
 	m_criticalSection->ExitCriticalSection();
 
-	return false;
+	return true;
 }
 
 bool ResourceStreamer::StartStreaming(GraphicsContext* graphicsContext)
@@ -54,14 +55,14 @@ bool ResourceStreamer::StartStreaming(GraphicsContext* graphicsContext)
 	for (int i = 0; i < 3; i++)
 	{
 		// Initialize command queues
-		m_commandQueues[i] = std::unique_ptr<CommandQueue>(new CommandQueue(D3D12_COMMAND_QUEUE_FLAG_NONE, D3D12_COMMAND_LIST_TYPE_COPY, D3D12_COMMAND_QUEUE_PRIORITY_HIGH, graphicsContext->GetAdapterNodeMask()));
+		m_commandQueues[i] = std::unique_ptr<CommandQueue>(new CommandQueue(D3D12_COMMAND_QUEUE_FLAG_NONE, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_QUEUE_PRIORITY_HIGH, graphicsContext->GetAdapterNodeMask()));
 		if (!m_commandQueues[i]->Initialize(graphicsContext->GetDevice()))
 		{
 			return false;
 		}
 
 		// Initialize command builders
-		m_commandBuilders[i] = std::unique_ptr<CommandBuilder>(new CommandBuilder(D3D12_COMMAND_LIST_TYPE_COPY));
+		m_commandBuilders[i] = std::unique_ptr<CommandBuilder>(new CommandBuilder(D3D12_COMMAND_LIST_TYPE_DIRECT));
 		if (!m_commandBuilders[i]->Initialize(graphicsContext->GetDevice()))
 		{
 			return false;
@@ -72,8 +73,8 @@ bool ResourceStreamer::StartStreaming(GraphicsContext* graphicsContext)
 
 	// Create streaming in threads
 	m_threadHandles[0] = CreateThread(NULL, 0, StreamInPriority0ThreadProc, this, NULL, nullptr);
-	m_threadHandles[1] = CreateThread(NULL, 0, StreamInPriority1ThreadProc, this, NULL, nullptr);
-	m_threadHandles[2] = CreateThread(NULL, 0, StreamInPriority2ThreadProc, this, NULL, nullptr);
+	//m_threadHandles[1] = CreateThread(NULL, 0, StreamInPriority1ThreadProc, this, NULL, nullptr);
+	//m_threadHandles[2] = CreateThread(NULL, 0, StreamInPriority2ThreadProc, this, NULL, nullptr);
 
 	return true;
 }
@@ -102,9 +103,10 @@ void ResourceStreamer::StreamInInternal(const UINT& priority, const UINT& maxBat
 {
 	m_criticalSection->EnterCriticalSection();
 
-	if (!m_taskQueues[priority].empty())
+	size_t queueSize = m_taskQueues[priority].size();
+	if (queueSize > 0)
 	{
-		for (int i = 0; i < min(maxBatchSize, m_taskQueues[priority].size()); i++)
+		for (size_t i = 0; i < min(maxBatchSize, queueSize); i++)
 		{
 			streamingInObjects.push_back(m_taskQueues[priority].front().lock());
 
@@ -114,7 +116,7 @@ void ResourceStreamer::StreamInInternal(const UINT& priority, const UINT& maxBat
 
 	m_criticalSection->ExitCriticalSection();
 
-	bool hasResourceToCopy = false;
+	std::set<StreamInterface*> toCopy;
 	for (auto& streamingInObj : streamingInObjects)
 	{
 		if (!streamingInObj)
@@ -129,16 +131,16 @@ void ResourceStreamer::StreamInInternal(const UINT& priority, const UINT& maxBat
 
 		if (streamingInObj->StreamIn(m_graphicsContext))
 		{
-			hasResourceToCopy = true;
+			toCopy.insert(streamingInObj.get());
 		}
 	}
 
-	if (hasResourceToCopy)
+	if (!toCopy.empty())
 	{
 		m_commandBuilders[priority]->Reset();
 		ID3D12GraphicsCommandList* commandList = m_commandBuilders[priority]->GetCommandList();
 
-		for (auto& streamingInObj : streamingInObjects)
+		for (auto& streamingInObj : toCopy)
 		{
 			if (!streamingInObj)
 			{
@@ -156,7 +158,24 @@ void ResourceStreamer::StreamInInternal(const UINT& priority, const UINT& maxBat
 		m_commandBuilders[priority]->Close();
 		m_commandQueues[priority]->DispatchCommands(m_commandBuilders[priority].get());
 		m_commandQueues[priority]->SignalAndWait();
+
+		for (auto& streamingInObj : toCopy)
+		{
+			if (!streamingInObj)
+			{
+				continue;
+			}
+
+			if (!streamingInObj)
+			{
+				continue;
+			}
+
+			streamingInObj->SetCopiedToDefaultHeap(true);
+		}
 	}
+
+	streamingInObjects.clear();
 
 	if (!immediateCycleBack)
 	{

@@ -68,13 +68,15 @@ bool StaticMesh::BuildResource(GraphicsContext* graphicsContext, TextureManager*
 			vertDx.position[0] = vert.Position.X;
 			vertDx.position[1] = vert.Position.Y;
 			vertDx.position[2] = vert.Position.Z;
+			vertDx.UV0[0] = vert.UvSets[0].X;
+			vertDx.UV0[1] = vert.UvSets[0].Y;
 			verticesDx.push_back(vertDx);
 		}
 
 		D3DResource* vertexBufferResource = new D3DResource(true);
 		// Create vb 
 		auto vbDesc = CD3DX12_RESOURCE_DESC::Buffer(verticesDx.size() * sizeof(MeshVertexDx));
-		if (!vertexBufferResource->Initialize(graphicsContext, &vbDesc, verticesDx.data(), (UINT)verticesDx.size() * sizeof(MeshVertexDx)))
+		if (!vertexBufferResource->Initialize(graphicsContext, &vbDesc, verticesDx.data(), (UINT)verticesDx.size() * sizeof(MeshVertexDx), 0))
 		{
 			return false;
 		}
@@ -114,7 +116,7 @@ bool StaticMesh::BuildResource(GraphicsContext* graphicsContext, TextureManager*
 	return true;
 }
 
-void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList)
+void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, bool setTextures)
 {
 	if (!graphicsContext || !cmdList)
 	{
@@ -151,9 +153,53 @@ void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandLis
 	for (int i = 0; i < m_vbResources.size(); i++)
 	{
 		const D3D12_VERTEX_BUFFER_VIEW* pVbViews = &m_vertexBufferViews[i];
-
 		m_vbResources[i]->CopyToDefaultHeap(cmdList);
 		cmdList->SetGraphicsRootDescriptorTable(1, instanceCbHandle);
+
+		if (setTextures)
+		{
+			Material* material = m_materials[i].get();
+			if (material)
+			{
+				Texture* baseColorTex = material->GetBaseColorTexture().get();
+				Texture* metallicTex = material->GetMetallicTexture().get();
+				Texture* roughnessTex = material->GetRoughnessTexture().get();
+				Texture* normalTex = material->GetNormalTexture().get();
+
+				if (baseColorTex && baseColorTex->HasCopiedToDefaultHeap())
+				{
+					D3D12_GPU_DESCRIPTOR_HANDLE baseColorGpuDescHandle;
+					if (baseColorTex->BindShaderResourceViewToPipeline(graphicsContext, baseColorGpuDescHandle))
+					{
+						cmdList->SetGraphicsRootDescriptorTable(3, baseColorGpuDescHandle);
+					}
+				}
+				if (metallicTex && metallicTex->HasCopiedToDefaultHeap())
+				{
+					D3D12_GPU_DESCRIPTOR_HANDLE metallicGpuDescHandle;
+					if (metallicTex->BindShaderResourceViewToPipeline(graphicsContext, metallicGpuDescHandle))
+					{
+						cmdList->SetGraphicsRootDescriptorTable(4, metallicGpuDescHandle);
+					}
+				}
+				if (roughnessTex && roughnessTex->HasCopiedToDefaultHeap())
+				{
+					D3D12_GPU_DESCRIPTOR_HANDLE roughnessGpuDescHandle;
+					if (roughnessTex->BindShaderResourceViewToPipeline(graphicsContext, roughnessGpuDescHandle))
+					{
+						cmdList->SetGraphicsRootDescriptorTable(5, roughnessGpuDescHandle);
+					}
+				}
+				if (normalTex && normalTex->HasCopiedToDefaultHeap())
+				{
+					D3D12_GPU_DESCRIPTOR_HANDLE normalGpuDescHandle;
+					if (normalTex->BindShaderResourceViewToPipeline(graphicsContext, normalGpuDescHandle))
+					{
+						cmdList->SetGraphicsRootDescriptorTable(6, normalGpuDescHandle);
+					}
+				}
+			}
+		}
 		cmdList->IASetVertexBuffers(0, 1, pVbViews);
 		cmdList->DrawInstanced(m_vertexCounts[i], (UINT)m_instances.size(), 0, 0);
 	}
@@ -167,4 +213,74 @@ void StaticMesh::AttachLightExtension(LightExtension* light)
 	}
 
 	m_lightExtensions.push_back(std::shared_ptr<LightExtension>(light));
+}
+
+bool StaticMesh::StreamIn(GraphicsContext* graphicsContext)
+{
+	/*
+	for (auto& material : m_materials)
+	{
+		if (!material)
+		{
+			continue;
+		}
+
+		std::shared_ptr<Texture> colorTexture = material->GetBaseColorTexture();
+		if (colorTexture != nullptr && !colorTexture->HasCopiedToDefaultHeap())
+		{
+			colorTexture->StreamIn(graphicsContext);
+		}
+	}*/
+
+	return true;
+}
+
+void StaticMesh::QueueStreamingTasks(ResourceStreamer* streamer, UINT priority)
+{
+	if (!streamer)
+	{
+		return;
+	}
+
+	for (auto& material : m_materials)
+	{
+		if (!material)
+		{
+			continue;
+		}
+
+		std::shared_ptr<Texture> colorTexture = material->GetBaseColorTexture();
+		if (colorTexture != nullptr && !colorTexture->HasCopiedToDefaultHeap())
+		{
+			streamer->StreamIn(colorTexture, priority);
+		}
+
+		std::shared_ptr<Texture> metallicTexture = material->GetMetallicTexture();
+		if (metallicTexture != nullptr && !metallicTexture->HasCopiedToDefaultHeap())
+		{
+			streamer->StreamIn(metallicTexture, priority);
+		}
+
+		std::shared_ptr<Texture> roughnessTexture = material->GetRoughnessTexture();
+		if (roughnessTexture != nullptr && !roughnessTexture->HasCopiedToDefaultHeap())
+		{
+			streamer->StreamIn(roughnessTexture, priority);
+		}
+
+		std::shared_ptr<Texture> normalTexture = material->GetNormalTexture();
+		if (normalTexture != nullptr && !normalTexture->HasCopiedToDefaultHeap())
+		{
+			streamer->StreamIn(normalTexture, priority);
+		}
+	}
+}
+
+bool StaticMesh::StreamOut()
+{
+	return false;
+}
+
+bool StaticMesh::ScheduleForCopyToDefaultHeap(ID3D12GraphicsCommandList* cmdList)
+{
+	return true;
 }

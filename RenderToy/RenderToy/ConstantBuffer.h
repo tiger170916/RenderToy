@@ -78,7 +78,7 @@ public:
 		m_resource = std::unique_ptr<D3DResource>(new D3DResource(false));
 
 		auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
-		if (!m_resource->Initialize(graphicsContext, &bufferDesc, m_buffer.data(), bufferSize))
+		if (!m_resource->Initialize(graphicsContext, &bufferDesc, m_buffer.data(), bufferSize, 0))
 		{
 			return false;
 		}

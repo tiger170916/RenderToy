@@ -64,47 +64,71 @@ bool DescriptorHeapManager::Initialize()
     // (lower 32bit represents the index of vector, higher 32 bit represents the index of element within that vector, 0xffffffffffffffff means invalid)
     m_cbvSrvUavRingBufferIds = std::vector<uint64_t>(m_defaultRingBufferSize, UINT64_MAX);
 
+    m_criticalSection = std::unique_ptr<CriticalSection>(new CriticalSection());
+
     m_initialized = true;
     return true;
 }
 
 uint64_t DescriptorHeapManager::CreateRenderTargetView(ID3D12Resource* pResource, const D3D12_RENDER_TARGET_VIEW_DESC* pDesc)
 {
+    m_criticalSection->EnterCriticalSection();
     if (m_currentRtvCount >= m_defaultRtvDescriptorHeapSize)
     {
+        m_criticalSection->ExitCriticalSection();
         return UINT64_MAX;
     }
 
     CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(m_rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), m_currentRtvCount, m_rtvDescriptorSize);
     m_pDevice->CreateRenderTargetView(pResource, pDesc, rtvHeapHandle);
 
-    return m_currentRtvCount++;
+    uint64_t rtvId = m_currentRtvCount;
+    m_currentRtvCount++;
+
+    m_criticalSection->ExitCriticalSection();
+
+    return rtvId;
 }
 
 uint64_t DescriptorHeapManager::CreateDepthStencilView(ID3D12Resource* pResource, const D3D12_DEPTH_STENCIL_VIEW_DESC* pDesc)
 {
+    m_criticalSection->EnterCriticalSection();
     if (m_currentDsvCount >= m_defaultDsvDescriptorHeapSize)
     {
+        m_criticalSection->ExitCriticalSection();
         return UINT64_MAX;
     }
 
     CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHeapHandle(m_dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), m_currentDsvCount, m_dsvDescriptorSize);
     m_pDevice->CreateDepthStencilView(pResource, pDesc, dsvHeapHandle);
 
-    return m_currentDsvCount++;
+    uint64_t dsvId = m_currentDsvCount;
+    m_currentDsvCount++;
+
+    m_criticalSection->ExitCriticalSection();
+
+    return dsvId;
 }
 
 uint64_t DescriptorHeapManager::CreateSampler(const D3D12_SAMPLER_DESC* pDesc)
 {
+    m_criticalSection->EnterCriticalSection();
+
     if (m_currentSamplerCount >= m_defaultSamplerDescriptorHeapSize)
     {
+        m_criticalSection->ExitCriticalSection();
         return UINT64_MAX;
     }
 
     CD3DX12_CPU_DESCRIPTOR_HANDLE samplerHeapHandle(m_samplerDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), m_currentSamplerCount, m_samplerDescriptorSize);
     m_pDevice->CreateSampler(pDesc, samplerHeapHandle);
 
-    return m_currentSamplerCount++;
+    uint64_t samplerId = m_currentSamplerCount;
+    m_currentSamplerCount++;
+
+    m_criticalSection->ExitCriticalSection();
+
+    return samplerId;
 }
 
 bool DescriptorHeapManager::AddNewCbvSrvUavDescriptorHeap()
@@ -149,6 +173,8 @@ void DescriptorHeapManager::GetArrayIdxAndElementIdxByViewId(uint64_t viewId, ui
 
 uint64_t DescriptorHeapManager::CreateConstantBufferView(const D3D12_CONSTANT_BUFFER_VIEW_DESC* pDesc)
 {
+    m_criticalSection->EnterCriticalSection();
+
     if (!AddNewCbvSrvUavDescriptorHeap())
     {
         return UINT64_MAX;
@@ -159,11 +185,16 @@ uint64_t DescriptorHeapManager::CreateConstantBufferView(const D3D12_CONSTANT_BU
     m_pDevice->CreateConstantBufferView(pDesc, heapHandle);
 
     // Figure id of the cbv/srv/uav
-    return GetIdOfCbvSrvUav(m_cbvSrvUavDescriptorHeaps.size() - 1, m_cbvSrvUavDescriptorPositions.back().size() - 1);
+    uint64_t id = GetIdOfCbvSrvUav(m_cbvSrvUavDescriptorHeaps.size() - 1, m_cbvSrvUavDescriptorPositions.back().size() - 1);
+
+    m_criticalSection->ExitCriticalSection();
+    return id;
 }
 
 uint64_t DescriptorHeapManager::CreateShaderResourceView(ID3D12Resource* pResource, const D3D12_SHADER_RESOURCE_VIEW_DESC* pDesc)
 {
+    m_criticalSection->EnterCriticalSection();
+
     if (!AddNewCbvSrvUavDescriptorHeap())
     {
         return UINT64_MAX;
@@ -174,11 +205,16 @@ uint64_t DescriptorHeapManager::CreateShaderResourceView(ID3D12Resource* pResour
     m_pDevice->CreateShaderResourceView(pResource, pDesc, heapHandle);
 
     // Figure id of the cbv/srv/uav
-    return GetIdOfCbvSrvUav(m_cbvSrvUavDescriptorHeaps.size() - 1, m_cbvSrvUavDescriptorPositions.back().size() - 1);
+    uint64_t id = GetIdOfCbvSrvUav(m_cbvSrvUavDescriptorHeaps.size() - 1, m_cbvSrvUavDescriptorPositions.back().size() - 1);
+
+    m_criticalSection->ExitCriticalSection();
+    return id;
 }
 
 uint64_t DescriptorHeapManager::CreateUnorderedAccessView(ID3D12Resource* pResource, ID3D12Resource* pCounterResource, const D3D12_UNORDERED_ACCESS_VIEW_DESC* pDesc)
 {
+    m_criticalSection->EnterCriticalSection();
+
     if (!AddNewCbvSrvUavDescriptorHeap())
     {
         return UINT64_MAX;
@@ -189,7 +225,10 @@ uint64_t DescriptorHeapManager::CreateUnorderedAccessView(ID3D12Resource* pResou
     m_pDevice->CreateUnorderedAccessView(pResource, pCounterResource, pDesc, heapHandle);
 
     // Figure id of the cbv/srv/uav
-    return GetIdOfCbvSrvUav(m_cbvSrvUavDescriptorHeaps.size() - 1, m_cbvSrvUavDescriptorPositions.back().size() - 1);
+    uint64_t id = GetIdOfCbvSrvUav(m_cbvSrvUavDescriptorHeaps.size() - 1, m_cbvSrvUavDescriptorPositions.back().size() - 1);
+
+    m_criticalSection->ExitCriticalSection();
+    return id;
 }
 
 bool DescriptorHeapManager::BindCbvSrvUavToPipeline(uint64_t viewId, D3D12_GPU_DESCRIPTOR_HANDLE& outGpuDescriptorHandle)

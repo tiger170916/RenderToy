@@ -52,5 +52,13 @@ public:
 
 	inline ConstantBuffer<MaterialConstants>* GetConstantBuffer() { return m_materialConstantBuffer.get(); };
 
+	inline std::shared_ptr<Texture> GetBaseColorTexture() { return m_baseColorTexture; }
 
+	inline std::shared_ptr<Texture> GetMetallicTexture() { return m_metallicTexture; }
+
+	inline std::shared_ptr<Texture> GetRoughnessTexture() { return m_roughnessTexture; }
+
+	inline std::shared_ptr<Texture> GetNormalTexture() { return m_normalTexture; }
+
+	inline std::shared_ptr<Texture> GetAmbientOcclusionTexture() { return m_ambientOcclusionTexture; }
 };

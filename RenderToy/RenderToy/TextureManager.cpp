@@ -14,16 +14,16 @@ std::shared_ptr<Texture> TextureManager::LoadTexture(std::filesystem::path path)
 
 	m_criticalSection->EnterCriticalSection();
 
-	if (m_textures.contains(path))
+	if (!m_textures.contains(path))
 	{
-		return m_textures[path];
+		m_textures[path] = std::shared_ptr<Texture>(new Texture(path));
 	}
 
-	m_textures[path] = std::shared_ptr<Texture>(new Texture(path));
+	std::shared_ptr<Texture> found = m_textures[path];
 
 	m_criticalSection->ExitCriticalSection();
 
-	return m_textures[path];
+	return found;
 }
 
 TextureManager::~TextureManager()

@@ -8,9 +8,11 @@
 #include "PassType.h"
 #include "Material.h"
 #include "TextureManager.h"
+#include "StreamInterface.h"
+#include "ResourceStreamer.h"
 #include "Lights/PointLight.h"
 
-class StaticMesh
+class StaticMesh : public StreamInterface
 {
 public:
 	struct MeshVertex
@@ -44,6 +46,14 @@ private:
 	std::vector<std::shared_ptr<LightExtension>> m_lightExtensions;
 
 public:
+	// Stream Interface implementation
+	virtual bool StreamIn(GraphicsContext* graphicsContext) override;
+
+	virtual bool StreamOut() override;
+
+	virtual bool ScheduleForCopyToDefaultHeap(ID3D12GraphicsCommandList* cmdList) override;
+
+public:
 	StaticMesh();
 
 	~StaticMesh();
@@ -62,11 +72,13 @@ public:
 
 	bool BuildResource(GraphicsContext* graphicsContext, TextureManager* textureManager);
 
-	void Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList);
+	void Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, bool setTextures);
 
 	void AttachLightExtension(LightExtension* light);
 
 	bool HasLightExtensions() const { return !m_lightExtensions.empty(); }
+
+	void QueueStreamingTasks(ResourceStreamer* streamer, UINT priority);
 
 	std::vector<std::shared_ptr<LightExtension>> GetLightExtensions() { return m_lightExtensions; }
 };

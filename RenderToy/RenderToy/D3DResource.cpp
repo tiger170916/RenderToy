@@ -6,7 +6,7 @@ D3DResource::D3DResource(bool needCopyToDefaultHeap)
 {
 }
 
-bool D3DResource::Initialize(GraphicsContext* graphicsContext, const D3D12_RESOURCE_DESC* pResourceDesc, void* data, UINT dataSize)
+bool D3DResource::Initialize(GraphicsContext* graphicsContext, D3D12_RESOURCE_DESC* pResourceDesc, void* data, UINT dataSize, UINT stride)
 {
 	if (m_initialized)
 	{
@@ -22,6 +22,33 @@ bool D3DResource::Initialize(GraphicsContext* graphicsContext, const D3D12_RESOU
 
 	auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 
+	bool isTexture = pResourceDesc->Dimension != D3D12_RESOURCE_DIMENSION_BUFFER;
+
+	m_stride = stride;
+
+	UINT64 width = pResourceDesc->Width;
+	UINT height = pResourceDesc->Height;
+	UINT16 depth = pResourceDesc->DepthOrArraySize;
+	DXGI_FORMAT format = pResourceDesc->Format;
+	D3D12_RESOURCE_DIMENSION dimension = pResourceDesc->Dimension;
+	D3D12_TEXTURE_LAYOUT layout = pResourceDesc->Layout;
+	if (isTexture)
+	{
+		// For texture resource, use buffer for upload heap
+		pResourceDesc->Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+		pResourceDesc->Width = dataSize;
+		pResourceDesc->Height = 1;
+		pResourceDesc->DepthOrArraySize = 1;
+		pResourceDesc->Format = DXGI_FORMAT_UNKNOWN;
+		pResourceDesc->Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+		m_isTexture = true;
+		m_width = (UINT)width;
+		m_height = height;
+		m_depth = (UINT)depth;
+		m_dxgiFormat = format;
+	}
+
 	// create upload heap
 		// upload heaps are used to upload data to the GPU. CPU can write to it, GPU can read from it
 		// We will upload the vertex buffer using this heap to the default heap
@@ -34,6 +61,17 @@ bool D3DResource::Initialize(GraphicsContext* graphicsContext, const D3D12_RESOU
 		IID_PPV_ARGS(m_uploadHeapResource.GetAddressOf()))))
 	{
 		return false;
+	}
+
+	if (isTexture)
+	{
+		// Change the desc back
+		pResourceDesc->Dimension = dimension;
+		pResourceDesc->Width = width;
+		pResourceDesc->Height = height;
+		pResourceDesc->DepthOrArraySize = depth;
+		pResourceDesc->Format = format;
+		pResourceDesc->Layout = layout;
 	}
 
 	m_uploadBufferCurrentState = D3D12_RESOURCE_STATE_GENERIC_READ;
@@ -111,7 +149,38 @@ bool D3DResource::CopyToDefaultHeap(ID3D12GraphicsCommandList* commandList)
 	GraphicsUtils::ResourceBarrierTransition(m_uploadHeapResource.Get(), commandList, m_uploadBufferCurrentState, D3D12_RESOURCE_STATE_COPY_SOURCE);
 	GraphicsUtils::ResourceBarrierTransition(m_defaultHeapResource.Get(), commandList, m_defaultBufferCurrentState, D3D12_RESOURCE_STATE_COPY_DEST);
 
-	commandList->CopyResource(m_defaultHeapResource.Get(), m_uploadHeapResource.Get());
+	D3D12_BOX textureBox
+	{
+		.left = 0,
+		.top = 0,
+		.front = 0,
+		.right = static_cast<UINT>(m_width),
+		.bottom = static_cast<UINT>(m_height),
+		.back = 1
+	};
+
+	if (m_isTexture)
+	{
+		D3D12_TEXTURE_COPY_LOCATION srcLoc{}, destLoc{};
+		srcLoc.pResource = m_uploadHeapResource.Get();
+		srcLoc.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+		srcLoc.PlacedFootprint.Offset = 0;
+		srcLoc.PlacedFootprint.Footprint.Width = m_width;
+		srcLoc.PlacedFootprint.Footprint.Height = m_height;
+		srcLoc.PlacedFootprint.Footprint.Depth = 1;
+		srcLoc.PlacedFootprint.Footprint.RowPitch = m_stride;
+		srcLoc.PlacedFootprint.Footprint.Format = m_dxgiFormat;
+
+		destLoc.pResource = m_defaultHeapResource.Get();
+		destLoc.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+		destLoc.SubresourceIndex = 0;
+
+		commandList->CopyTextureRegion(&destLoc, 0, 0, 0, &srcLoc, &textureBox);
+	}
+	else
+	{
+		commandList->CopyResource(m_defaultHeapResource.Get(), m_uploadHeapResource.Get());
+	}
 
 	GraphicsUtils::ResourceBarrierTransition(m_uploadHeapResource.Get(), commandList, D3D12_RESOURCE_STATE_COPY_SOURCE, m_uploadBufferCurrentState);
 	GraphicsUtils::ResourceBarrierTransition(m_defaultHeapResource.Get(), commandList, D3D12_RESOURCE_STATE_COPY_DEST, m_defaultBufferCurrentState);

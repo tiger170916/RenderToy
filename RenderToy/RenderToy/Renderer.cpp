@@ -68,7 +68,8 @@ bool Renderer::Initialize(HWND hwnd)
 	std::vector<std::shared_ptr<StaticMesh>> meshes;
 	std::vector<std::shared_ptr<StaticMesh>> lightBulbMesh;
 
-	FbxLoader* fbxLoader = new FbxLoader("C:\\Users\\erlie\\Desktop\\Assets\\abandoned-house\\source\\abandonhouse.fbx");
+	//FbxLoader* fbxLoader = new FbxLoader("C:\\Users\\erlie\\Desktop\\Assets\\abandoned-house\\source\\abandonhouse.fbx");
+	FbxLoader* fbxLoader = new FbxLoader("C:\\Users\\erlie\\Desktop\\Assets\\village-house\\source\\House_Low.fbx");
 	FbxLoader* lightBulbLoader = new FbxLoader("C:\\Users\\erlie\\Desktop\\Assets\\cc0-light-bulb\\source\\LightBulb.fbx", 5);
 	fbxLoader->Load(meshes);
 	lightBulbLoader->Load(lightBulbMesh);
@@ -81,6 +82,7 @@ bool Renderer::Initialize(HWND hwnd)
 		mesh->EnablePass(PassType::GEOMETRY_PASS);
 
 		mesh->BuildResource(m_graphicsContext.get(), m_textureManager.get());
+		mesh->QueueStreamingTasks(m_resourceStreamer.get(), 0);
 	}
 
 
@@ -98,6 +100,7 @@ bool Renderer::Initialize(HWND hwnd)
 		lightBulbMesh[i]->AttachLightExtension(pointLight);
 
 		lightBulbMesh[i]->BuildResource(m_graphicsContext.get(), m_textureManager.get());
+		lightBulbMesh[i]->QueueStreamingTasks(m_resourceStreamer.get(), 0);
 	}
 
 	m_activeWorld->SpawnStaticMeshes(meshes);
@@ -169,6 +172,6 @@ void Renderer::FrameEnd()
 	// Wait for all gpu work done...
 	m_mainRenderGraph->WaitForRenderFinalOutputDone();
 	Sleep(15);
-	m_swapchain->CopyToBackbuffer(m_mainRenderGraph->GetFinalRenderOutputResource());
+	m_swapchain->CopyToBackbuffer(m_graphicsContext.get(), m_mainRenderGraph->GetFinalRenderOutputResource());
 	m_swapchain->Present();
 }

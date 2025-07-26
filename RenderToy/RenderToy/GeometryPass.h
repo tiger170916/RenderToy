@@ -10,11 +10,19 @@ private:
 
 	ComPtr<ID3D12Resource> m_diffuseBuffer = nullptr;
 
+	ComPtr<ID3D12Resource> m_metallicRoughnessBuffer = nullptr;
+
+	ComPtr<ID3D12Resource> m_normalBuffer = nullptr;
+
 	const DXGI_FORMAT m_depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
 
 	const DXGI_FORMAT m_diffuseRenderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-	const float m_diffuseBufferClearValue[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	const DXGI_FORMAT m_metallicRoughnessRenderTargetFormat = DXGI_FORMAT_R8G8_UNORM;
+
+	const DXGI_FORMAT m_normalTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+	const float m_bufferClearValue[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 	D3D12_VIEWPORT m_viewport;
 
@@ -24,7 +32,15 @@ private:
 
 	UINT64 m_diffuseRtvId = UINT64_MAX;
 
+	UINT64 m_metallicRoughnessRtvId = UINT64_MAX;
+
+	UINT64 m_normalRtvId = UINT64_MAX;
+
 	UINT64 m_diffuseSrvId = UINT64_MAX;
+
+	UINT64 m_metallicRoughnessSrvId = UINT64_MAX;
+
+	UINT64 m_normalSrvId = UINT64_MAX;
 
 public:
 	GeometryPass(GUID passGuid);
@@ -39,8 +55,14 @@ public:
 public:
 	// public resoure getter
 	inline bool DiffuseBufferBarrierTransition(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter) { return ResourceBarrierTransition(m_diffuseBuffer.Get(), commandList, stateAfter); }
+	inline bool MetallicRoughnessBufferBarrierTransition(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter) { return ResourceBarrierTransition(m_metallicRoughnessBuffer.Get(), commandList, stateAfter); }
+	inline bool NormalBufferBarrierTransition(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter) { return ResourceBarrierTransition(m_normalBuffer.Get(), commandList, stateAfter); }
 
 	inline const UINT64 GetDiffuseBufferRtvId() const { return m_diffuseRtvId; }
+	inline const UINT64 GetMetallicRoughnessBufferRtvId() const { return m_metallicRoughnessRtvId; }
+	inline const UINT64 GetNormalBufferRtvId() const { return m_normalRtvId; }
 
 	inline const UINT64 GetDiffuseBufferSrvId() const { return m_diffuseSrvId; }
+	inline const UINT64 GetMetallicRoughnessBufferSrvId() const { return m_metallicRoughnessSrvId; }
+	inline const UINT64 GetNormalBufferSrvId() const { return m_normalSrvId; }
 };
