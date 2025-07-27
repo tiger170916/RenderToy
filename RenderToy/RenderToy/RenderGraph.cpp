@@ -110,7 +110,7 @@ bool RenderGraph::Initialize(GraphicsContext* graphicsContext, ShaderManager* sh
 		return false;
 	}
 
-	m_renderOutputWorkDoneEvent= CreateEventA(NULL, true, false, NULL);
+	m_renderOutputWorkDoneEvent= CreateEventA(NULL, false, false, NULL);
 
 	if (!m_renderOutputWorkDoneEvent)
 	{

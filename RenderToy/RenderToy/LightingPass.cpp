@@ -52,6 +52,8 @@ bool LightingPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 		return false;
 	}
 
+	m_renderTarget->SetName(L"Final render target");
+
 	m_resourceStates[m_renderTarget.Get()] = D3D12_RESOURCE_STATE_PRESENT;
 
 	m_graphicsPipelineState = std::unique_ptr<GraphicsPipelineState>(new GraphicsPipelineState());
@@ -168,15 +170,18 @@ bool LightingPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 		dependencyGeometryPass->DiffuseBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COMMON);
 		dependencyGeometryPass->MetallicRoughnessBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COMMON);
 		dependencyGeometryPass->NormalBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COMMON);
+		dependencyGeometryPass->WorldPosBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COMMON);
 
-		D3D12_GPU_DESCRIPTOR_HANDLE geometryPassDiffuseBufferHandle, geometryPassMetallicRoughnessBufferHandle, geometryPassNormalBufferHandle;
+		D3D12_GPU_DESCRIPTOR_HANDLE geometryPassDiffuseBufferHandle, geometryPassMetallicRoughnessBufferHandle, geometryPassNormalBufferHandle, geometryPassWorldPosBufferHandle;
 		descHeapManager->BindCbvSrvUavToPipeline(dependencyGeometryPass->GetDiffuseBufferSrvId(), geometryPassDiffuseBufferHandle);
 		descHeapManager->BindCbvSrvUavToPipeline(dependencyGeometryPass->GetMetallicRoughnessBufferSrvId(), geometryPassMetallicRoughnessBufferHandle);
 		descHeapManager->BindCbvSrvUavToPipeline(dependencyGeometryPass->GetNormalBufferSrvId(), geometryPassNormalBufferHandle);
+		descHeapManager->BindCbvSrvUavToPipeline(dependencyGeometryPass->GetWorldPosBufferSrvId(), geometryPassWorldPosBufferHandle);
 
 		commandList->SetGraphicsRootDescriptorTable(2, geometryPassDiffuseBufferHandle);
 		commandList->SetGraphicsRootDescriptorTable(3, geometryPassMetallicRoughnessBufferHandle);
 		commandList->SetGraphicsRootDescriptorTable(4, geometryPassNormalBufferHandle);
+		commandList->SetGraphicsRootDescriptorTable(5, geometryPassWorldPosBufferHandle);
 	}
 
 	// Draw fullscreen rectangle

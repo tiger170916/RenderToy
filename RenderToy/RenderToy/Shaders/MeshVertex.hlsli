@@ -26,6 +26,8 @@ struct MeshVertexOut
 {
     float4 pos : SV_Position;
     
+    float4 worldPos : WorldPos;
+    
     float2 uv  : UV0;
     
     uint instanceId : SV_InstanceID;

@@ -32,9 +32,24 @@ void Camera::CalculateViewMatrix()
 		XMVectorSet(upDirection.X, upDirection.Y, upDirection.Z, 1.0f));
 }
 
+void Camera::CalculateViewMatrixWithLookAtPosition()
+{
+	m_viewMatrix = XMMatrixLookAtLH(
+		XMVectorSet(m_position.X, m_position.Y, m_position.Z, 1.0f),
+		XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f),
+		XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f));
+}
+
 void Camera::Frame(float delta)
 {
+	static float curPos = 0.0f;
+	static const float speed = 1.0;
 
+	curPos += delta * speed;
+	m_position.X = cos(curPos) * 30;
+	m_position.Z = sin(curPos) * 30;
+
+	CalculateViewMatrixWithLookAtPosition();
 }
 
 Camera::~Camera()

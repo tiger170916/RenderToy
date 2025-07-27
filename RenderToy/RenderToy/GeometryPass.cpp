@@ -122,7 +122,7 @@ bool GeometryPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 		descHeapManager,
 		width,
 		height,
-		m_normalTargetFormat,
+		m_normalRenderTargetFormat,
 		D3D12_RESOURCE_FLAG_NONE,
 		m_bufferClearValue,
 		m_normalBuffer.GetAddressOf(),
@@ -131,11 +131,14 @@ bool GeometryPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 		return false;
 	}
 
+	std::wstring name = L"NormalBuffer";
+	m_normalBuffer->SetName(name.c_str());
+
 	m_resourceStates[m_normalBuffer.Get()] = D3D12_RESOURCE_STATE_PRESENT;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC normalSrvDesc;
 	normalSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	normalSrvDesc.Format = m_normalTargetFormat;
+	normalSrvDesc.Format = m_normalRenderTargetFormat;
 	normalSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	normalSrvDesc.Texture2D.MostDetailedMip = 0;
 	normalSrvDesc.Texture2D.MipLevels = 1;
@@ -148,16 +151,51 @@ bool GeometryPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 		return false;
 	}
 
+
+	if (!GraphicsUtils::CreateRenderTargetResource(
+		pDevice,
+		descHeapManager,
+		width,
+		height,
+		m_worldPosRenderTargetFormat,
+		D3D12_RESOURCE_FLAG_NONE,
+		m_bufferClearValue,
+		m_worldPosBuffer.GetAddressOf(),
+		m_worldPosRtvId))
+	{
+		return false;
+	}
+
+	m_resourceStates[m_worldPosBuffer.Get()] = D3D12_RESOURCE_STATE_PRESENT;
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC worldPosSrvDesc;
+	worldPosSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	worldPosSrvDesc.Format = m_worldPosRenderTargetFormat;
+	worldPosSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	worldPosSrvDesc.Texture2D.MostDetailedMip = 0;
+	worldPosSrvDesc.Texture2D.MipLevels = 1;
+	worldPosSrvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+	worldPosSrvDesc.Texture2D.PlaneSlice = 0;
+
+	m_worldPosSrvId = descHeapManager->CreateShaderResourceView(m_worldPosBuffer.Get(), &worldPosSrvDesc);
+	if (m_worldPosSrvId == UINT64_MAX)
+	{
+		return false;
+	}
+
+
+
 	m_graphicsPipelineState = std::unique_ptr<GraphicsPipelineState>(new GraphicsPipelineState());
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc = m_graphicsPipelineState->GraphicsPipelineStateDesc();
 
 	pipelineStateDesc.NodeMask = adapterNodeMask;
 	pipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	pipelineStateDesc.DSVFormat = m_depthStencilFormat;
-	pipelineStateDesc.NumRenderTargets = 3;
+	pipelineStateDesc.NumRenderTargets = 4;
 	pipelineStateDesc.RTVFormats[0] = m_diffuseRenderTargetFormat;
 	pipelineStateDesc.RTVFormats[1] = m_metallicRoughnessRenderTargetFormat;
-	pipelineStateDesc.RTVFormats[2] = m_normalTargetFormat;
+	pipelineStateDesc.RTVFormats[2] = m_normalRenderTargetFormat;
+	pipelineStateDesc.RTVFormats[3] = m_worldPosRenderTargetFormat;
 
 	D3D12_DEPTH_STENCIL_DESC depthStencilDesc = {
 		TRUE,
@@ -224,10 +262,13 @@ bool GeometryPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 	descHeapManager->GetRenderTargetViewCpuHandle(m_diffuseRtvId, rtvs[0]);
 	descHeapManager->GetRenderTargetViewCpuHandle(m_metallicRoughnessRtvId, rtvs[1]);
 	descHeapManager->GetRenderTargetViewCpuHandle(m_normalRtvId, rtvs[2]);
+	descHeapManager->GetRenderTargetViewCpuHandle(m_worldPosRtvId, rtvs[3]);
 
 	ResourceBarrierTransition(m_diffuseBuffer.Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	ResourceBarrierTransition(m_metallicRoughnessBuffer.Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	ResourceBarrierTransition(m_normalBuffer.Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	ResourceBarrierTransition(m_worldPosBuffer.Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+
 	// Set pso
 	commandList->SetPipelineState(m_graphicsPipelineState->GetPipelineState());
 	commandList->SetGraphicsRootSignature(m_graphicsPipelineState->GetRootSignature());
@@ -236,7 +277,8 @@ bool GeometryPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 	commandList->ClearRenderTargetView(rtvs[0], m_bufferClearValue, 0, NULL);
 	commandList->ClearRenderTargetView(rtvs[1], m_bufferClearValue, 0, NULL);
 	commandList->ClearRenderTargetView(rtvs[2], m_bufferClearValue, 0, NULL);
-	commandList->OMSetRenderTargets(3, rtvs, false, &dsvHandle);
+	commandList->ClearRenderTargetView(rtvs[3], m_bufferClearValue, 0, NULL);
+	commandList->OMSetRenderTargets(4, rtvs, false, &dsvHandle);
 	commandList->RSSetViewports(1, &m_viewport);
 	commandList->RSSetScissorRects(1, &m_scissorRect);
 

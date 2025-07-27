@@ -43,6 +43,8 @@ struct PS_OUTPUT
     float2 MetallicRoughness    : SV_Target1;
     
     float4 Normal               : SV_Target2;
+    
+    float4 WorldPos             : SV_Target3;
 };
 
 Texture2D<float4> depthBuffer       : register(t0);
@@ -64,6 +66,7 @@ MeshVertexOut VertexShaderMain(MeshVertexIn vertexIn, uint instanceID : SV_Insta
     // Transform point to homogeneous space.
     
     float4 pos = mul(float4(vertexIn.pos, 1.0f), MeshInstances[instanceID].TransformMatrix);
+    output.worldPos = pos / pos.w;;
     pos = mul(pos, gView);
     pos = mul(pos, gProjection);
     output.uv = vertexIn.uv;
@@ -99,10 +102,12 @@ PS_OUTPUT PixelShaderMain(MeshVertexOut vertexOut)
     normal3.xyz = (normal3.xyz * 2.0f) - 1.0f;
     float4 normal4 = mul(float4(normal3, 1.0f), MeshInstances[vertexOut.instanceId].TransformMatrix);
     normal4 = normal4 / normal4.w;
-    normal3 = normalize(normal3.xyz);
+    normal3 = normalize(float3(normal3.xy, -normal3.z));
     
     output.BaseColor = baseColorTex.SampleLevel(linearSampler, float2(vertexOut.uv.x, 1.0f - vertexOut.uv.y), 0);
     output.MetallicRoughness = float2(metallic, roughness);
-    output.Normal = float4((normal3.xyz + 1.0f) / 2.0f, 0.0f);
+    output.Normal = float4(normal3, 0.0f);
+    output.WorldPos = vertexOut.worldPos;
+    
     return output;
 }

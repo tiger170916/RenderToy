@@ -61,6 +61,7 @@ bool CommandQueue::DispatchCommands(CommandBuilder* cmdBuilder)
 
 void CommandQueue::SignalAndWait()
 {
+	m_fenceValue++;
 	m_commandQueue->Signal(m_fence.Get(), m_fenceValue);
 
 	if (SUCCEEDED(m_fence->SetEventOnCompletion(m_fenceValue, m_fenceEvent)))

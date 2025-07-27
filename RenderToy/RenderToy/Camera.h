@@ -40,4 +40,6 @@ public:
 
 private:
 	void CalculateViewMatrix();
+
+	void CalculateViewMatrixWithLookAtPosition();
 };

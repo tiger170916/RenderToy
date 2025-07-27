@@ -63,7 +63,7 @@ private:
 
 	void Frame();
 
-	void FrameBegin();
+	void FrameBegin(float delta);
 
 	void FrameEnd();
 };

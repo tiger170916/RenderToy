@@ -131,7 +131,7 @@ DWORD WINAPI Renderer::RenderThreadRoutine(LPVOID lpParameter)
 	{
 		renderer->Frame();
 
-		Sleep(50);
+		Sleep(10);
 	}
 
 	return true;
@@ -151,7 +151,7 @@ void Renderer::Frame()
 		delta = (float)(nowInMicroSecs - m_lastRenderTime) / 1000000.0f;
 	}
 
-	FrameBegin();
+	FrameBegin(delta);
 
 	m_mainRenderGraph->PopulateCommandLists(m_activeWorld.get(), m_graphicsContext.get());
 
@@ -160,9 +160,9 @@ void Renderer::Frame()
 	m_lastRenderTime = nowInMicroSecs;
 }
 
-void Renderer::FrameBegin()
+void Renderer::FrameBegin(float delta)
 {
-	m_activeWorld->FrameBegin();
+	m_activeWorld->FrameBegin(delta);
 }
 
 void Renderer::FrameEnd()
@@ -171,7 +171,6 @@ void Renderer::FrameEnd()
 
 	// Wait for all gpu work done...
 	m_mainRenderGraph->WaitForRenderFinalOutputDone();
-	Sleep(15);
 	m_swapchain->CopyToBackbuffer(m_graphicsContext.get(), m_mainRenderGraph->GetFinalRenderOutputResource());
 	m_swapchain->Present();
 }

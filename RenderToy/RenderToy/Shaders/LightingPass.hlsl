@@ -17,6 +17,9 @@
     "DescriptorTable(" \
         "SRV(t2, numDescriptors = 1)" \
     ")," \
+    "DescriptorTable(" \
+        "SRV(t3, numDescriptors = 1)" \
+    ")," \
     "StaticSampler(s0, "\
         "addressU = TEXTURE_ADDRESS_CLAMP," \
         "addressV = TEXTURE_ADDRESS_CLAMP," \
@@ -35,6 +38,8 @@ Texture2D<float4> metallicRoughnessBuffer   : register(t1);
 
 Texture2D<float4> normalBuffer              : register(t2);
 
+Texture2D<float4> worldPosBuffer            : register(t3);
+
 SamplerState      pointSampler              : register(s0);
 
 [RootSignature(LightingPassRootsignature)]
@@ -49,7 +54,8 @@ MeshVertexOut VertexShaderMain(MeshVertexIn vertexIn, uint instanceID : SV_Insta
 
 float NormalDistributionGGX(float3 N, float3 H, float roughness)
 {
-    float a2 = roughness * roughness;
+    float a = roughness * roughness;
+    float a2 = a * a;
     float NdotH = max(dot(N, H), 0.0);
     float NdotH2 = NdotH * NdotH;
 	
@@ -78,7 +84,7 @@ float3 fresnelSchlick(float3 N, float3 H, float3 baseColor, float metallic)
 {
     float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), baseColor, metallic);
     float NDotH = max(dot(N, H), 0.0f);
-    return F0 + (1.0 - F0) * pow(1.0 - NDotH, 5.0);
+    return F0 + (1.0 - F0) * pow(clamp(1.0 - NDotH, 0.0f, 1.0f), 5.0);
 }
 
 [RootSignature(LightingPassRootsignature)]
@@ -94,26 +100,26 @@ float4 PixelShaderMain(MeshVertexOut vertexOut) : SV_Target0
     float2 metallicRoughness = metallicRoughnessBuffer.SampleLevel(pointSampler, uv, 0).xy;
     float metallic = metallicRoughness.x;
     float roughness = metallicRoughness.y;
+    //roughness = 0.6f;
+    //metallic = 0.1;
     float3 normal = normalBuffer.SampleLevel(pointSampler, uv, 0).xyz;
-        
-    // Remap normal
-    normal = (normal * 2.0f) - 1.0f;
-    normal = -normal;
-    float3 pos = vertexOut.pos.xyz / vertexOut.pos.w;
+    float3 worldPos = worldPosBuffer.SampleLevel(pointSampler, uv, 0).xyz;
+
     
-    const float3 pointLightPosition = float3(5.0f, 6.5f, -5.0f);
-    const float3 radiance = float3(10.0f, 10.0f, 10.0f);
+    const float3 pointLightPosition = float3(20.0f, 3.5f, -6.0f);
+    const float3 radiance = float3(110.0f, 110.0f, 100.0f);
     const float3 cameraPos = float3(0.0f, 3.0f, -12.5f);
     
-    float3 v = normalize(cameraPos - pos);
-    float3 l = normalize(pointLightPosition - pos);
+    float3 v = normalize(cameraPos - worldPos);
+    float3 l = normalize(pointLightPosition - worldPos);
     float3 h = normalize(v + l);
     
     
     // Cook-torrance brdf
     float NDF = NormalDistributionGGX(normal, h, roughness);
     float Geometry = GeometrySmith(normal, v, l, roughness);
-    float3 Fresnel = fresnelSchlick(normal, h, baseColor, metallic);
+    float3 Fresnel = fresnelSchlick(v, h, baseColor, metallic);
+    
         
     float3 kS = Fresnel;
     float3 kD = float3(1.0f, 1.0f, 1.0f) - kS;
@@ -126,11 +132,14 @@ float4 PixelShaderMain(MeshVertexOut vertexOut) : SV_Target0
     float3 specular = numerator / denominator;
             
     float NdotL = max(dot(normal, l), 0.0);
-    float3 Lo = (kD * baseColor / 3.14f + specular) * radiance * NdotL;
-    Lo = Lo + baseColor * 0.1f;
-    float toneMap = 1.0f / 2.2f;
-    Lo = Lo / (Lo + float3(1.0f, 1.0f, 1.0f));
-    Lo = pow(Lo, float3(toneMap, toneMap, toneMap));
+    float dist = distance(pointLightPosition, worldPos) / 2.7;
+    float attenuation = 1.0 / (dist * dist);
+    float3 Lo = (kD * baseColor / 3.14f + specular) * radiance * attenuation * NdotL;
     
-    return float4(Lo, 1.0f);
+    float3 color = Lo;//+baseColor * 0.01;
+    float toneMap = 1.0f / 2.2f;
+    color = color / (color + float3(1.0f, 1.0f, 1.0f));
+    color = pow(color, float3(toneMap, toneMap, toneMap));
+    
+    return float4(color, 1.0f);
 }

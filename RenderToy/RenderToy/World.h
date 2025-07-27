@@ -36,5 +36,5 @@ public:
 
 	inline ConstantBuffer<UniformFrameConstants>* GetUniformFrameConstantBuffer() const { return m_uniformFrameConstantBuffer.get(); }
 
-	bool FrameBegin();
+	bool FrameBegin(float delta);
 };
