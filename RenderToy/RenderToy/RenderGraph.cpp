@@ -206,6 +206,12 @@ bool RenderGraph::ExecuteCommands()
 	for (int i = 0; i < m_flattenedPassGraph.size(); i++)
 	{
 		PassBase* pass = m_flattenedPassGraph[i].Pass;
+
+		if (pass->IsSkipped())
+		{
+			continue;
+		}
+
 		Pipeline* parentPipeline = GetParentPipeline(pass);
 		
 		CommandQueue* commandQueue = parentPipeline->GetCommandQueue();
@@ -399,5 +405,5 @@ bool RenderGraph::ParseFile(std::vector<RenderGraph::PipelineStruct>& outPipelin
 		outPipelines.clear();
 	}
 
-	return true;
+	return succ;
 }

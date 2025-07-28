@@ -4,6 +4,7 @@ std::filesystem::path Utils::g_workingDir;
 
 std::map<std::string, PassType> Utils::g_passTypeStringLookup
 {
+	{"SHADOW_PASS", PassType::SHADOW_PASS },
 	{"EARLY_Z_PASS", PassType::EARLY_Z_PASS },
 	{"GEOMETRY_PASS", PassType::GEOMETRY_PASS },
 	{"LIGHTING_PASS", PassType::LIGHTING_PASS },

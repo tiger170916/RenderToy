@@ -33,6 +33,8 @@ protected:
 	// Resource states recorder
 	std::map<ID3D12Resource*, D3D12_RESOURCE_STATES> m_resourceStates;
 
+	bool m_skiped = false;
+
 protected:
 	bool ResourceBarrierTransition(ID3D12Resource* resource, ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter);
 
@@ -68,6 +70,8 @@ public:
 	inline ID3D12Fence* GetFence() { return m_fence.get()->GetFence(); }
 
 	inline void SignalFence() { m_fence->Signal(); }
+
+	inline const bool IsSkipped() const { return m_skiped; }
 
 	// Signal the fence when complete
 	inline void CommandQueueSignal(ID3D12CommandQueue* pCommandQueue) { m_fence->CommandQueueSignal(pCommandQueue); }

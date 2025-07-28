@@ -2,6 +2,7 @@
 #include "EarlyZPass.h"
 #include "GeometryPass.h"
 #include "LightingPass.h"
+#include "ShadowPass.h"
 
 
 std::map<GUID, std::unique_ptr<PassBase>, GuidComparator> PassFactory::_createdPasses;
@@ -40,11 +41,23 @@ bool PassFactory::CreatePass(PassType type, GUID passGuid, PassBase** ppPass)
 		pass = new LightingPass(passGuid);
 		break;
 	}
+
+	case PassType::SHADOW_PASS:
+	{
+		pass = new ShadowPass(passGuid);
+		break;
+	}
+	}
+
+	if (pass == nullptr)
+	{
+		return false;
 	}
 
 	_createdPasses[passGuid] = std::unique_ptr<PassBase>(pass);
 	*ppPass = pass;
-	return pass != nullptr;
+	
+	return true;
 }
 
 PassBase* PassFactory::GetPassTypeByGuid(GUID guid)

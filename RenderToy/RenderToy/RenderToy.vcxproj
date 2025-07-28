@@ -141,6 +141,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="ResourceStreamer.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="ShaderType.cpp" />
+    <ClCompile Include="ShadowPass.cpp" />
     <ClCompile Include="StaticMesh.cpp" />
     <ClCompile Include="Swapchain.cpp" />
     <ClCompile Include="Texture.cpp" />
@@ -186,6 +187,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="ResourceStreamer.h" />
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="ShaderType.h" />
+    <ClInclude Include="ShadowPass.h" />
     <ClInclude Include="StaticMesh.h" />
     <ClInclude Include="StreamInterface.h" />
     <ClInclude Include="Swapchain.h" />
@@ -203,6 +205,10 @@ $(SolutionDir)bin\CodeGen.exe</Command>
       </EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </EntryPointName>
+    </FxCompile>
+    <FxCompile Include="Shaders\ShadowPass.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

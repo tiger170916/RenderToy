@@ -131,6 +131,9 @@
     <ClCompile Include="CriticalSection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ShadowPass.cpp">
+      <Filter>RenderPasses</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -268,6 +271,9 @@
     <ClInclude Include="CriticalSection.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="ShadowPass.h">
+      <Filter>RenderPasses</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\EarlyZPass.hlsl">
@@ -280,6 +286,9 @@
       <Filter>ShaderSource</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\LightingPass.hlsl">
+      <Filter>ShaderSource</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\ShadowPass.hlsl">
       <Filter>ShaderSource</Filter>
     </FxCompile>
   </ItemGroup>

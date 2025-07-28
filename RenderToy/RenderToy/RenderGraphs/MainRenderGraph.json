@@ -6,6 +6,11 @@
                 "Guid": "07dad73e-be11-4e92-9472-2b2e059f4dc1",
                 "Passes": [
                     {
+                        "Name": "ShadowPass",
+                        "Guid": "bb701ce1-521e-4c06-b7fe-5f25b9d26be0",
+                        "Type": "SHADOW_PASS"
+                    },
+                    {
                         "Name": "EarlyZPass",
                         "Guid": "2c25ed19-c9d0-49d1-95df-00c4cc79924c",
                         "Type": "EARLY_Z_PASS"
@@ -26,8 +31,13 @@
 
         "Dependencies": [
             {
-                "Name": "GeometryPass",
+                "Name": "ShadowPass",
                 "Dependencies": [ "EarlyZPass" ]
+            },
+
+            {
+                "Name": "GeometryPass",
+                "Dependencies": [ "ShadowPass" ]
             },
 
             {

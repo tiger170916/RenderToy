@@ -37,6 +37,33 @@ $geometryPassPixelShaderPdbOutput = $outputDir + "geometry_pass_pixel_shader.pdb
 # Compile pixel shader
 & $dxc /T ps_6_6 $geometryPassFile /E"PixelShaderMain" /Fo $geometryPassPixelShaderOutput /Zi /Fd $geometryPassPixelShaderPdbOutput /nologo
 
+Write-Host "GeometryPass shader file: $geometryPassFile"
+Write-Host "GeometryPass root signature output: $geometryPassRootSignatureOutput"
+Write-Host "GeometryPass vertex shader output: $geometryPassVertexShaderOutput"
+Write-Host "GeometryPass pixel shader output: $geometryPassPixelShaderOutput"
+
+##### ShadowPass #####
+$shadowPassFile = $shaderDir + "ShadowPass.hlsl"
+$shadowPassRootSignatureOutput = $outputDir + "shadow_pass_root_signature.cso"
+$shadowPassVertexShaderOutput = $outputDir + "shadow_pass_vertex_shader.cso"
+$shadowPassGeometryShaderOutput = $outputDir + "shadow_pass_geometry_shader.cso"
+$shadowPassPixelShaderOutput = $outputDir + "shadow_pass_pixel_shader.cso"
+
+#Compile root signature
+& $dxc /T rootsig_1_1 $shadowPassFile /E "ShadowPassRootsignature" /Fo $shadowPassRootSignatureOutput /nologo
+# Compile vertex shader
+& $dxc /T vs_6_6 $shadowPassFile /E"VertexShaderMain" /Fo $shadowPassVertexShaderOutput /nologo
+# Compile geometry shader
+& $dxc /T gs_6_6 $shadowPassFile /E"GeometryShaderMain" /Fo $shadowPassGeometryShaderOutput /nologo
+# Compile pixel shader
+& $dxc /T ps_6_6 $shadowPassFile /E"PixelShaderMain" /Fo $shadowPassPixelShaderOutput  /nologo
+
+Write-Host "ShadowPass shader file: $shadowPassFile"
+Write-Host "ShadowPass root signature output: $shadowPassRootSignatureOutput"
+Write-Host "ShadowPass vertex shader output: $shadowPassVertexShaderOutput"
+Write-Host "ShadowPass geometry shader output: $shadowPassGeometryShaderOutput"
+Write-Host "ShadowPass pixel shader output: $shadowPassPixelShaderOutput"
+
 ##### LightingPass #####
 $lightingPassFile = $shaderDir + "LightingPass.hlsl"
 $lightingPassRootSignatureOutput = $outputDir + "lighting_pass_root_signature.cso"

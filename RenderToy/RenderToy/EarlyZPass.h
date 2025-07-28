@@ -35,5 +35,5 @@ public:
 
 	inline const UINT64 GetDepthBufferDsvId() const { return m_dsvId; }
 
-	inline const UINT64 GetDepthBufferSrvId() const { return m_dsvId; }
+	inline const UINT64 GetDepthBufferSrvId() const { return m_srvId; }
 };
