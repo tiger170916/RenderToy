@@ -61,26 +61,43 @@ bool StaticMesh::BuildResource(GraphicsContext* graphicsContext, TextureManager*
 		}
 
 		std::vector<MeshVertexDx> verticesDx;
+		std::vector<MeshVertexSimpleDx> verticesSimpleDx;
 		for (int i = 0; i < vertices.size(); i++)
 		{
 			const MeshVertex& vert = vertices[i];
 			MeshVertexDx vertDx = {};
+			MeshVertexSimpleDx vertSimpleDx = {};
 			vertDx.position[0] = vert.Position.X;
 			vertDx.position[1] = vert.Position.Y;
 			vertDx.position[2] = vert.Position.Z;
 			vertDx.UV0[0] = vert.UvSets[0].X;
 			vertDx.UV0[1] = vert.UvSets[0].Y;
+			vertSimpleDx.position[0] = vert.Position.X;
+			vertSimpleDx.position[1] = vert.Position.Y;
+			vertSimpleDx.position[2] = vert.Position.Z;
 			verticesDx.push_back(vertDx);
+			verticesSimpleDx.push_back(vertSimpleDx);
 		}
 
 		D3DResource* vertexBufferResource = new D3DResource(true);
+		D3DResource* vertexSimpleBufferResource = new D3DResource(true);
+
 		// Create vb 
 		auto vbDesc = CD3DX12_RESOURCE_DESC::Buffer(verticesDx.size() * sizeof(MeshVertexDx));
+		auto vbSimpleDesc = CD3DX12_RESOURCE_DESC::Buffer(verticesSimpleDx.size() * sizeof(MeshVertexSimpleDx));
+
 		if (!vertexBufferResource->Initialize(graphicsContext, &vbDesc, verticesDx.data(), (UINT)verticesDx.size() * sizeof(MeshVertexDx), 0))
 		{
 			return false;
 		}
+
+		if (!vertexSimpleBufferResource->Initialize(graphicsContext, &vbSimpleDesc, verticesSimpleDx.data(), (UINT)verticesSimpleDx.size() * sizeof(MeshVertexSimpleDx), 0))
+		{
+			return false;
+		}
+
 		m_vbResources.push_back(std::unique_ptr<D3DResource>(vertexBufferResource));
+		m_simpleVbResources.push_back(std::unique_ptr<D3DResource>(vertexSimpleBufferResource));
 
 		// Create vb view
 		D3D12_VERTEX_BUFFER_VIEW vertexBufferView = {};
@@ -88,7 +105,14 @@ bool StaticMesh::BuildResource(GraphicsContext* graphicsContext, TextureManager*
 		vertexBufferView.StrideInBytes = sizeof(MeshVertexDx);
 		vertexBufferView.SizeInBytes = (UINT)verticesDx.size() * sizeof(MeshVertexDx);
 
+		D3D12_VERTEX_BUFFER_VIEW vertexSimpleBufferView = {};
+		vertexSimpleBufferView.BufferLocation = vertexSimpleBufferResource->GetDefaultResource()->GetGPUVirtualAddress();
+		vertexSimpleBufferView.StrideInBytes = sizeof(MeshVertexSimpleDx);
+		vertexSimpleBufferView.SizeInBytes = (UINT)verticesSimpleDx.size() * sizeof(MeshVertexSimpleDx);
+
 		m_vertexBufferViews.push_back(vertexBufferView);
+		m_simpleVertexBufferViews.push_back(vertexSimpleBufferView);
+
 		m_vertexCounts.push_back((UINT)vertices.size());
 	}
 
@@ -116,7 +140,7 @@ bool StaticMesh::BuildResource(GraphicsContext* graphicsContext, TextureManager*
 	return true;
 }
 
-void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, bool setTextures)
+void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, bool useSimpleVertex, bool setTextures)
 {
 	if (!graphicsContext || !cmdList)
 	{
@@ -152,8 +176,11 @@ void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandLis
 
 	for (int i = 0; i < m_vbResources.size(); i++)
 	{
-		const D3D12_VERTEX_BUFFER_VIEW* pVbViews = &m_vertexBufferViews[i];
-		m_vbResources[i]->CopyToDefaultHeap(cmdList);
+		const D3D12_VERTEX_BUFFER_VIEW& pVbViews = useSimpleVertex ? m_simpleVertexBufferViews[i] : m_vertexBufferViews[i];
+		std::vector<std::unique_ptr<D3DResource>>& vbResourceList = useSimpleVertex ? m_simpleVbResources : m_vbResources;
+	
+		vbResourceList[i]->CopyToDefaultHeap(cmdList);
+
 		cmdList->SetGraphicsRootDescriptorTable(1, instanceCbHandle);
 
 		if (setTextures)
@@ -200,7 +227,7 @@ void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandLis
 				}
 			}
 		}
-		cmdList->IASetVertexBuffers(0, 1, pVbViews);
+		cmdList->IASetVertexBuffers(0, 1, &pVbViews);
 		cmdList->DrawInstanced(m_vertexCounts[i], (UINT)m_instances.size(), 0, 0);
 	}
 }

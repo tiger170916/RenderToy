@@ -9,6 +9,7 @@ bool GraphicsPipelineState::Initialize(
 	ShaderManager* shaderManager,
 	ShaderType rootSignature,
 	ShaderType vertexShader,
+	ShaderType geometryShader,
 	ShaderType pixelShader)
 {
 	if (!graphicsContext || !shaderManager)
@@ -44,6 +45,17 @@ bool GraphicsPipelineState::Initialize(
 
 		m_desc.VS.BytecodeLength = shaderSize;
 		m_desc.VS.pShaderBytecode = shaderData;
+	}
+
+	if (geometryShader != ShaderType::SHADER_TYPE_NONE)
+	{
+		if (!shaderManager->GetShader(geometryShader, &shaderData, shaderSize))
+		{
+			return false;
+		}
+
+		m_desc.GS.BytecodeLength = shaderSize;
+		m_desc.GS.pShaderBytecode = shaderData;
 	}
 
 	if (pixelShader != ShaderType::SHADER_TYPE_NONE)

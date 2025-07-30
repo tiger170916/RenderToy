@@ -37,9 +37,13 @@ private:
 	// Vertex buffer resource
 	std::vector<std::unique_ptr<D3DResource>> m_vbResources;
 
+	std::vector<std::unique_ptr<D3DResource>>  m_simpleVbResources;
+
 	std::vector<UINT> m_vertexCounts;
 
 	std::vector<D3D12_VERTEX_BUFFER_VIEW> m_vertexBufferViews;
+
+	std::vector<D3D12_VERTEX_BUFFER_VIEW> m_simpleVertexBufferViews;
 
 	std::unique_ptr<ConstantBuffer<MeshInstanceConstants>> m_instanceConstants;
 
@@ -72,7 +76,7 @@ public:
 
 	bool BuildResource(GraphicsContext* graphicsContext, TextureManager* textureManager);
 
-	void Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, bool setTextures);
+	void Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, bool useSimpleVertex, bool setTextures);
 
 	void AttachLightExtension(LightExtension* light);
 
@@ -81,4 +85,6 @@ public:
 	void QueueStreamingTasks(ResourceStreamer* streamer, UINT priority);
 
 	std::vector<std::shared_ptr<LightExtension>> GetLightExtensions() { return m_lightExtensions; }
+
+	std::vector<Transform> GetInstances() { return m_instances; }
 };

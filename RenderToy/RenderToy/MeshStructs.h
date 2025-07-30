@@ -8,6 +8,11 @@ struct MeshVertexDx
 	float UV0[2];
 };
 
+struct MeshVertexSimpleDx
+{
+	float position[3];
+};
+
 struct MeshInstanceConstants
 {
 	XMFLOAT4X4 TransformMatrix;

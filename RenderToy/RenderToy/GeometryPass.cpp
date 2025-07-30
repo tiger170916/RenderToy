@@ -230,7 +230,7 @@ bool GeometryPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 	pipelineStateDesc.InputLayout.NumElements = NUM_IA_MESH_LAYOUT;
 	pipelineStateDesc.InputLayout.pInputElementDescs = meshInputLayout;
 
-	if (!m_graphicsPipelineState->Initialize(graphicsContext, shaderManager, ShaderType::GEOMETRY_PASS_ROOT_SIGNATURE, ShaderType::GEOMETRY_PASS_VERTEX_SHADER, ShaderType::GEOMETRY_PASS_PIXEL_SHADER))
+	if (!m_graphicsPipelineState->Initialize(graphicsContext, shaderManager, ShaderType::GEOMETRY_PASS_ROOT_SIGNATURE, ShaderType::GEOMETRY_PASS_VERTEX_SHADER, ShaderType::SHADER_TYPE_NONE, ShaderType::GEOMETRY_PASS_PIXEL_SHADER))
 	{
 		return false;
 	}
@@ -306,7 +306,7 @@ bool GeometryPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 			continue;
 		}
 
-		staticMesh->Draw(graphicsContext, commandList, true);
+		staticMesh->Draw(graphicsContext, commandList, false, true);
 	}
 
 	m_commandBuilder->Close();

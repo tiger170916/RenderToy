@@ -97,7 +97,7 @@ bool LightingPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 	pipelineStateDesc.InputLayout.NumElements = NUM_IA_MESH_LAYOUT;
 	pipelineStateDesc.InputLayout.pInputElementDescs = meshInputLayout;
 
-	if (!m_graphicsPipelineState->Initialize(graphicsContext, shaderManager, ShaderType::LIGHTING_PASS_ROOT_SIGNATURE, ShaderType::LIGHTING_PASS_VERTEX_SHADER, ShaderType::LIGHTING_PASS_PIXEL_SHADER))
+	if (!m_graphicsPipelineState->Initialize(graphicsContext, shaderManager, ShaderType::LIGHTING_PASS_ROOT_SIGNATURE, ShaderType::LIGHTING_PASS_VERTEX_SHADER, ShaderType::SHADER_TYPE_NONE, ShaderType::LIGHTING_PASS_PIXEL_SHADER))
 	{
 		return false;
 	}
@@ -185,7 +185,7 @@ bool LightingPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 	}
 
 	// Draw fullscreen rectangle
-	m_rectangleMesh->Draw(graphicsContext, commandList, false);
+	m_rectangleMesh->Draw(graphicsContext, commandList, false, false);
 
 	// Transit the render target buffer to copy src state, since this might be copied out as final render result.
 	ResourceBarrierTransition(m_renderTarget.Get(), commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);

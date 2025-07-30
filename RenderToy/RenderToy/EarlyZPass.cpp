@@ -134,7 +134,7 @@ bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 	pipelineStateDesc.InputLayout.NumElements = NUM_IA_MESH_LAYOUT;
 	pipelineStateDesc.InputLayout.pInputElementDescs = meshInputLayout;
 
-	if (!m_graphicsPipelineState->Initialize(graphicsContext, shaderManager, ShaderType::EARLY_Z_PASS_ROOT_SIGNATURE, ShaderType::EARLY_Z_PASS_VERTEX_SHADER, ShaderType::SHADER_TYPE_NONE))
+	if (!m_graphicsPipelineState->Initialize(graphicsContext, shaderManager, ShaderType::EARLY_Z_PASS_ROOT_SIGNATURE, ShaderType::EARLY_Z_PASS_VERTEX_SHADER,ShaderType::SHADER_TYPE_NONE,  ShaderType::SHADER_TYPE_NONE))
 	{
 		return false;
 	}
@@ -186,7 +186,7 @@ bool EarlyZPass::PopulateCommands(World* world, GraphicsContext* graphicsContext
 			continue;
 		}
 
-		staticMesh->Draw(graphicsContext, commandList, false);
+		staticMesh->Draw(graphicsContext, commandList, false, false);
 	}
 
 	m_commandBuilder->Close();

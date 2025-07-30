@@ -145,6 +145,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="StaticMesh.cpp" />
     <ClCompile Include="Swapchain.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="TextureAtlas.cpp" />
     <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="Utils.cpp" />
     <ClCompile Include="World.cpp" />
@@ -170,6 +171,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="GuidComparator.h" />
     <ClInclude Include="Includes.h" />
     <ClInclude Include="LightingPass.h" />
+    <ClInclude Include="LightStructs.h" />
     <ClInclude Include="Lights\LightExtension.h" />
     <ClInclude Include="Lights\PointLight.h" />
     <ClInclude Include="Macros.h" />
@@ -192,6 +194,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="StreamInterface.h" />
     <ClInclude Include="Swapchain.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="TextureAtlas.h" />
     <ClInclude Include="TextureManager.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="Vectors.h" />

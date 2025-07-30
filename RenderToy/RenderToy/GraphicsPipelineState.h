@@ -24,6 +24,7 @@ public:
 		ShaderManager* shaderManager,
 		ShaderType rootSignature,
 		ShaderType vertexShader,
+		ShaderType geometryShader,
 		ShaderType pixelShader);
 
 	inline D3D12_GRAPHICS_PIPELINE_STATE_DESC& GraphicsPipelineStateDesc() { return m_desc; }
