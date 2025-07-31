@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "FbxLoader.h"
+#include "Lights/LightFactory.h"
 #include "GraphicsUtils.h"
 
 Renderer::~Renderer()
@@ -96,8 +97,7 @@ bool Renderer::Initialize(HWND hwnd)
 		lightBulbMesh[i]->EnablePass(PassType::GEOMETRY_PASS);
 
 		// Create a light extension, and attach to the light bulb model
-		PointLight* pointLight = new PointLight(FVector3::Zero(), FVector3(1.0f, 1.0f, 1.0f));
-		lightBulbMesh[i]->AttachLightExtension(pointLight);
+		LightFactory::Get()->SpawnSpotLight(lightBulbMesh[i].get(), 10, FVector3(5.0f, 7.0f, -3.0f), FVector3(10.0f, 10.0f, 10.0f), FRotator(-1.8f, 1.8f, 0.0f), 1.0f, 1.8f);
 
 		lightBulbMesh[i]->BuildResource(m_graphicsContext.get(), m_textureManager.get());
 		lightBulbMesh[i]->QueueStreamingTasks(m_resourceStreamer.get(), 0);

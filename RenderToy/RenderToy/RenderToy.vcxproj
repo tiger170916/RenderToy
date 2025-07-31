@@ -129,7 +129,9 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="GuidComparator.cpp" />
     <ClCompile Include="LightingPass.cpp" />
     <ClCompile Include="Lights\LightExtension.cpp" />
+    <ClCompile Include="Lights\LightFactory.cpp" />
     <ClCompile Include="Lights\PointLight.cpp" />
+    <ClCompile Include="Lights\SpotLight.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="PassBase.cpp" />
     <ClCompile Include="PassFactory.cpp" />
@@ -173,7 +175,9 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="LightingPass.h" />
     <ClInclude Include="LightStructs.h" />
     <ClInclude Include="Lights\LightExtension.h" />
+    <ClInclude Include="Lights\LightFactory.h" />
     <ClInclude Include="Lights\PointLight.h" />
+    <ClInclude Include="Lights\SpotLight.h" />
     <ClInclude Include="Macros.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MeshStructs.h" />

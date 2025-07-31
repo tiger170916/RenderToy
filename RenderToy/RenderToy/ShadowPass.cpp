@@ -123,6 +123,7 @@ bool ShadowPass::PopulateCommands(World* world, GraphicsContext* graphicsContext
 		return false;
 	}
 
+	m_atlas->ClearNodes();
 
 	PassBase::PopulateCommands(world, graphicsContext);
 
@@ -143,6 +144,8 @@ bool ShadowPass::PopulateCommands(World* world, GraphicsContext* graphicsContext
 			for (auto& instance : staticMesh->GetInstances())
 			{
 				allLights.push_back(instance);
+				TextureAtlas::Node node;
+				m_atlas->RequestNode(1, nullptr, node);
 			}
 		}
 	}

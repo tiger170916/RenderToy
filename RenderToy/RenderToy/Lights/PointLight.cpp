@@ -1,7 +1,7 @@
 #include "PointLight.h"
 
-PointLight::PointLight(FVector3 localPosition, FVector3 radiance)
-	:m_localPosition(localPosition), m_radiance(radiance)
+PointLight::PointLight(float effectiveRange, FVector3 position, FVector3 intensity)
+	: LightExtension(effectiveRange, position, intensity)
 {
 	m_lightType = LightType::LightType_Point;
 }

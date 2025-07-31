@@ -1,16 +1,18 @@
+#pragma once
+
 #include "../Includes.h"
 #include "LightExtension.h"
 #include "../Vectors.h"
 
 class PointLight : public LightExtension
 {
-private:
-	FVector3 m_localPosition;
+friend class LightFactory;
 
-	FVector3 m_radiance;
+private:
+
+protected:
+	PointLight(float effectiveRange, FVector3 position, FVector3 intensity);
 
 public:
-	PointLight(FVector3 localPosition, FVector3 radiance);
-
 	~PointLight();
 };
