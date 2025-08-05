@@ -7,6 +7,7 @@
 #include "MeshStructs.h"
 #include "PassType.h"
 #include "Material.h"
+#include "UidGenerator.h"
 #include "TextureManager.h"
 #include "StreamInterface.h"
 #include "ResourceStreamer.h"
@@ -14,6 +15,8 @@
 
 class StaticMesh : public StreamInterface
 {
+friend class MeshFactory;
+
 public:
 	struct MeshVertex
 	{
@@ -23,6 +26,8 @@ public:
 	};
 
 private:
+	static std::map<PassType, std::map<UINT, UINT>> _passMeshArgumentsMap;
+
 	std::map<int, std::vector<StaticMesh::MeshVertex>> m_meshParts; // material id : mesh
 
 	std::vector<std::unique_ptr<Material>> m_materials;
@@ -49,6 +54,8 @@ private:
 
 	std::vector<std::shared_ptr<LightExtension>> m_lightExtensions;
 
+	uint32_t m_uid = 0;
+
 public:
 	// Stream Interface implementation
 	virtual bool StreamIn(GraphicsContext* graphicsContext) override;
@@ -57,9 +64,11 @@ public:
 
 	virtual bool ScheduleForCopyToDefaultHeap(ID3D12GraphicsCommandList* cmdList) override;
 
-public:
-	StaticMesh();
+protected:
 
+	StaticMesh(uint32_t uid);
+
+public:
 	~StaticMesh();
 
 	void AddTriangle(const int& part, const MeshVertex& v1, const MeshVertex& v2, const MeshVertex& v3);
@@ -76,7 +85,7 @@ public:
 
 	bool BuildResource(GraphicsContext* graphicsContext, TextureManager* textureManager);
 
-	void Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, bool useSimpleVertex, bool setTextures);
+	void Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, PassType passType, bool useSimpleVertex, bool setTextures);
 
 	void AttachLightExtension(LightExtension* light);
 
@@ -87,4 +96,6 @@ public:
 	std::vector<std::shared_ptr<LightExtension>> GetLightExtensions() { return m_lightExtensions; }
 
 	std::vector<Transform> GetInstances() { return m_instances; }
+
+	inline uint32_t GetUid() { return m_uid; }
 };

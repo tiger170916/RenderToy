@@ -1,6 +1,7 @@
 #include "LightingPass.h"
 #include "GeometryPass.h"
 #include "GraphicsUtils.h"
+#include "MeshFactory.h"
 #include "Macros.h"
 
 LightingPass::LightingPass(GUID passGuid)
@@ -105,7 +106,7 @@ bool LightingPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 	m_viewport = D3D12_VIEWPORT{ 0.0f, 0.0f, (float)width, (float)height, 0.0f, 1.0f };
 	m_scissorRect = { 0, 0, (long)width, (long)height };
 
-	m_rectangleMesh = std::unique_ptr<StaticMesh>(new StaticMesh());
+	m_rectangleMesh = std::unique_ptr<StaticMesh>(MeshFactory::Get()->CreateStaticMesh());
 	StaticMesh::MeshVertex point1
 	{
 		.Position = FVector3(-1.0f, -1.0f, 0.1f),
@@ -185,7 +186,7 @@ bool LightingPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 	}
 
 	// Draw fullscreen rectangle
-	m_rectangleMesh->Draw(graphicsContext, commandList, false, false);
+	m_rectangleMesh->Draw(graphicsContext, commandList, m_passType, false, false);
 
 	// Transit the render target buffer to copy src state, since this might be copied out as final render result.
 	ResourceBarrierTransition(m_renderTarget.Get(), commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);

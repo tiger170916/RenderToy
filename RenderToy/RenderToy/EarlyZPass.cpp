@@ -186,7 +186,7 @@ bool EarlyZPass::PopulateCommands(World* world, GraphicsContext* graphicsContext
 			continue;
 		}
 
-		staticMesh->Draw(graphicsContext, commandList, false, false);
+		staticMesh->Draw(graphicsContext, commandList, m_passType, false, false);
 	}
 
 	m_commandBuilder->Close();

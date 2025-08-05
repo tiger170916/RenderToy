@@ -1,5 +1,8 @@
 #include "ShadowPass.h"
 #include "Macros.h"
+#include "GraphicsUtils.h"
+#include "Lights/SpotLight.h"
+#include "Lights/PointLight.h"
 
 ShadowPass::ShadowPass(GUID passGuid)
 	: RenderPassBase(passGuid)
@@ -49,6 +52,8 @@ bool ShadowPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 	{
 		return false;
 	}
+
+	m_resourceStates[m_atlas->GetResource()] = D3D12_RESOURCE_STATE_COMMON;
 
 	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
 	uavDesc.Format = m_depthFormat;
@@ -100,28 +105,22 @@ bool ShadowPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 	m_scissorRects[0] = {0, 0, (long)m_l1ShadowMapSize, (long)m_l1ShadowMapSize};
 
 	m_viewports[1] = D3D12_VIEWPORT{ 0.0f, 0.0f, (float)m_l2ShadowMapSize, (float)m_l2ShadowMapSize, 0.0f, 1.0f };
-	m_scissorRects[2] = { 0, 0, (long)m_l2ShadowMapSize, (long)m_l2ShadowMapSize };
-
-	// Create light constants
-	m_lightConstants = std::unique_ptr<ConstantBuffer<LightConstantsDx>>(new ConstantBuffer<LightConstantsDx>(m_maxNumLightSource));
-	if (!m_lightConstants->Initialize(graphicsContext))
-	{
-		return false;
-	}
-
-
+	m_scissorRects[1] = { 0, 0, (long)m_l2ShadowMapSize, (long)m_l2ShadowMapSize };
 
 	return true;
 }
 
 bool ShadowPass::PopulateCommands(World* world, GraphicsContext* graphicsContext)
 {
-	m_skiped = true;
+
 
 	if (world == nullptr || graphicsContext == nullptr)
 	{
 		return false;
 	}
+
+	DescriptorHeapManager* descriptorHeapManager = graphicsContext->GetDescriptorHeapManager();
+	ConstantBuffer<LightConstantsDx>* lightCb = world->GetLightConstantBuffer();
 
 	m_atlas->ClearNodes();
 
@@ -130,7 +129,9 @@ bool ShadowPass::PopulateCommands(World* world, GraphicsContext* graphicsContext
 	ID3D12GraphicsCommandList* commandList = m_commandBuilder->GetCommandList();
 
 	std::vector<Transform> allLights;
+	std::vector<TextureAtlas::Node> nodes;
 
+	UINT lightItr = 0;
 	for (auto& staticMesh : world->GetAllStaticMeshes())
 	{
 		if (!staticMesh->HasLightExtensions())
@@ -143,11 +144,72 @@ bool ShadowPass::PopulateCommands(World* world, GraphicsContext* graphicsContext
 		{
 			for (auto& instance : staticMesh->GetInstances())
 			{
-				allLights.push_back(instance);
-				TextureAtlas::Node node;
-				m_atlas->RequestNode(1, nullptr, node);
+				if (light->GetLightType() == LightType::LightType_Spot)
+				{
+ 					SpotLight* spotLight = (SpotLight*)light.get();
+
+					const FVector3& intensity = light->GetIntensity();
+					const FVector3& position = light->GetPosition() + instance.Translation;
+
+					allLights.push_back(instance);
+					TextureAtlas::Node node;
+					m_atlas->RequestNode(1, nullptr, node);
+					nodes.push_back(node);
+			
+					(*lightCb)[0].Lights[lightItr].ShadowBufferOffsetX = node.OffsetX;
+					(*lightCb)[0].Lights[lightItr].ShadowBufferOffsetY = node.OffsetY;
+					(*lightCb)[0].Lights[lightItr].Intensity[0] = intensity.X;
+					(*lightCb)[0].Lights[lightItr].Intensity[1] = intensity.Y;
+					(*lightCb)[0].Lights[lightItr].Intensity[2] = intensity.Z;
+					(*lightCb)[0].Lights[lightItr].LightType = (uint32_t)light->GetLightType();
+					(*lightCb)[0].Lights[lightItr].Position[0] = position.X;
+					(*lightCb)[0].Lights[lightItr].Position[1] = position.Y;
+					(*lightCb)[0].Lights[lightItr].Position[2] = position.Z;
+					(*lightCb)[0].Lights[lightItr].ShadowBufferSize = m_l1ShadowMapSize;
+					(*lightCb)[0].Lights[lightItr].LightParentUid = staticMesh->GetUid();
+					(*lightCb)[0].Lights[lightItr].LightUid = light->GetUid();
+
+					XMMATRIX view = GraphicsUtils::ViewMatrixFromPositionRotation(spotLight->GetPosition() + instance.Translation, spotLight->GetRotator());
+					DirectX::XMStoreFloat4x4(&(*lightCb)[0].Lights[lightItr].Transform,  DirectX::XMMatrixTranspose(spotLight->GetProjectionMatrix()) * DirectX::XMMatrixTranspose(view));
+					lightItr++;
+				}
 			}
 		}
+	}
+
+	(*lightCb)[0].NumLights[0] = lightItr;
+
+	lightCb->UpdateToGPU();
+
+	float clearValue[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+	D3D12_GPU_DESCRIPTOR_HANDLE atlasGpuHandle;
+	descriptorHeapManager->BindCbvSrvUavToPipeline(m_depthAtlasUavId, atlasGpuHandle);
+	D3D12_CPU_DESCRIPTOR_HANDLE atlasNonShaderVisibleCpuHandle;
+	descriptorHeapManager->GetCbvSrvUavNonShaderVisibleView(m_depthAtlasUavId, atlasNonShaderVisibleCpuHandle);
+
+	lightCb->UpdateToGPU();
+	D3D12_GPU_DESCRIPTOR_HANDLE lightConstantsGpuDescHandle;
+	commandList->SetPipelineState(m_graphicsPipelineState->GetPipelineState());
+	commandList->SetGraphicsRootSignature(m_graphicsPipelineState->GetRootSignature());
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	ResourceBarrierTransition(m_atlas->GetResource(), commandList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	commandList->ClearUnorderedAccessViewFloat(atlasGpuHandle, atlasNonShaderVisibleCpuHandle, m_atlas->GetResource(), clearValue, 0, nullptr);
+
+	lightCb->BindConstantBufferViewToPipeline(graphicsContext, lightConstantsGpuDescHandle);
+	commandList->SetGraphicsRootDescriptorTable(1, lightConstantsGpuDescHandle);
+	commandList->RSSetViewports(1, m_viewports);
+	commandList->RSSetScissorRects(1, m_scissorRects);
+
+	commandList->SetGraphicsRootDescriptorTable(2, atlasGpuHandle);
+
+	for (auto& staticMesh : world->GetAllStaticMeshes())
+	{
+		if (!staticMesh->PassEnabled(PassType::GEOMETRY_PASS))
+		{
+			continue;
+		}
+
+		staticMesh->Draw(graphicsContext, commandList, m_passType, true, false);
 	}
 
 	m_commandBuilder->Close();

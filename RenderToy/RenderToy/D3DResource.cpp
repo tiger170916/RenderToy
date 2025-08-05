@@ -1,5 +1,6 @@
 #include "D3DResource.h"
 #include "GraphicsUtils.h"
+#include "LightStructs.h"
 
 D3DResource::D3DResource(bool needCopyToDefaultHeap)
 	: m_needCopyToDefaultHeap(needCopyToDefaultHeap)
@@ -119,8 +120,19 @@ bool D3DResource::UpdateUploadBuffer(void* data, UINT size)
 		return false;
 	}
 
-	memcpy(pMappedData, data, size);
-
+	//if (size == 6416)
+	//{
+	//	memset(pMappedData, 100, size);
+	//}
+	//else 
+	//{
+		memcpy(pMappedData, data, size);
+//	}
+		if (size == 6416)
+		{
+			LightConstantsDx* s = (LightConstantsDx*)pMappedData;
+			LightConstantsDx* s1 = (LightConstantsDx*)data;
+		}
 	D3D12_RANGE writeRange = { 0, size }; // The range that was written to
 	m_uploadHeapResource->Unmap(0, &writeRange);
 

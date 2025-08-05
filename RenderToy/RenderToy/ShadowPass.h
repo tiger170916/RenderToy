@@ -32,8 +32,6 @@ private:
 
 	std::map<LightExtension*, std::vector<LightMapInfo>> m_currentFrameLights;
 
-	std::unique_ptr<ConstantBuffer<LightConstantsDx>> m_lightConstants = nullptr;
-
 	// Currently support 2 levels of shadow map resolutions.
 	D3D12_VIEWPORT m_viewports[2];
 

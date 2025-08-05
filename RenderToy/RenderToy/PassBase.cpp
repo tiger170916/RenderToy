@@ -83,7 +83,7 @@ bool PassBase::ResourceBarrierTransition(ID3D12Resource* resource, ID3D12Graphic
 	GraphicsUtils::ResourceBarrierTransition(resource, commandList, stateBefore, stateAfter);
 	m_resourceStates[resource] = stateAfter;
 
-	return false;
+	return true;
 }
 
 PassBase* PassBase::GetDependencyPassOfType(PassType passType)

@@ -1,4 +1,5 @@
 #include "World.h"
+#include "Macros.h"
 
 World::World() {}
 
@@ -18,6 +19,13 @@ bool World::Initialize(GraphicsContext* graphicsContext)
 
 	m_uniformFrameConstantBuffer = std::unique_ptr<ConstantBuffer<UniformFrameConstants>>(new ConstantBuffer<UniformFrameConstants>());
 	if (!m_uniformFrameConstantBuffer->Initialize(graphicsContext))
+	{
+		return false;
+	}
+
+	// Create light constants
+	m_lightConstants = std::unique_ptr<ConstantBuffer<LightConstantsDx>>(new ConstantBuffer<LightConstantsDx>());
+	if (!m_lightConstants->Initialize(graphicsContext))
 	{
 		return false;
 	}

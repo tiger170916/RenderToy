@@ -19,10 +19,12 @@ protected:
 
 	float m_effectiveRange = 0;
 
+	uint32_t m_uid = 0;
+
 	FVector3 m_intensity;
 
 public:
-	LightExtension(float effectiveRange, FVector3 position, FVector3 intensity);
+	LightExtension(float effectiveRange, FVector3 position, FVector3 intensity, uint32_t uid);
 
 	virtual ~LightExtension() = 0;
 
@@ -31,4 +33,6 @@ public:
 	inline FVector3 GetPosition() const { return m_position; }
 
 	inline FVector3 GetIntensity() const { return m_intensity; }
+
+	inline uint32_t GetUid() const { return m_uid; }
 };

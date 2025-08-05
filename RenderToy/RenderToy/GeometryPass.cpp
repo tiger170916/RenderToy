@@ -306,7 +306,7 @@ bool GeometryPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 			continue;
 		}
 
-		staticMesh->Draw(graphicsContext, commandList, false, true);
+		staticMesh->Draw(graphicsContext, commandList, m_passType, false, true);
 	}
 
 	m_commandBuilder->Close();

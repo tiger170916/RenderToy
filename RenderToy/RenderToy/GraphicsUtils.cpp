@@ -138,3 +138,29 @@ bool GraphicsUtils::CreateRenderTargetResource(
 
 	return outRtvId != UINT64_MAX;
 }
+
+XMMATRIX GraphicsUtils::ViewMatrixFromPositionRotation(const FVector3& position, const FRotator& rotator) 
+{
+	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(rotator.Pitch, rotator.Yaw, rotator.Roll);
+
+	XMVECTOR forwardDirXM = XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 1.0f), rotationMatrix);
+	//XMVECTOR rightDirXM = XMVector3Transform(XMVectorSet(m_basisRight.X, m_basisRight.Y, m_basisRight.Z, 1.0f), rotationMatrix);
+	XMVECTOR upDirXM = XMVector3Transform(XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f), rotationMatrix);
+
+
+	XMVector3Normalize(forwardDirXM);
+	//XMVector3Normalize(rightDirXM);
+	XMVector3Normalize(upDirXM);
+
+	FVector3 forwardDirection = FVector3(forwardDirXM.m128_f32[0], forwardDirXM.m128_f32[1], forwardDirXM.m128_f32[2]);
+	//FVector3 rightDirection = FVector3(rightDirXM.m128_f32[0], rightDirXM.m128_f32[1], rightDirXM.m128_f32[2]);
+	FVector3 upDirection = FVector3(upDirXM.m128_f32[0], upDirXM.m128_f32[1], upDirXM.m128_f32[2]);
+
+	FVector3 focusPos = position + forwardDirection;
+
+
+	return XMMatrixLookAtLH(
+		XMVectorSet(position.X, position.Y, position.Z, 1.0f),
+		XMVectorSet(focusPos.X, focusPos.Y, focusPos.Z, 1.0f),
+		XMVectorSet(upDirection.X, upDirection.Y, upDirection.Z, 1.0f));
+}

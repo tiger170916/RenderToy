@@ -28,7 +28,7 @@ public:
 			numInstances = 1;
 		}
 
-		m_buffer = std::vector<T>(100, T());
+		m_buffer = std::vector<T>(numInstances, T());
 
 		m_numInstances = numInstances;
 	}

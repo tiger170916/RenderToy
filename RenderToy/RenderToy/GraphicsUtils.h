@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Includes.h"
+#include "Vectors.h"
 
 class DescriptorHeapManager;
 /// <summary>
@@ -37,4 +38,6 @@ public:
 		const float clearColor[4],
 		ID3D12Resource** ppResource,
 		UINT64& outRtvId);
+
+	static XMMATRIX ViewMatrixFromPositionRotation(const FVector3& position, const FRotator& rotator);
 };

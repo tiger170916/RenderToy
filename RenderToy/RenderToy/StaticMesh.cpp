@@ -1,6 +1,10 @@
 #include "StaticMesh.h"
+#include "Macros.h"
 
-StaticMesh::StaticMesh()
+std::map<PassType, std::map<UINT, UINT>> StaticMesh::_passMeshArgumentsMap = PASS_MESH_ARGUMENTS_MAP_DEFINE;
+
+StaticMesh::StaticMesh(uint32_t uid)
+	: m_uid(uid)
 {
 
 }
@@ -140,7 +144,7 @@ bool StaticMesh::BuildResource(GraphicsContext* graphicsContext, TextureManager*
 	return true;
 }
 
-void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, bool useSimpleVertex, bool setTextures)
+void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, PassType passType, bool useSimpleVertex, bool setTextures)
 {
 	if (!graphicsContext || !cmdList)
 	{
@@ -181,7 +185,7 @@ void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandLis
 	
 		vbResourceList[i]->CopyToDefaultHeap(cmdList);
 
-		cmdList->SetGraphicsRootDescriptorTable(1, instanceCbHandle);
+		cmdList->SetGraphicsRootDescriptorTable(_passMeshArgumentsMap[passType][MESH_CONSTANT_BUFFER_MESH_ARGUMENT_ID], instanceCbHandle);
 
 		if (setTextures)
 		{
@@ -198,7 +202,7 @@ void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandLis
 					D3D12_GPU_DESCRIPTOR_HANDLE baseColorGpuDescHandle;
 					if (baseColorTex->BindShaderResourceViewToPipeline(graphicsContext, baseColorGpuDescHandle))
 					{
-						cmdList->SetGraphicsRootDescriptorTable(3, baseColorGpuDescHandle);
+						cmdList->SetGraphicsRootDescriptorTable(_passMeshArgumentsMap[passType][BASE_COLOR_TEX_MESH_ARGUMENT_ID], baseColorGpuDescHandle);
 					}
 				}
 				if (metallicTex && metallicTex->HasCopiedToDefaultHeap())
@@ -206,7 +210,7 @@ void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandLis
 					D3D12_GPU_DESCRIPTOR_HANDLE metallicGpuDescHandle;
 					if (metallicTex->BindShaderResourceViewToPipeline(graphicsContext, metallicGpuDescHandle))
 					{
-						cmdList->SetGraphicsRootDescriptorTable(4, metallicGpuDescHandle);
+						cmdList->SetGraphicsRootDescriptorTable(_passMeshArgumentsMap[passType][METALLIC_TEX_MESH_ARGUMENT_ID], metallicGpuDescHandle);
 					}
 				}
 				if (roughnessTex && roughnessTex->HasCopiedToDefaultHeap())
@@ -214,7 +218,7 @@ void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandLis
 					D3D12_GPU_DESCRIPTOR_HANDLE roughnessGpuDescHandle;
 					if (roughnessTex->BindShaderResourceViewToPipeline(graphicsContext, roughnessGpuDescHandle))
 					{
-						cmdList->SetGraphicsRootDescriptorTable(5, roughnessGpuDescHandle);
+						cmdList->SetGraphicsRootDescriptorTable(_passMeshArgumentsMap[passType][ROUGHNESS_TEX_MESH_ARGUMENT_ID], roughnessGpuDescHandle);
 					}
 				}
 				if (normalTex && normalTex->HasCopiedToDefaultHeap())
@@ -222,7 +226,7 @@ void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandLis
 					D3D12_GPU_DESCRIPTOR_HANDLE normalGpuDescHandle;
 					if (normalTex->BindShaderResourceViewToPipeline(graphicsContext, normalGpuDescHandle))
 					{
-						cmdList->SetGraphicsRootDescriptorTable(6, normalGpuDescHandle);
+						cmdList->SetGraphicsRootDescriptorTable(_passMeshArgumentsMap[passType][NORMAL_TEX_MESH_ARGUMENT_ID], normalGpuDescHandle);
 					}
 				}
 			}

@@ -133,6 +133,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="Lights\PointLight.cpp" />
     <ClCompile Include="Lights\SpotLight.cpp" />
     <ClCompile Include="Material.cpp" />
+    <ClCompile Include="MeshFactory.cpp" />
     <ClCompile Include="PassBase.cpp" />
     <ClCompile Include="PassFactory.cpp" />
     <ClCompile Include="Pipeline.cpp" />
@@ -149,6 +150,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureAtlas.cpp" />
     <ClCompile Include="TextureManager.cpp" />
+    <ClCompile Include="UidGenerator.cpp" />
     <ClCompile Include="Utils.cpp" />
     <ClCompile Include="World.cpp" />
   </ItemGroup>
@@ -180,6 +182,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="Lights\SpotLight.h" />
     <ClInclude Include="Macros.h" />
     <ClInclude Include="Material.h" />
+    <ClInclude Include="MeshFactory.h" />
     <ClInclude Include="MeshStructs.h" />
     <ClInclude Include="PassBase.h" />
     <ClInclude Include="PassDefines.h" />
@@ -200,6 +203,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureAtlas.h" />
     <ClInclude Include="TextureManager.h" />
+    <ClInclude Include="UidGenerator.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="Vectors.h" />
     <ClInclude Include="World.h" />
@@ -230,6 +234,12 @@ $(SolutionDir)bin\CodeGen.exe</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <FileType>Document</FileType>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\LightingHeader.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

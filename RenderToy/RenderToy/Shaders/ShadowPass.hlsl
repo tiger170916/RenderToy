@@ -1,35 +1,21 @@
+#include "LightingHeader.hlsli"
+
 #define ShadowPassRootsignature \
     "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
     "DescriptorTable(" \
-        "CBV(b0, numDescriptors = 1)" \
+        "CBV(b1, numDescriptors = 1)" \
     ")," \
     "DescriptorTable(" \
-        "CBV(b1, numDescriptors = 1)" \
+        "CBV(b2, numDescriptors = 1)" \
     ")," \
     "DescriptorTable(" \
         "UAV(u0, numDescriptors = 1)" \
     ")," \
 
 
-struct LightConstants
-{
-    float4x4 LightTransform;
-    
-    uint BufferOffsetX;
-    
-    uint BufferOffsetY;
-};
-
 struct MeshConstants
 {
     float4x4 WorldTransform;
-};
-
-cbuffer cbLightTransformInstances               : register(b0)
-{
-    uint NumLightTransforms;
-    
-    LightConstants LightInstances[50];
 };
 
 cbuffer cbMeshInstances                         : register(b1)
@@ -37,7 +23,14 @@ cbuffer cbMeshInstances                         : register(b1)
     MeshConstants MeshInstances[64];
 }
 
-RWTexture2D <float> depthAtlas                 : register(u0);
+cbuffer cbLightTransformInstances               : register(b2)
+{    
+    uint4 NumLights;
+    
+    LightConstants LightInstances[50];
+};
+
+RWTexture2D <float> depthAtlas                  : register(u0);
 
 struct SimpleMeshVsInput
 {
@@ -72,14 +65,17 @@ SimpleMeshGsInput VertexShaderMain(SimpleMeshVsInput vertexIn, uint instanceID :
 [maxvertexcount(50)]
 void GeometryShaderMain(triangle SimpleMeshGsInput input[3], inout TriangleStream<SimpleMeshPsInput> OutputStream)
 {
-    for (uint i = 0; i < NumLightTransforms; i++)
+    for (uint i = 0; i < NumLights[0]; i++)
     {
         SimpleMeshPsInput output0;
         SimpleMeshPsInput output1;
         SimpleMeshPsInput output2;
-        output0.pos = mul(input[0].pos, LightInstances[i].LightTransform);
-        output1.pos = mul(input[1].pos, LightInstances[i].LightTransform);
-        output2.pos = mul(input[2].pos, LightInstances[i].LightTransform);
+        output0.pos = mul(input[0].pos, LightInstances[i].Transform);
+        output1.pos = mul(input[1].pos, LightInstances[i].Transform);
+        output2.pos = mul(input[2].pos, LightInstances[i].Transform);
+        //output0.pos = input[0].pos;
+        //output1.pos = input[1].pos;
+        //output2.pos = input[2].pos;
         
         output0.LightIndex = i;
         output1.LightIndex = i;
@@ -98,15 +94,15 @@ void GeometryShaderMain(triangle SimpleMeshGsInput input[3], inout TriangleStrea
 void PixelShaderMain(SimpleMeshPsInput vertexOut)
 {
     
-    vertexOut.pos /= vertexOut.pos.w;
-    uint offsetX = LightInstances[vertexOut.LightIndex].BufferOffsetX;
-    uint offsetY = LightInstances[vertexOut.LightIndex].BufferOffsetY;
+    float z = vertexOut.pos.z / vertexOut.pos.w;
+    uint offsetX = LightInstances[vertexOut.LightIndex].ShadowBufferOffsetX;
+    uint offsetY = LightInstances[vertexOut.LightIndex].ShadowBufferOffsetY;
     
     uint x = offsetX + (uint) floor(vertexOut.pos.x);
     uint y = offsetY + (uint) floor(vertexOut.pos.y);
 
-    if (vertexOut.pos.z < depthAtlas[float2(x, y)])
+    if (z < depthAtlas[uint2(x, y)])
     {
-        depthAtlas[float2(x, y)] = vertexOut.pos.z;
+        depthAtlas[uint2(x, y)] = z;
     }
 }

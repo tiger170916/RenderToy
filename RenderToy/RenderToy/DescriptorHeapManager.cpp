@@ -321,6 +321,22 @@ bool DescriptorHeapManager::GetSampler(uint64_t viewId, D3D12_GPU_DESCRIPTOR_HAN
     return true;
 }
 
+bool DescriptorHeapManager::GetCbvSrvUavNonShaderVisibleView(uint64_t viewId, D3D12_CPU_DESCRIPTOR_HANDLE& outHandle)
+{
+    // Figure of arrayIdx and elementIdx from id
+    uint64_t arrayIdx = 0;
+    uint64_t elementIdx = 0;
+    GetArrayIdxAndElementIdxByViewId(viewId, arrayIdx, elementIdx);
+
+    if (m_cbvSrvUavDescriptorPositions.size() <= arrayIdx || m_cbvSrvUavDescriptorPositions[arrayIdx].size() <= elementIdx)
+    {
+        return false;
+    }
+
+    outHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(m_cbvSrvUavDescriptorHeaps[arrayIdx]->GetCPUDescriptorHandleForHeapStart(), (INT)elementIdx, m_cbvSrvUavDescriptorSize);
+    return true;
+}
+
 DescriptorHeapManager::~DescriptorHeapManager()
 {
     if (m_rtvDescriptorHeap)

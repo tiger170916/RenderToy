@@ -81,6 +81,7 @@ bool Renderer::Initialize(HWND hwnd)
 		mesh->AddInstance(transform);
 		mesh->EnablePass(PassType::EARLY_Z_PASS);
 		mesh->EnablePass(PassType::GEOMETRY_PASS);
+		mesh->EnablePass(PassType::SHADOW_PASS);
 
 		mesh->BuildResource(m_graphicsContext.get(), m_textureManager.get());
 		mesh->QueueStreamingTasks(m_resourceStreamer.get(), 0);
@@ -90,14 +91,14 @@ bool Renderer::Initialize(HWND hwnd)
 	for (int i = 0; i < lightBulbMesh.size(); i++)
 	{
 		Transform lightBulbTransform = Transform::Identity();
-		lightBulbTransform.Translation = FVector3(5.0f, 6.5f, 0.0f);
+		lightBulbTransform.Translation = FVector3(0.0f, 1.0f, -10.0f);
 		lightBulbTransform.Rotation.Pitch = DirectX::XM_PI * 0.5f;
 		lightBulbMesh[i]->AddInstance(lightBulbTransform);
 		lightBulbMesh[i]->EnablePass(PassType::EARLY_Z_PASS);
 		lightBulbMesh[i]->EnablePass(PassType::GEOMETRY_PASS);
 
 		// Create a light extension, and attach to the light bulb model
-		LightFactory::Get()->SpawnSpotLight(lightBulbMesh[i].get(), 10, FVector3(5.0f, 7.0f, -3.0f), FVector3(10.0f, 10.0f, 10.0f), FRotator(-1.8f, 1.8f, 0.0f), 1.0f, 1.8f);
+		LightFactory::Get()->SpawnSpotLight(lightBulbMesh[i].get(), 100.0, FVector3(0.0f, 0.0f, 0.0f), FVector3(10.0f, 10.0f, 10.0f), FRotator(0.0f, 0.0f, 0.0f), 1.0f, 0.5f);
 
 		lightBulbMesh[i]->BuildResource(m_graphicsContext.get(), m_textureManager.get());
 		lightBulbMesh[i]->QueueStreamingTasks(m_resourceStreamer.get(), 0);

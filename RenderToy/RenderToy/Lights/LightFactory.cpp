@@ -1,4 +1,5 @@
 #include "LightFactory.h"
+#include "../UidGenerator.h"
 
 std::unique_ptr<LightFactory> LightFactory::_singleton = nullptr;
 
@@ -23,26 +24,24 @@ LightFactory::LightFactory()
 
 }
 
-uint64_t LightFactory::SpawnPointLight(StaticMesh* parent, float effectiveRange, FVector3 position, FVector3 intensity)
+void LightFactory::SpawnPointLight(StaticMesh* parent, float effectiveRange, FVector3 position, FVector3 intensity)
 {
 	if (!parent)
 	{
-		return UINT64_MAX;
+		return;
 	}
 
-	PointLight* light = new PointLight(effectiveRange, position, intensity);
+	PointLight* light = new PointLight(effectiveRange, position, intensity, UidGenerator::Get()->GenerateUid());
 	parent->AttachLightExtension(light);
-	return ++m_lightUid;
 }
 
-uint64_t LightFactory::SpawnSpotLight(StaticMesh* parent, float effectiveRange, FVector3 position, FVector3 intensity, FRotator rotator, float aspectRatio, float fov)
+void LightFactory::SpawnSpotLight(StaticMesh* parent, float effectiveRange, FVector3 position, FVector3 intensity, FRotator rotator, float aspectRatio, float fov)
 {
 	if (!parent)
 	{
-		return UINT64_MAX;
+		return;
 	}
 
-	SpotLight* light = new SpotLight(effectiveRange, position, intensity, rotator, aspectRatio, fov);
+	SpotLight* light = new SpotLight(effectiveRange, position, intensity, UidGenerator::Get()->GenerateUid(), rotator, aspectRatio, fov);
 	parent->AttachLightExtension(light);
-	return ++m_lightUid;
 }

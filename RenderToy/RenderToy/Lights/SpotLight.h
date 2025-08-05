@@ -16,15 +16,13 @@ private:
 
 	XMMATRIX m_projectionMatrix;
 
-	XMMATRIX m_transformMatrix;
-
 protected:
-	SpotLight(float effectiveRange, FVector3 position, FVector3 intensity, FRotator rotator, float aspectRatio, float fov);
+	SpotLight(float effectiveRange, FVector3 position, FVector3 intensity, uint32_t uid, FRotator rotator, float aspectRatio, float fov);
 
 public:
 	~SpotLight();
 
 	const XMMATRIX GetProjectionMatrix() const { return m_projectionMatrix; }
 
-	const XMMATRIX GetTransformMatrix() const { return m_transformMatrix; }
+	const FRotator GetRotator() const { return m_rotator; }
 };

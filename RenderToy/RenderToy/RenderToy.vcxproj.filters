@@ -143,6 +143,12 @@
     <ClCompile Include="Lights\SpotLight.cpp">
       <Filter>Lights</Filter>
     </ClCompile>
+    <ClCompile Include="UidGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshFactory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -295,6 +301,12 @@
     <ClInclude Include="Lights\SpotLight.h">
       <Filter>Lights</Filter>
     </ClInclude>
+    <ClInclude Include="UidGenerator.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshFactory.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\EarlyZPass.hlsl">
@@ -312,5 +324,10 @@
     <FxCompile Include="Shaders\ShadowPass.hlsl">
       <Filter>ShaderSource</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\LightingHeader.hlsli">
+      <Filter>ShaderSource</Filter>
+    </None>
   </ItemGroup>
 </Project>

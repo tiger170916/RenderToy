@@ -1,5 +1,6 @@
 #include "FbxLoader.h"
 #include "Material.h"
+#include "MeshFactory.h"
 
 FbxLoader::FbxLoader(std::string fileName, float scale)
     : m_fileName(fileName), m_scale(scale)
@@ -70,7 +71,7 @@ void FbxLoader::ProcessMesh(FbxNode* pNode, FbxMesh* pMesh, std::vector<std::sha
     }
 
     // Create new static mesh
-    StaticMesh* staticMesh = new StaticMesh();
+    StaticMesh* staticMesh = MeshFactory::Get()->CreateStaticMesh();
     outMeshes.push_back(std::shared_ptr<StaticMesh>(staticMesh));
 
     // Access normals

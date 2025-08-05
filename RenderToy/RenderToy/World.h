@@ -3,6 +3,7 @@
 #include "Camera.h"
 #include "StaticMesh.h"
 #include "GlobalStructs.h"
+#include "LightStructs.h"
 #include "ConstantBuffer.h"
 #include "DescriptorHeapManager.h"
 
@@ -14,6 +15,8 @@ private:
 	std::vector<std::shared_ptr<StaticMesh>> m_staticMeshes;
 
 	std::unique_ptr<ConstantBuffer<UniformFrameConstants>> m_uniformFrameConstantBuffer = nullptr;
+
+	std::unique_ptr<ConstantBuffer<LightConstantsDx>> m_lightConstants = nullptr;
 
 	bool m_initialized = false;
 
@@ -35,6 +38,8 @@ public:
 	inline Camera* GetActiveCamera() const { return m_activeCamera.get(); }
 
 	inline ConstantBuffer<UniformFrameConstants>* GetUniformFrameConstantBuffer() const { return m_uniformFrameConstantBuffer.get(); }
+
+	inline ConstantBuffer<LightConstantsDx>* GetLightConstantBuffer() const { return m_lightConstants.get(); }
 
 	bool FrameBegin(float delta);
 };

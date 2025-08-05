@@ -141,6 +141,8 @@ public:
 	/// </summary>
 	inline ID3D12DescriptorHeap* GetDepthStencilViewDescriptorHeap() const { return m_dsvDescriptorHeap.Get(); }
 
+	bool GetCbvSrvUavNonShaderVisibleView(uint64_t viewId, D3D12_CPU_DESCRIPTOR_HANDLE& outHandle);
+
 	~DescriptorHeapManager();
 
 
