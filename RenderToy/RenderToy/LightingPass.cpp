@@ -1,5 +1,6 @@
 #include "LightingPass.h"
 #include "GeometryPass.h"
+#include "ShadowPass.h"
 #include "GraphicsUtils.h"
 #include "MeshFactory.h"
 #include "Macros.h"
@@ -166,6 +167,8 @@ bool LightingPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 	commandList->RSSetScissorRects(1, &m_scissorRect);
 
 	GeometryPass* dependencyGeometryPass = (GeometryPass*)GetDependencyPassOfType(PassType::GEOMETRY_PASS);
+	ShadowPass* dependencyShadowPass = (ShadowPass*)GetDependencyPassOfType(PassType::SHADOW_PASS);
+	
 	if (dependencyGeometryPass)
 	{
 		dependencyGeometryPass->DiffuseBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COMMON);
@@ -179,10 +182,29 @@ bool LightingPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 		descHeapManager->BindCbvSrvUavToPipeline(dependencyGeometryPass->GetNormalBufferSrvId(), geometryPassNormalBufferHandle);
 		descHeapManager->BindCbvSrvUavToPipeline(dependencyGeometryPass->GetWorldPosBufferSrvId(), geometryPassWorldPosBufferHandle);
 
-		commandList->SetGraphicsRootDescriptorTable(2, geometryPassDiffuseBufferHandle);
-		commandList->SetGraphicsRootDescriptorTable(3, geometryPassMetallicRoughnessBufferHandle);
-		commandList->SetGraphicsRootDescriptorTable(4, geometryPassNormalBufferHandle);
-		commandList->SetGraphicsRootDescriptorTable(5, geometryPassWorldPosBufferHandle);
+		commandList->SetGraphicsRootDescriptorTable(3, geometryPassDiffuseBufferHandle);
+		commandList->SetGraphicsRootDescriptorTable(4, geometryPassMetallicRoughnessBufferHandle);
+		commandList->SetGraphicsRootDescriptorTable(5, geometryPassNormalBufferHandle);
+		commandList->SetGraphicsRootDescriptorTable(6, geometryPassWorldPosBufferHandle);
+	}
+
+	if (dependencyShadowPass)
+	{
+		dependencyShadowPass->DepthAtlasBarrierTransition(commandList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
+		D3D12_GPU_DESCRIPTOR_HANDLE shadowMapAltasGpuHandle;
+		descHeapManager->BindCbvSrvUavToPipeline(dependencyShadowPass->GetDepthAtlasUavId(), shadowMapAltasGpuHandle);
+
+		commandList->SetGraphicsRootDescriptorTable(7, shadowMapAltasGpuHandle);
+	}
+
+	ConstantBuffer<LightConstantsDx>* lightsCb = world->GetLightConstantBuffer();
+	if (lightsCb)
+	{
+		D3D12_GPU_DESCRIPTOR_HANDLE lightsCbGpuHandle;
+		lightsCb->BindConstantBufferViewToPipeline(graphicsContext, lightsCbGpuHandle);
+
+		commandList->SetGraphicsRootDescriptorTable(2, lightsCbGpuHandle);
 	}
 
 	// Draw fullscreen rectangle

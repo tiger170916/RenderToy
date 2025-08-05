@@ -120,19 +120,8 @@ bool D3DResource::UpdateUploadBuffer(void* data, UINT size)
 		return false;
 	}
 
-	//if (size == 6416)
-	//{
-	//	memset(pMappedData, 100, size);
-	//}
-	//else 
-	//{
-		memcpy(pMappedData, data, size);
-//	}
-		if (size == 6416)
-		{
-			LightConstantsDx* s = (LightConstantsDx*)pMappedData;
-			LightConstantsDx* s1 = (LightConstantsDx*)data;
-		}
+	memcpy(pMappedData, data, size);
+
 	D3D12_RANGE writeRange = { 0, size }; // The range that was written to
 	m_uploadHeapResource->Unmap(0, &writeRange);
 

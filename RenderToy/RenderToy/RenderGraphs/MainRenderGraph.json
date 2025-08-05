@@ -42,7 +42,7 @@
 
             {
                 "Name": "LightingPass",
-                "Dependencies": [ "GeometryPass" ]
+                "Dependencies": [ "GeometryPass", "ShadowPass" ]
             }
         ],
 

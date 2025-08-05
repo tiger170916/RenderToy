@@ -49,5 +49,10 @@ public:
 
 	virtual bool PopulateCommands(World* world, GraphicsContext* graphicsContext) override;
 
+	// 
+	inline bool DepthAtlasBarrierTransition(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter) { return ResourceBarrierTransition(m_atlas->GetResource(), commandList, stateAfter); }
+
+	inline UINT64 GetDepthAtlasUavId() const { return m_depthAtlasUavId; }
+
 private:
 };

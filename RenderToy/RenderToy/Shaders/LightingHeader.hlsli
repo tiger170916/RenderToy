@@ -1,7 +1,6 @@
 #define LIGHT_TYPE_POINT			0
 #define LIGHT_TYPE_SPOT				1
 
-
 struct LightConstants
 {
     float4x4 Transform;
@@ -20,4 +19,12 @@ struct LightConstants
     uint ShadowBufferSize;
     uint LightType;
     uint2 Pad0[2];
+};
+
+
+struct LightBuffer
+{
+    uint4 NumLights;
+    
+    LightConstants LightInstances[50];
 };

@@ -1,4 +1,5 @@
 #include "MeshVertex.hlsli"
+#include "LightingHeader.hlsli"
 
 #define LightingPassRootsignature \
     "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
@@ -7,6 +8,9 @@
     ")," \
     "DescriptorTable(" \
         "CBV(b1, numDescriptors = 1)" \
+    ")," \
+    "DescriptorTable(" \
+        "CBV(b2, numDescriptors = 1)" \
     ")," \
     "DescriptorTable(" \
         "SRV(t0, numDescriptors = 1)" \
@@ -20,6 +24,9 @@
     "DescriptorTable(" \
         "SRV(t3, numDescriptors = 1)" \
     ")," \
+    "DescriptorTable(" \
+        "UAV(u0, numDescriptors = 1)" \
+    ")," \
     "StaticSampler(s0, "\
         "addressU = TEXTURE_ADDRESS_CLAMP," \
         "addressV = TEXTURE_ADDRESS_CLAMP," \
@@ -32,6 +39,11 @@ struct PS_OUTPUT
     float4 Diffuse : SV_Target0;
 };
 
+cbuffer cbLightTransformInstances           : register(b2)
+{
+    LightBuffer Lights;
+};
+
 Texture2D<float4> diffuseBuffer             : register(t0);
 
 Texture2D<float4> metallicRoughnessBuffer   : register(t1);
@@ -39,6 +51,8 @@ Texture2D<float4> metallicRoughnessBuffer   : register(t1);
 Texture2D<float4> normalBuffer              : register(t2);
 
 Texture2D<float4> worldPosBuffer            : register(t3);
+
+RWTexture2D<float> lightMapAtlas            : register(u0);
 
 SamplerState      pointSampler              : register(s0);
 
