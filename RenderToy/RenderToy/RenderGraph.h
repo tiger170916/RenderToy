@@ -66,7 +66,7 @@ public:
 private:
 	bool Validate();
 
-	bool ParseFile(std::vector<PipelineStruct>& outPipelines, std::string& outFinalRenderOutputPass);
+	bool ParseFile(std::vector<PipelineStruct>& outPipelines, std::map<GUID, std::set<GUID, GuidComparator>, GuidComparator>& outExtraDependencies, std::string& outFinalRenderOutputPass);
 
 	void FlattenRenderGraph(PassBase* randomPass);
 

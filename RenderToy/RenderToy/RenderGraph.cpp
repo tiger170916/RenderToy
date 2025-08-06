@@ -2,6 +2,7 @@
 #include "PassFactory.h"
 #include "Utils.h"
 #include "3rdParty/json.hpp"
+#include "GuidComparator.h"
 #include <iostream>
 #include <cstring> 
 
@@ -27,11 +28,14 @@ bool RenderGraph::Initialize(GraphicsContext* graphicsContext, ShaderManager* sh
 
 	// Read json file
 	std::vector<RenderGraph::PipelineStruct> pipelines;
+	std::map<GUID, std::set<GUID, GuidComparator>, GuidComparator> extraDependencies;
 	std::string finalRenderOutputPass;
-	if (!ParseFile(pipelines, finalRenderOutputPass))
+	if (!ParseFile(pipelines, extraDependencies, finalRenderOutputPass))
 	{
 		return false;
 	}
+
+	std::map<GUID, PassBase*, GuidComparator> passes;
 
 	PassBase* prevPass = nullptr;
 	PassBase* firstPass = nullptr;
@@ -72,6 +76,38 @@ bool RenderGraph::Initialize(GraphicsContext* graphicsContext, ShaderManager* sh
 			{
 				m_finalRenderOutputPass = pPass;
 			}
+
+			passes[passStruct.Guid] = pPass;
+		}
+	}
+
+	for (auto& pair : extraDependencies)
+	{
+		if (!passes.contains(pair.first))
+		{
+			continue;
+		}
+
+		PassBase* pass = passes[pair.first];
+		if (!pass)
+		{
+			continue;
+		}
+
+		for (auto& guid : pair.second)
+		{
+			if (!passes.contains(guid))
+			{
+				continue;
+			}
+
+			PassBase* dependencyPass = passes[guid];
+			if (!dependencyPass)
+			{
+				continue;
+			}
+
+			pass->AddDependency(dependencyPass);
 		}
 	}
 
@@ -296,7 +332,7 @@ void RenderGraph::WaitForRenderFinalOutputDone()
 	}
 }
 
-bool RenderGraph::ParseFile(std::vector<RenderGraph::PipelineStruct>& outPipelines, std::string& outFinalRenderOutputPass)
+bool RenderGraph::ParseFile(std::vector<RenderGraph::PipelineStruct>& outPipelines, std::map<GUID, std::set<GUID, GuidComparator>, GuidComparator>& outExtraDependencies, std::string& outFinalRenderOutputPass)
 {
 	outPipelines.clear();
 	outFinalRenderOutputPass.clear();
@@ -384,7 +420,53 @@ bool RenderGraph::ParseFile(std::vector<RenderGraph::PipelineStruct>& outPipelin
 
 			if (renderGraph.contains("Dependencies") && renderGraph["Dependencies"].is_array())
 			{
-			
+				auto dependencies = renderGraph["Dependencies"];
+				if (dependencies.size() > 0)
+				{
+					for (int i = 0; i < dependencies.size(); i++)
+					{
+						auto passDependency = dependencies[i];
+						if (passDependency.is_object())
+						{
+							if (passDependency.contains("Guid") && passDependency["Guid"].is_string() &&
+								passDependency.contains("Dependencies") && passDependency["Dependencies"].is_array() && passDependency["Dependencies"].size() > 0)
+							{
+								GUID passGuid;
+								memset(buf, 0, 256);
+								std::string passGuidStr = passDependency["Guid"];
+								memcpy(buf, passGuidStr.c_str(), passGuidStr.size());
+								if (UuidFromStringA(buf, &passGuid) != RPC_S_OK)
+								{
+									succ = false;
+									break;
+								}
+
+								if (outExtraDependencies.contains(passGuid))
+								{
+									continue;
+								}
+
+								outExtraDependencies[passGuid] = std::set<GUID, GuidComparator>();
+
+								auto dependencyGuidList = passDependency["Dependencies"];
+								for (int j = 0; j < dependencyGuidList.size(); j++)
+								{
+									GUID dependencyGuid;
+									memset(buf, 0, 256);
+									std::string dependencyGuidStr = dependencyGuidList[j];
+									memcpy(buf, dependencyGuidStr.c_str(), dependencyGuidStr.size());
+									if (UuidFromStringA(buf, &dependencyGuid) != RPC_S_OK)
+									{
+										succ = false;
+										break;
+									}
+
+									outExtraDependencies[passGuid].insert(dependencyGuid);
+								}
+							}
+						}
+					}
+				}
 			}
 
 			if (renderGraph.contains("FinalRenderOutputPass") && renderGraph["FinalRenderOutputPass"].is_string())

@@ -31,18 +31,8 @@
 
         "Dependencies": [
             {
-                "Name": "ShadowPass",
-                "Dependencies": [ "EarlyZPass" ]
-            },
-
-            {
-                "Name": "GeometryPass",
-                "Dependencies": [ "ShadowPass" ]
-            },
-
-            {
-                "Name": "LightingPass",
-                "Dependencies": [ "GeometryPass", "ShadowPass" ]
+                "Guid": "8bb18fb8-38ab-4a8b-8962-3d0da37be869",
+                "Dependencies": [ "bb701ce1-521e-4c06-b7fe-5f25b9d26be0" ]
             }
         ],
 

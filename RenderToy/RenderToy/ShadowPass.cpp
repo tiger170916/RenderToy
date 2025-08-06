@@ -7,6 +7,7 @@
 ShadowPass::ShadowPass(GUID passGuid)
 	: RenderPassBase(passGuid)
 {
+	m_passType = PassType::SHADOW_PASS;
 }
 
 ShadowPass::~ShadowPass() {}
