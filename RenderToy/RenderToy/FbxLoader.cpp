@@ -76,6 +76,7 @@ void FbxLoader::ProcessMesh(FbxNode* pNode, FbxMesh* pMesh, std::vector<std::sha
 
     // Access normals
     FbxLayerElementNormal* pNormals = pMesh->GetLayer(0)->GetNormals();
+    FbxLayerElementBinormal* pBinormals = pMesh->GetLayer(0)->GetBinormals();
     bool normalDirectIndex = pNormals ? pNormals->GetReferenceMode() == FbxLayerElement::EReferenceMode::eDirect : false;
 
     // Access material indices
@@ -182,6 +183,10 @@ void FbxLoader::ProcessMesh(FbxNode* pNode, FbxMesh* pMesh, std::vector<std::sha
             normal2 = FVector3((float)n2[0], (float)n2[1], (float)n2[2]);
             normal3 = FVector3((float)n3[0], (float)n3[1], (float)n3[2]);
         }
+
+        //FVector3 position1 = FVector3((float)controlPoints[pointIdx1][0] / m_scale, (float)controlPoints[pointIdx1][1] / m_scale, (float)controlPoints[pointIdx1][2] / m_scale);
+        //FVector3 position2 = FVector3((float)controlPoints[pointIdx2][0] / m_scale, (float)controlPoints[pointIdx2][1] / m_scale, (float)controlPoints[pointIdx2][2] / m_scale);
+        //FVector3 position3 = FVector3((float)controlPoints[pointIdx3][0] / m_scale, (float)controlPoints[pointIdx3][1] / m_scale, (float)controlPoints[pointIdx3][2] / m_scale);
 
         StaticMesh::MeshVertex vertex1
         {

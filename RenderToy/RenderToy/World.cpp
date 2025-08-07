@@ -64,6 +64,11 @@ bool World::FrameBegin(float delta)
 	UniformFrameConstants uniformFrameConstants = {};
 	DirectX::XMStoreFloat4x4(&uniformFrameConstants.ViewMatrix, DirectX::XMMatrixTranspose(m_activeCamera->GetViewMatrix()));
 	DirectX::XMStoreFloat4x4(&uniformFrameConstants.ProjectionMatrix, DirectX::XMMatrixTranspose(m_activeCamera->GetProjectionMatrix()));
+	FVector3 cameraPos = m_activeCamera->GetPosition();
+	uniformFrameConstants.CameraPostion[0] = cameraPos.X;
+	uniformFrameConstants.CameraPostion[1] = cameraPos.Y;
+	uniformFrameConstants.CameraPostion[2] = cameraPos.Z;
+
 	(*m_uniformFrameConstantBuffer)[0] = uniformFrameConstants;
 	m_uniformFrameConstantBuffer->UpdateToGPU();
 

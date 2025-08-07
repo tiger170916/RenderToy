@@ -85,24 +85,37 @@ PS_OUTPUT PixelShaderMain(MeshVertexOut vertexOut)
     float height;
     depthBuffer.GetDimensions(width, height);
     
-    float2 pixelPos = vertexOut.pos.xy / vertexOut.pos.w;
+    float2 pixelPos = vertexOut.pos.xy;
     float2 screenUv = (float2)pixelPos / float2(width, height);
     
+    float z = vertexOut.pos.z / vertexOut.pos.w;
     // Early out if the shading point is behind
-    if (depthBuffer.SampleLevel(pointSampler, screenUv, 0).x < vertexOut.pos.z)
+    if (depthBuffer.SampleLevel(pointSampler, screenUv, 0).x < z)
     {
-        return output;
+        return output;  
     }
     
     float2 uv = float2(vertexOut.uv.x, 1.0f - vertexOut.uv.y);
+    
+    float3 pos_dx = ddx(vertexOut.worldPos.xyz);
+    float3 pos_dy = ddy(vertexOut.worldPos.xyz);
+    float2 texC_dx = ddx(vertexOut.uv);
+    float2 texC_dy = ddy(vertexOut.uv);
+    
+    float3 T = normalize(pos_dx * texC_dy.y - pos_dy * texC_dx.y);
+    float3 B = normalize(pos_dy * texC_dx.x - pos_dx * texC_dy.x);
+    float3 N = normalize(cross(T, B));
+
+    float3x3 TBN = float3x3(T, B, N);
+    
+    
     float metallic = metallicTex.SampleLevel(linearSampler, uv, 0).x;
     float roughness = roughnessTex.SampleLevel(linearSampler, uv, 0).x;
     
     float3 normal3 = normalTex.SampleLevel(linearSampler, uv, 0).xyz;
-    normal3.xyz = (normal3.xyz * 2.0f) - 1.0f;
-    float4 normal4 = mul(float4(normal3, 1.0f), MeshInstances[vertexOut.instanceId].TransformMatrix);
-    normal4 = normal4 / normal4.w;
-    normal3 = normalize(float3(normal3.xy, -normal3.z));
+    normal3 = (normal3 * 2.0f) - 1.0f;
+    //float4 normal4 = mul(float4(normal3.xy, -normal3.z, 1.0f), MeshInstances[vertexOut.instanceId].TransformMatrix);
+    normal3 = normalize(mul(normal3, TBN));
     
     output.BaseColor = baseColorTex.SampleLevel(linearSampler, float2(vertexOut.uv.x, 1.0f - vertexOut.uv.y), 0);
     output.MetallicRoughness = float2(metallic, roughness);

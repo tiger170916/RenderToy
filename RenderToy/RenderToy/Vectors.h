@@ -27,6 +27,19 @@ struct FVector2
 		temp += rhs;
 		return temp;
 	}
+
+	FVector2& operator-=(const FVector2& rhs) {
+		this->X -= rhs.X;
+		this->Y -= rhs.Y;
+
+		return *this;
+	}
+
+	FVector2 operator-(const FVector2& rhs) const {
+		FVector2 temp = *this;
+		temp -= rhs;
+		return temp;
+	}
 };
 
 typedef struct FVector3
@@ -56,6 +69,22 @@ typedef struct FVector3
 	FVector3 operator+(const FVector3& rhs) const {
 		FVector3 temp = *this; 
 		temp += rhs;  
+		return temp;
+	}
+
+	FVector3& operator-=(const FVector3& rhs)
+	{
+		this->X -= rhs.X;
+		this->Y -= rhs.Y;
+		this->Z -= rhs.Z;
+
+		return *this;
+	}
+
+	FVector3 operator-(const FVector3& rhs) const
+	{
+		FVector3 temp = *this;
+		temp -= rhs;
 		return temp;
 	}
 

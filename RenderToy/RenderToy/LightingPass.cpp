@@ -166,6 +166,12 @@ bool LightingPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 	commandList->RSSetViewports(1, &m_viewport);
 	commandList->RSSetScissorRects(1, &m_scissorRect);
 
+	// Bind uniform frame constant buffer
+	D3D12_GPU_DESCRIPTOR_HANDLE uniformFrameGpuHandle;
+
+	world->GetUniformFrameConstantBuffer()->BindConstantBufferViewToPipeline(graphicsContext, uniformFrameGpuHandle);
+	commandList->SetGraphicsRootDescriptorTable(0, uniformFrameGpuHandle);
+
 	GeometryPass* dependencyGeometryPass = (GeometryPass*)GetDependencyPassOfType(PassType::GEOMETRY_PASS);
 	ShadowPass* dependencyShadowPass = (ShadowPass*)GetDependencyPassOfType(PassType::SHADOW_PASS);
 	

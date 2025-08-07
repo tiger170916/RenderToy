@@ -36,6 +36,8 @@ public:
 
 	inline XMMATRIX GetProjectionMatrix() const { return m_projectionMatrix; }
 
+	inline FVector3 GetPosition() const { return m_position; }
+
 	void Frame(float delta);
 
 private:

@@ -114,23 +114,23 @@ float4 PixelShaderMain(MeshVertexOut vertexOut) : SV_Target0
     float2 metallicRoughness = metallicRoughnessBuffer.SampleLevel(pointSampler, uv, 0).xy;
     float metallic = metallicRoughness.x;
     float roughness = metallicRoughness.y;
-    //roughness = 0.6f;
-    //metallic = 0.1;
+
     float3 normal = normalBuffer.SampleLevel(pointSampler, uv, 0).xyz;
     float3 worldPos = worldPosBuffer.SampleLevel(pointSampler, uv, 0).xyz;
 
     
-    const float3 pointLightPosition = float3(20.0f, 3.5f, -6.0f);
-    const float3 radiance = float3(110.0f, 110.0f, 100.0f);
-    const float3 cameraPos = float3(0.0f, 3.0f, -12.5f);
+    const float3 pointLightPosition = Lights.LightInstances[0].Position.xyz;
+    const float3 radiance = Lights.LightInstances[0].Intensity.xyz;
+    const float3 cameraPos = gCameraPosition.xyz;
     
     float3 v = normalize(cameraPos - worldPos);
     float3 l = normalize(pointLightPosition - worldPos);
     float3 h = normalize(v + l);
+   
     
     
     // Cook-torrance brdf
-    float NDF = NormalDistributionGGX(normal, h, roughness);
+        float NDF = NormalDistributionGGX(normal, h, roughness);
     float Geometry = GeometrySmith(normal, v, l, roughness);
     float3 Fresnel = fresnelSchlick(v, h, baseColor, metallic);
     
@@ -146,11 +146,11 @@ float4 PixelShaderMain(MeshVertexOut vertexOut) : SV_Target0
     float3 specular = numerator / denominator;
             
     float NdotL = max(dot(normal, l), 0.0);
-    float dist = distance(pointLightPosition, worldPos) / 2.7;
+    float dist = distance(pointLightPosition, worldPos);
     float attenuation = 1.0 / (dist * dist);
     float3 Lo = (kD * baseColor / 3.14f + specular) * radiance * attenuation * NdotL;
     
-    float3 color = Lo;//+baseColor * 0.01;
+    float3 color = Lo + baseColor * 0.0025f;
     float toneMap = 1.0f / 2.2f;
     color = color / (color + float3(1.0f, 1.0f, 1.0f));
     color = pow(color, float3(toneMap, toneMap, toneMap));

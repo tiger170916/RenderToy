@@ -2,6 +2,7 @@ cbuffer cbUniformFrameConstants : register(b0)
 {
     float4x4 gView;
     float4x4 gProjection;
+    float4 gCameraPosition;
 };
 
 struct MeshInstanceConstants
@@ -17,18 +18,18 @@ cbuffer cbMeshInstanceConstants : register(b1)
 
 struct MeshVertexIn
 {
-    float3 pos : POSITION;
+    float3 pos : POSITION0;
     
-    float2 uv  : UV0;
+    float2 uv : TEXCOORD0;
 };
 
 struct MeshVertexOut
 {
     float4 pos : SV_Position;
     
-    float4 worldPos : WorldPos;
+    float4 worldPos : POSITION0;
     
-    float2 uv  : UV0;
+    float2 uv : TEXCOORD0;
     
     uint instanceId : SV_InstanceID;
 };
