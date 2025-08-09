@@ -22,13 +22,15 @@ private:
 
 	DXGI_FORMAT m_depthFormat = DXGI_FORMAT_R32_FLOAT;
 
+	DXGI_FORMAT m_rtDepthFormat = DXGI_FORMAT_D32_FLOAT;
+
 	UINT64 m_depthAtlasUavId = UINT64_MAX;
 
 	const UINT m_depthAtlasBufferSize = 4096;
 
-	const UINT m_l1ShadowMapSize = 256;
+	const UINT m_l1ShadowMapSize = 1024;
 
-	const UINT m_l2ShadowMapSize = 128;
+	const UINT m_l2ShadowMapSize = 512;
 
 	std::map<LightExtension*, std::vector<LightMapInfo>> m_currentFrameLights;
 
@@ -36,6 +38,10 @@ private:
 	D3D12_VIEWPORT m_viewports[2];
 
 	D3D12_RECT m_scissorRects[2];
+
+	ComPtr<ID3D12Resource> m_depthStencilBuffers[2] = { nullptr, nullptr };
+
+	UINT64 m_dsvIds[2] = { UINT64_MAX, UINT64_MAX };
 
 	UINT m_maxNumLightSource = 100;
 

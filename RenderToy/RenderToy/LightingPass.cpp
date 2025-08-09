@@ -136,6 +136,39 @@ bool LightingPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 		return false;
 	}
 
+	D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+	D3D12_RESOURCE_DESC testResourceDesc = {};
+	testResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	testResourceDesc.Alignment = 0;
+	testResourceDesc.Width = graphicsContext->GetHwndWidth();
+	testResourceDesc.Height = graphicsContext->GetHwndHeight();
+	testResourceDesc.DepthOrArraySize = 1;
+	testResourceDesc.MipLevels = 1;
+	testResourceDesc.SampleDesc.Count = 1;
+	testResourceDesc.SampleDesc.Quality = 0;
+	testResourceDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	testResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	testResourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+	if (FAILED(pDevice->CreateCommittedResource(
+		&heapProperties,
+		D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES,
+		&testResourceDesc,
+		D3D12_RESOURCE_STATE_COMMON,
+		nullptr,
+		IID_PPV_ARGS(m_pTestResource.GetAddressOf()))))
+	{
+		return false;
+	}
+
+	m_resourceStates[m_pTestResource.Get()] = D3D12_RESOURCE_STATE_COMMON;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+	uavDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+	uavDesc.Texture2D.MipSlice = 0;
+	uavDesc.Texture2D.PlaneSlice = 0;
+
+	m_testResourceUavId = descHeapManager->CreateUnorderedAccessView(m_pTestResource.Get(), nullptr, &uavDesc);
+
 	m_initialized = true;
 
 	return true;
@@ -165,6 +198,17 @@ bool LightingPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 	commandList->OMSetRenderTargets(1, &rtv, false, nullptr);
 	commandList->RSSetViewports(1, &m_viewport);
 	commandList->RSSetScissorRects(1, &m_scissorRect);
+	
+
+	ResourceBarrierTransition(m_pTestResource.Get(), commandList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	D3D12_GPU_DESCRIPTOR_HANDLE testGpuHandle;
+	D3D12_CPU_DESCRIPTOR_HANDLE testCpuHandle;
+	descHeapManager->BindCbvSrvUavToPipeline(m_testResourceUavId, testGpuHandle);
+	descHeapManager->GetCbvSrvUavNonShaderVisibleView(m_testResourceUavId, testCpuHandle);
+	commandList->SetGraphicsRootDescriptorTable(8, testGpuHandle);
+	float clearVal[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	commandList->ClearUnorderedAccessViewFloat(testGpuHandle, testCpuHandle, m_pTestResource.Get(), clearVal, 0, nullptr);
+
 
 	// Bind uniform frame constant buffer
 	D3D12_GPU_DESCRIPTOR_HANDLE uniformFrameGpuHandle;

@@ -62,7 +62,7 @@ bool Renderer::Initialize(HWND hwnd)
 
 
 	m_activeWorld = std::shared_ptr<World>(new World());
-	m_activeWorld->SetActiveCamera(m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight(), FVector3(0, 3.0, -6.5), FRotator::Zero());
+	m_activeWorld->SetActiveCamera(m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight(), FVector3(0, 3.0, -16), FRotator::Zero());
 	m_activeWorld->Initialize(m_graphicsContext.get());
 
 	// Test world
@@ -91,14 +91,14 @@ bool Renderer::Initialize(HWND hwnd)
 	for (int i = 0; i < lightBulbMesh.size(); i++)
 	{
 		Transform lightBulbTransform = Transform::Identity();
-		lightBulbTransform.Translation = FVector3(0.0f, 1.0f, -8.5f);
+		lightBulbTransform.Translation = FVector3(3.0f, 1.0f, -8.5f);
 		lightBulbTransform.Rotation.Pitch = DirectX::XM_PI * 0.5f;
 		lightBulbMesh[i]->AddInstance(lightBulbTransform);
 		lightBulbMesh[i]->EnablePass(PassType::EARLY_Z_PASS);
 		lightBulbMesh[i]->EnablePass(PassType::GEOMETRY_PASS);
 
 		// Create a light extension, and attach to the light bulb model
-		LightFactory::Get()->SpawnSpotLight(lightBulbMesh[i].get(), 100.0, FVector3(0.0f, 0.0f, 0.2f), FVector3(30.0f, 30.0f, 30.0f), FRotator(0.0f, 0.0f, 0.0f), 1.0f, 0.5f);
+		LightFactory::Get()->SpawnSpotLight(lightBulbMesh[i].get(), 30.0, FVector3(0.0f, 0.0f, 0.2f), FVector3(30.0f, 30.0f, 30.0f), FRotator(0.0f, 0.0f, 0.0f), 1.0f, 0.2f);
 
 		lightBulbMesh[i]->BuildResource(m_graphicsContext.get(), m_textureManager.get());
 		lightBulbMesh[i]->QueueStreamingTasks(m_resourceStreamer.get(), 0);

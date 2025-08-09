@@ -85,7 +85,7 @@ Write-Host "LightingPass pixel shader output: $lightingPassPixelShaderOutput"
 # Compile vertex shader
 & $dxc /T vs_6_6 $lightingPassFile /E"VertexShaderMain" /Fo $lightingPassVertexShaderOutput /Zi /Fd $lightingPassVertexShaderPdbOutput /nologo
 # Compile pixel shader
-& $dxc /T ps_6_6 $lightingPassFile /E"PixelShaderMain" /Fo $lightingPassPixelShaderOutput /Zi /Fd $lightingPassPixelShaderPdbOutput /nologo
+& $dxc /T ps_6_6 $lightingPassFile /E"PixelShaderMain" /Fo $lightingPassPixelShaderOutput /Od /Zi /Fd $lightingPassPixelShaderPdbOutput /nologo
 
 Write-Host "Shader Build Done!"
 Write-Host "************************"

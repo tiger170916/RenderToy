@@ -24,11 +24,11 @@ void Camera::CalculateViewMatrixWithLookAtPosition()
 void Camera::Frame(float delta)
 {
 	static float curPos = 0.0f;
-	static const float speed = 0.5;
+	static const float speed = 0.05;
 
 	curPos += delta * speed;
-	m_position.X = cos(curPos) * 18.5;
-	m_position.Z = sin(curPos) * 18.5;
+	m_position.X = cos(curPos) * 18.5f;
+	m_position.Z = sin(curPos) * 18.5f;
 
 	CalculateViewMatrixWithLookAtPosition();
 }

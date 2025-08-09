@@ -27,11 +27,14 @@
     "DescriptorTable(" \
         "UAV(u0, numDescriptors = 1)" \
     ")," \
+    "DescriptorTable(" \
+        "UAV(u1, numDescriptors = 1)" \
+    ")," \
     "StaticSampler(s0, "\
         "addressU = TEXTURE_ADDRESS_CLAMP," \
         "addressV = TEXTURE_ADDRESS_CLAMP," \
         "addressW = TEXTURE_ADDRESS_CLAMP," \
-        "filter = FILTER_MIN_MAG_MIP_POINT" \
+        "filter = FILTER_MIN_MAG_MIP_LINEAR" \
     ")"
 
 struct PS_OUTPUT
@@ -53,6 +56,8 @@ Texture2D<float4> normalBuffer              : register(t2);
 Texture2D<float4> worldPosBuffer            : register(t3);
 
 RWTexture2D<float> lightMapAtlas            : register(u0);
+
+RWTexture2D<float4> testMap         : register(u1);
 
 SamplerState      pointSampler              : register(s0);
 
@@ -108,7 +113,7 @@ float4 PixelShaderMain(MeshVertexOut vertexOut) : SV_Target0
     float height;
     diffuseBuffer.GetDimensions(width, height);
     
-    float2 uv = vertexOut.pos.xy / float2(width, height) / vertexOut.pos.w;
+    float2 uv = vertexOut.pos.xy / float2(width, height);
 
     float3 baseColor = diffuseBuffer.SampleLevel(pointSampler, uv, 0).xyz;
     float2 metallicRoughness = metallicRoughnessBuffer.SampleLevel(pointSampler, uv, 0).xy;
@@ -118,39 +123,107 @@ float4 PixelShaderMain(MeshVertexOut vertexOut) : SV_Target0
     float3 normal = normalBuffer.SampleLevel(pointSampler, uv, 0).xyz;
     float3 worldPos = worldPosBuffer.SampleLevel(pointSampler, uv, 0).xyz;
 
-    
-    const float3 pointLightPosition = Lights.LightInstances[0].Position.xyz;
-    const float3 radiance = Lights.LightInstances[0].Intensity.xyz;
     const float3 cameraPos = gCameraPosition.xyz;
-    
     float3 v = normalize(cameraPos - worldPos);
-    float3 l = normalize(pointLightPosition - worldPos);
-    float3 h = normalize(v + l);
-   
     
-    
-    // Cook-torrance brdf
-        float NDF = NormalDistributionGGX(normal, h, roughness);
-    float Geometry = GeometrySmith(normal, v, l, roughness);
-    float3 Fresnel = fresnelSchlick(v, h, baseColor, metallic);
-    
+    float3 LoTotal = float3(0.0f, 0.0f, 0.0f);
+    for (uint lightIdx = 0; lightIdx < Lights.NumLights[0]; lightIdx++)
+    {
+        const float4x4 lightTransform = Lights.LightInstances[lightIdx].Transform;
+        float4 shadowViewPos = mul(float4(worldPos, 1.0f), lightTransform);
+        shadowViewPos /= shadowViewPos.w;
         
-    float3 kS = Fresnel;
-    float3 kD = float3(1.0f, 1.0f, 1.0f) - kS;
-    kD *= (1.0 - metallic);
-    
-    
-    float3 numerator = NDF * Geometry * Fresnel;
-    
-    float denominator = 4.0 * max(dot(normal, v), 0.0) * max(dot(normal, l), 0.0) + 0.0001;
-    float3 specular = numerator / denominator;
+        if (pow(shadowViewPos.x, 2.0f) + pow(shadowViewPos.y, 2.0f) > 1.0f)
+        {
+            continue;
+        }
+        
+        if (shadowViewPos.x < -1.0f || shadowViewPos.x > 1.0f ||
+        shadowViewPos.y < -1.0f || shadowViewPos.y > 1.0f ||
+        shadowViewPos.z < 0.0f || shadowViewPos.z > 1.0f)
+        {
+            continue;
+        }
+        
+        // Transform to texture space.
+        //float2 shadowUv = float2(0.5f, 0.5f) * (shadowViewPos.xy + float2(0.5f, 0.5f));
+        float shadowU = (shadowViewPos.x + 1.0) / 2.0;
+        float shadowV = (1.0 - shadowViewPos.y) / 2.0;
+        
+        const float3 pointLightPosition = Lights.LightInstances[lightIdx].Position.xyz;
+        const float3 radiance = Lights.LightInstances[lightIdx].Intensity.xyz;
+        float3 l = normalize(pointLightPosition - worldPos);
+        
+        // To texture coordinate
+        int shadowUTex = (int)floor(shadowU * Lights.LightInstances[lightIdx].ShadowBufferSize);
+        int shadowVTex = (int)floor(shadowV * Lights.LightInstances[lightIdx].ShadowBufferSize);
+        
+        float d = dot(normal, l);
+        float bias = max(0.02 * (1.0f - d), 0.02);
+        
+        // calculate pcf
+        float shadow = 0.0f;
+        int sampleCount = 0;
+        for (int m = -5; m <= 5; m++)
+        {
+            int u = shadowUTex + m;
+            if (u < 0 || u >= Lights.LightInstances[lightIdx].ShadowBufferSize)
+            {
+                continue;
+            }
             
-    float NdotL = max(dot(normal, l), 0.0);
-    float dist = distance(pointLightPosition, worldPos);
-    float attenuation = 1.0 / (dist * dist);
-    float3 Lo = (kD * baseColor / 3.14f + specular) * radiance * attenuation * NdotL;
+            for (int n = -5; n <= 5; n++)
+            {
+                int v = shadowVTex + n;
+                if (v < 0 || v >= Lights.LightInstances[lightIdx].ShadowBufferSize)
+                {
+                    continue;
+                }
+                
+                uint2 shadowUvInt = uint2(u + Lights.LightInstances[lightIdx].ShadowBufferOffsetX, v + Lights.LightInstances[lightIdx].ShadowBufferOffsetY);
+                float shadowMapDepth = lightMapAtlas[shadowUvInt];
+                
+                //shadow += shadowViewPos.z - bias > shadowMapDepth ? 1.0f : 0.0f;
+                if (shadowViewPos.z - bias > shadowMapDepth)
+                {
+                    shadow += 1.0f;
+                }
+                
+                sampleCount += 1;
+            }
+        }
+        
+        shadow = shadow / (float) sampleCount;
+        
+        if (shadow >= 1.0f)
+        {
+            continue;
+        }
+        
+        float3 h = normalize(v + l);
+        
+        // Cook-torrance brdf
+        float NDF = NormalDistributionGGX(normal, h, roughness);
+        float Geometry = GeometrySmith(normal, v, l, roughness);
+        float3 Fresnel = fresnelSchlick(v, h, baseColor, metallic);
+        
+        float3 kS = Fresnel;
+        float3 kD = float3(1.0f, 1.0f, 1.0f) - kS;
+        kD *= (1.0 - metallic);
+        
+        float3 numerator = NDF * Geometry * Fresnel;
     
-    float3 color = Lo + baseColor * 0.0025f;
+        float denominator = 4.0 * max(dot(normal, v), 0.0) * max(dot(normal, l), 0.0) + 0.0001;
+        float3 specular = numerator / denominator;
+            
+        float NdotL = max(dot(normal, l), 0.0);
+        float dist = distance(pointLightPosition, worldPos);
+        float attenuation = 1.0 / (dist * dist);
+        LoTotal += ((kD * baseColor / 3.14f + specular) * radiance * attenuation * NdotL) * (1.0f - shadow);
+    }
+   
+        
+    float3 color = LoTotal + baseColor * 0.0025f;
     float toneMap = 1.0f / 2.2f;
     color = color / (color + float3(1.0f, 1.0f, 1.0f));
     color = pow(color, float3(toneMap, toneMap, toneMap));

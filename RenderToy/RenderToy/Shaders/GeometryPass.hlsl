@@ -66,7 +66,7 @@ MeshVertexOut VertexShaderMain(MeshVertexIn vertexIn, uint instanceID : SV_Insta
     // Transform point to homogeneous space.
     
     float4 pos = mul(float4(vertexIn.pos, 1.0f), MeshInstances[instanceID].TransformMatrix);
-    output.worldPos = pos / pos.w;;
+    output.worldPos = pos;
     pos = mul(pos, gView);
     pos = mul(pos, gProjection);
     output.uv = vertexIn.uv;
@@ -114,7 +114,6 @@ PS_OUTPUT PixelShaderMain(MeshVertexOut vertexOut)
     
     float3 normal3 = normalTex.SampleLevel(linearSampler, uv, 0).xyz;
     normal3 = (normal3 * 2.0f) - 1.0f;
-    //float4 normal4 = mul(float4(normal3.xy, -normal3.z, 1.0f), MeshInstances[vertexOut.instanceId].TransformMatrix);
     normal3 = normalize(mul(normal3, TBN));
     
     output.BaseColor = baseColorTex.SampleLevel(linearSampler, float2(vertexOut.uv.x, 1.0f - vertexOut.uv.y), 0);

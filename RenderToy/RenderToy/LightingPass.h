@@ -20,6 +20,9 @@ private:
 
 	D3D12_RECT m_scissorRect;
 
+	ComPtr<ID3D12Resource> m_pTestResource = nullptr;
+	UINT64 m_testResourceUavId = UINT64_MAX;
+
 public:
 	LightingPass(GUID passGuid);
 

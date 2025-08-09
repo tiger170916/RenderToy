@@ -5,7 +5,7 @@ SpotLight::SpotLight(float effectiveRange, FVector3 position, FVector3 intensity
 {
 	m_lightType = LightType::LightType_Spot;
 
-	m_projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(fov * DirectX::XM_PI, aspectRatio, 0.1f, effectiveRange);
+	m_projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(fov * DirectX::XM_PI, aspectRatio, 3.0f, effectiveRange);
 }
 
 SpotLight::~SpotLight() {}
