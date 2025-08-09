@@ -130,7 +130,7 @@ bool LightingPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 	m_rectangleMesh->AddTriangle(-1, point1, point4, point3);
 
 	// Add an instance with trival transform, since this info is not gonna used.
-	m_rectangleMesh->AddInstance(Transform::Identity());
+	MeshFactory::Get()->StaticMeshAddInstance(m_rectangleMesh.get(), Transform::Identity());
 	if (!m_rectangleMesh->BuildResource(graphicsContext, nullptr))
 	{
 		return false;

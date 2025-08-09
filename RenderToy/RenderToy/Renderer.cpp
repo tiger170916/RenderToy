@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "FbxLoader.h"
+#include "MeshFactory.h"
 #include "Lights/LightFactory.h"
 #include "GraphicsUtils.h"
 
@@ -78,7 +79,7 @@ bool Renderer::Initialize(HWND hwnd)
 	{
 		Transform transform = Transform::Identity();
 		transform.Rotation.Pitch = -DirectX::XM_PI * 0.5f;
-		mesh->AddInstance(transform);
+		MeshFactory::Get()->StaticMeshAddInstance(mesh.get(), transform);
 		mesh->EnablePass(PassType::EARLY_Z_PASS);
 		mesh->EnablePass(PassType::GEOMETRY_PASS);
 		mesh->EnablePass(PassType::SHADOW_PASS);
@@ -93,7 +94,7 @@ bool Renderer::Initialize(HWND hwnd)
 		Transform lightBulbTransform = Transform::Identity();
 		lightBulbTransform.Translation = FVector3(3.0f, 1.0f, -8.5f);
 		lightBulbTransform.Rotation.Pitch = DirectX::XM_PI * 0.5f;
-		lightBulbMesh[i]->AddInstance(lightBulbTransform);
+		MeshFactory::Get()->StaticMeshAddInstance(lightBulbMesh[i].get(), lightBulbTransform);
 		lightBulbMesh[i]->EnablePass(PassType::EARLY_Z_PASS);
 		lightBulbMesh[i]->EnablePass(PassType::GEOMETRY_PASS);
 

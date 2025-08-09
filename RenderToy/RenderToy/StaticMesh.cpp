@@ -3,15 +3,13 @@
 
 std::map<PassType, std::map<UINT, UINT>> StaticMesh::_passMeshArgumentsMap = PASS_MESH_ARGUMENTS_MAP_DEFINE;
 
-StaticMesh::StaticMesh(uint32_t uid)
-	: m_uid(uid)
+StaticMesh::StaticMesh(uint32_t meshUid)
+	:m_meshUid(meshUid)
 {
-
 }
 
 StaticMesh::~StaticMesh()
 {
-
 }
 
 void StaticMesh::AddMaterial(Material* material)
@@ -31,9 +29,35 @@ void StaticMesh::AddTriangle(const int& part, const MeshVertex& v1, const MeshVe
 	m_meshParts[part].push_back(v3);
 }
 
-void StaticMesh::AddInstance(const Transform& transform)
+void StaticMesh::AddInstance(const Transform& transform, uint32_t uid)
 {
-	m_instances.push_back(transform);
+	MeshInstanceStruct instanceStruct = {};
+	instanceStruct.transform = transform;
+	instanceStruct.uid = uid;
+
+	m_instances.push_back(instanceStruct);
+}
+
+bool StaticMesh::GetInstanceTransform(uint32_t instanceIdx, Transform& outTransform)
+{
+	if (instanceIdx >= m_instances.size())
+	{
+		return false;
+	}
+
+	outTransform = m_instances[instanceIdx].transform;
+	return true;
+}
+
+bool StaticMesh::GetInstanceUid(uint32_t instanceIdx, uint32_t& outUid)
+{
+	if (instanceIdx >= m_instances.size())
+	{
+		return false;
+	}
+
+	outUid = m_instances[instanceIdx].uid;
+	return true;
 }
 
 void StaticMesh::EnablePass(const PassType& renderPass)
@@ -151,12 +175,17 @@ void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandLis
 		return;
 	}
 
+	if (m_instances.empty())
+	{
+		return;
+	}
 
 	for (int i = 0; i < m_instances.size(); i++)
 	{
 		MeshInstanceConstants updateCb = {};
 		
-		Transform& transform = m_instances[i];
+		MeshInstanceStruct& instance = m_instances[i];
+		Transform& transform = instance.transform;
 		XMMATRIX transformMatrix = XMMatrixIdentity();
 		XMMATRIX rotation = XMMatrixRotationRollPitchYaw(transform.Rotation.Pitch, transform.Rotation.Yaw, transform.Rotation.Roll);
 		XMMATRIX translation = XMMatrixTranslation(transform.Translation.X, transform.Translation.Y, transform.Translation.Z);

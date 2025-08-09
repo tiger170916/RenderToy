@@ -26,6 +26,15 @@ public:
 	};
 
 private:
+	struct MeshInstanceStruct
+	{
+		Transform transform;
+		uint32_t uid;
+	};
+
+private:
+	uint32_t m_meshUid = UINT32_MAX;
+
 	static std::map<PassType, std::map<UINT, UINT>> _passMeshArgumentsMap;
 
 	std::map<int, std::vector<StaticMesh::MeshVertex>> m_meshParts; // material id : mesh
@@ -34,8 +43,8 @@ private:
 
 	int m_numUvs = 0;
 
-	// Currently instance only contains transform data (extent to a struct)
-	std::vector<Transform> m_instances;
+	// Instances
+	std::vector<MeshInstanceStruct> m_instances;
 
 	std::set<PassType> m_enabledPasses;
 
@@ -54,7 +63,8 @@ private:
 
 	std::vector<std::shared_ptr<LightExtension>> m_lightExtensions;
 
-	uint32_t m_uid = 0;
+	// The mesh marked for destory should not be used anymore.
+	bool m_markedForDestroy = false;
 
 public:
 	// Stream Interface implementation
@@ -65,8 +75,9 @@ public:
 	virtual bool ScheduleForCopyToDefaultHeap(ID3D12GraphicsCommandList* cmdList) override;
 
 protected:
+	StaticMesh(uint32_t meshUid);
 
-	StaticMesh(uint32_t uid);
+	void AddInstance(const Transform& transform, uint32_t uid);
 
 public:
 	~StaticMesh();
@@ -76,8 +87,6 @@ public:
 	void AddMaterial(Material* material);
 
 	void SetNumUvs(const int num) { m_numUvs = num; }
-
-	void AddInstance(const Transform& transform);
 
 	void EnablePass(const PassType& renderPass);
 
@@ -95,7 +104,15 @@ public:
 
 	std::vector<std::shared_ptr<LightExtension>> GetLightExtensions() { return m_lightExtensions; }
 
-	std::vector<Transform> GetInstances() { return m_instances; }
+	inline void MarkForDestory() { m_markedForDestroy = true; }
 
-	inline uint32_t GetUid() { return m_uid; }
+	inline const bool& IsMarkedForDestroy() const { return m_markedForDestroy; }
+
+
+	// Instance getters
+	inline uint32_t GetNumInstances() const { return (uint32_t)m_instances.size(); }
+
+	bool GetInstanceTransform(uint32_t instanceIdx, Transform& outTransform);
+
+	bool GetInstanceUid(uint32_t instanceIdx, uint32_t& outUid);
 };

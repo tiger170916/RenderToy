@@ -185,16 +185,28 @@ bool ShadowPass::PopulateCommands(World* world, GraphicsContext* graphicsContext
 		const std::vector<std::shared_ptr<LightExtension>>& lights = staticMesh->GetLightExtensions();
 		for (auto& light : lights)
 		{
-			for (auto& instance : staticMesh->GetInstances())
+			for (uint32_t i = 0; i < staticMesh->GetNumInstances(); i++)
 			{
+				Transform transform;
+				if (!staticMesh->GetInstanceTransform(i, transform))
+				{
+					continue;
+				}
+
+				uint32_t instanceUid;
+				if (!staticMesh->GetInstanceUid(i, instanceUid))
+				{
+					continue;
+				}
+
 				if (light->GetLightType() == LightType::LightType_Spot)
 				{
  					SpotLight* spotLight = (SpotLight*)light.get();
 
 					const FVector3& intensity = light->GetIntensity();
-					const FVector3& position = light->GetPosition() + instance.Translation;
+					const FVector3& position = light->GetPosition() + transform.Translation;
 
-					allLights.push_back(instance);
+					allLights.push_back(transform);
 					TextureAtlas::Node node;
 					m_atlas->RequestNode(1, nullptr, node);
 					nodes.push_back(node);
@@ -209,10 +221,10 @@ bool ShadowPass::PopulateCommands(World* world, GraphicsContext* graphicsContext
 					(*lightCb)[0].Lights[lightItr].Position[1] = position.Y;
 					(*lightCb)[0].Lights[lightItr].Position[2] = position.Z;
 					(*lightCb)[0].Lights[lightItr].ShadowBufferSize = m_l1ShadowMapSize;
-					(*lightCb)[0].Lights[lightItr].LightParentUid = staticMesh->GetUid();
+					(*lightCb)[0].Lights[lightItr].LightParentUid = instanceUid;
 					(*lightCb)[0].Lights[lightItr].LightUid = light->GetUid();
 
-					XMMATRIX view = GraphicsUtils::ViewMatrixFromPositionRotation(spotLight->GetPosition() + instance.Translation, spotLight->GetRotator());
+					XMMATRIX view = GraphicsUtils::ViewMatrixFromPositionRotation(spotLight->GetPosition() + transform.Translation, spotLight->GetRotator());
 					DirectX::XMStoreFloat4x4(&(*lightCb)[0].Lights[lightItr].Transform,  DirectX::XMMatrixTranspose(spotLight->GetProjectionMatrix()) * DirectX::XMMatrixTranspose(view));
 					lightItr++;
 				}
