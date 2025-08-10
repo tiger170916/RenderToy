@@ -15,4 +15,8 @@ protected:
 
 public:
 	~PointLight();
+
+	virtual bool Initialize(GraphicsContext* graphicsContext) override;
+
+	virtual void DrawEffectiveFrustum(ID3D12GraphicsCommandList* cmdList) override;
 };

@@ -6,6 +6,16 @@ PointLight::PointLight(float effectiveRange, FVector3 position, FVector3 intensi
 	m_lightType = LightType::LightType_Point;
 }
 
+bool PointLight::Initialize(GraphicsContext* graphicsContext)
+{
+	return true;
+}
+
+void PointLight::DrawEffectiveFrustum(ID3D12GraphicsCommandList* cmdList)
+{
+
+}
+
 PointLight::~PointLight()
 {
 
