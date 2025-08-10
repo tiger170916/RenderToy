@@ -57,7 +57,7 @@ $shadowPassPixelShaderPdbOutput = $outputDir + "shadow_pass_pixel_shader.pdb"
 # Compile vertex shader
 & $dxc /T vs_6_6 $shadowPassFile /E"VertexShaderMain" /Fo $shadowPassVertexShaderOutput /Zi /Fd $shadowPassVertexShaderPdbOutput /nologo
 # Compile geometry shader
-& $dxc /T gs_6_6 $shadowPassFile /E"GeometryShaderMain" /Fo $shadowPassGeometryShaderOutput /Zi /Fd $shadowPassPixelShaderPdbOutput /nologo
+& $dxc /T gs_6_6 $shadowPassFile /E"GeometryShaderMain" /Fo $shadowPassGeometryShaderOutput /Zi /Fd $shadowPassGeometryShaderPdbOutput /nologo
 # Compile pixel shader
 & $dxc /T ps_6_6 $shadowPassFile /E"PixelShaderMain" /Fo $shadowPassPixelShaderOutput /Zi /Fd $shadowPassPixelShaderPdbOutput /nologo
 

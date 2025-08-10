@@ -45,6 +45,8 @@ struct PS_OUTPUT
     float4 Normal               : SV_Target2;
     
     float4 WorldPos             : SV_Target3;
+    
+    float4 Emission             : SV_Target4;
 };
 
 Texture2D<float4> depthBuffer       : register(t0);
@@ -120,6 +122,7 @@ PS_OUTPUT PixelShaderMain(MeshVertexOut vertexOut)
     output.MetallicRoughness = float2(metallic, roughness);
     output.Normal = float4(normal3, 0.0f);
     output.WorldPos = vertexOut.worldPos;
+    output.Emission = MeshInstances[vertexOut.instanceId].LightEmission;
     
     return output;
 }

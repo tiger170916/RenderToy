@@ -8,6 +8,10 @@ cbuffer cbUniformFrameConstants : register(b0)
 struct MeshInstanceConstants
 {
     float4x4 TransformMatrix;
+    
+    uint4 Uid;
+    
+    float4 LightEmission;
 };
 
 cbuffer cbMeshInstanceConstants : register(b1)

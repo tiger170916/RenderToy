@@ -30,6 +30,7 @@ private:
 	{
 		Transform transform;
 		uint32_t uid;
+		std::unique_ptr<LightExtension> lightExtension;
 	};
 
 private:
@@ -44,7 +45,7 @@ private:
 	int m_numUvs = 0;
 
 	// Instances
-	std::vector<MeshInstanceStruct> m_instances;
+	std::vector<std::unique_ptr<MeshInstanceStruct>> m_instances;
 
 	std::set<PassType> m_enabledPasses;
 
@@ -61,7 +62,7 @@ private:
 
 	std::unique_ptr<ConstantBuffer<MeshInstanceConstants>> m_instanceConstants;
 
-	std::vector<std::shared_ptr<LightExtension>> m_lightExtensions;
+	//std::vector<std::shared_ptr<LightExtension>> m_lightExtensions;
 
 	// The mesh marked for destory should not be used anymore.
 	bool m_markedForDestroy = false;
@@ -96,13 +97,15 @@ public:
 
 	void Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, PassType passType, bool useSimpleVertex, bool setTextures);
 
-	void AttachLightExtension(LightExtension* light);
+	void AttachLightExtension(LightExtension* light, const uint32_t& instanceIdx);
 
-	bool HasLightExtensions() const { return !m_lightExtensions.empty(); }
+	bool HasLightExtensions() const;
+
+	const bool HasLightExtension(const uint32_t& instanceIdx);
+
+	LightExtension* GetLightExtension(const uint32_t& instanceIdx);
 
 	void QueueStreamingTasks(ResourceStreamer* streamer, UINT priority);
-
-	std::vector<std::shared_ptr<LightExtension>> GetLightExtensions() { return m_lightExtensions; }
 
 	inline void MarkForDestory() { m_markedForDestroy = true; }
 

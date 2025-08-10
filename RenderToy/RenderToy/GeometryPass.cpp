@@ -185,17 +185,50 @@ bool GeometryPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 
 
 
+
+	if (!GraphicsUtils::CreateRenderTargetResource(
+		pDevice,
+		descHeapManager,
+		width,
+		height,
+		m_emissionRenderTargetFormat,
+		D3D12_RESOURCE_FLAG_NONE,
+		m_bufferClearValue,
+		m_emissionBuffer.GetAddressOf(),
+		m_emissionRtvId))
+	{
+		return false;
+	}
+
+	m_resourceStates[m_emissionBuffer.Get()] = D3D12_RESOURCE_STATE_PRESENT;
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC emissionSrvDesc;
+	emissionSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	emissionSrvDesc.Format = m_emissionRenderTargetFormat;
+	emissionSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	emissionSrvDesc.Texture2D.MostDetailedMip = 0;
+	emissionSrvDesc.Texture2D.MipLevels = 1;
+	emissionSrvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+	emissionSrvDesc.Texture2D.PlaneSlice = 0;
+
+	m_emissionSrvId = descHeapManager->CreateShaderResourceView(m_emissionBuffer.Get(), &emissionSrvDesc);
+	if (m_emissionSrvId == UINT64_MAX)
+	{
+		return false;
+	}
+
 	m_graphicsPipelineState = std::unique_ptr<GraphicsPipelineState>(new GraphicsPipelineState());
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc = m_graphicsPipelineState->GraphicsPipelineStateDesc();
 
 	pipelineStateDesc.NodeMask = adapterNodeMask;
 	pipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	pipelineStateDesc.DSVFormat = m_depthStencilFormat;
-	pipelineStateDesc.NumRenderTargets = 4;
+	pipelineStateDesc.NumRenderTargets = 5;
 	pipelineStateDesc.RTVFormats[0] = m_diffuseRenderTargetFormat;
 	pipelineStateDesc.RTVFormats[1] = m_metallicRoughnessRenderTargetFormat;
 	pipelineStateDesc.RTVFormats[2] = m_normalRenderTargetFormat;
 	pipelineStateDesc.RTVFormats[3] = m_worldPosRenderTargetFormat;
+	pipelineStateDesc.RTVFormats[4] = m_emissionRenderTargetFormat;
 
 	D3D12_DEPTH_STENCIL_DESC depthStencilDesc = {
 		TRUE,
@@ -258,16 +291,18 @@ bool GeometryPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
 	descHeapManager->GetDepthStencilViewCpuHandle(m_dsvId, dsvHandle);
 
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvs[4];
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvs[5];
 	descHeapManager->GetRenderTargetViewCpuHandle(m_diffuseRtvId, rtvs[0]);
 	descHeapManager->GetRenderTargetViewCpuHandle(m_metallicRoughnessRtvId, rtvs[1]);
 	descHeapManager->GetRenderTargetViewCpuHandle(m_normalRtvId, rtvs[2]);
 	descHeapManager->GetRenderTargetViewCpuHandle(m_worldPosRtvId, rtvs[3]);
+	descHeapManager->GetRenderTargetViewCpuHandle(m_emissionRtvId, rtvs[4]);
 
 	ResourceBarrierTransition(m_diffuseBuffer.Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	ResourceBarrierTransition(m_metallicRoughnessBuffer.Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	ResourceBarrierTransition(m_normalBuffer.Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	ResourceBarrierTransition(m_worldPosBuffer.Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	ResourceBarrierTransition(m_emissionBuffer.Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 	// Set pso
 	commandList->SetPipelineState(m_graphicsPipelineState->GetPipelineState());
@@ -278,7 +313,8 @@ bool GeometryPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 	commandList->ClearRenderTargetView(rtvs[1], m_bufferClearValue, 0, NULL);
 	commandList->ClearRenderTargetView(rtvs[2], m_bufferClearValue, 0, NULL);
 	commandList->ClearRenderTargetView(rtvs[3], m_bufferClearValue, 0, NULL);
-	commandList->OMSetRenderTargets(4, rtvs, false, &dsvHandle);
+	commandList->ClearRenderTargetView(rtvs[4], m_bufferClearValue, 0, NULL);
+	commandList->OMSetRenderTargets(5, rtvs, false, &dsvHandle);
 	commandList->RSSetViewports(1, &m_viewport);
 	commandList->RSSetScissorRects(1, &m_scissorRect);
 

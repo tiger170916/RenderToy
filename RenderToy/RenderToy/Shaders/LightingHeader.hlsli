@@ -11,14 +11,15 @@ struct LightConstants
 
     //
     uint LightUid;
-    uint LightParentUid;
+    uint LightParentInstanceUid;
     uint ShadowBufferOffsetX;
     uint ShadowBufferOffsetY;
 
     //
     uint ShadowBufferSize;
     uint LightType;
-    uint2 Pad0[2];
+    uint ParentUid;
+    uint Pad0;
 };
 
 

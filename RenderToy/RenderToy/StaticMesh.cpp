@@ -31,11 +31,12 @@ void StaticMesh::AddTriangle(const int& part, const MeshVertex& v1, const MeshVe
 
 void StaticMesh::AddInstance(const Transform& transform, uint32_t uid)
 {
-	MeshInstanceStruct instanceStruct = {};
-	instanceStruct.transform = transform;
-	instanceStruct.uid = uid;
+	MeshInstanceStruct *instanceStruct = new MeshInstanceStruct();
+	instanceStruct->transform = transform;
+	instanceStruct->uid = uid;
+	instanceStruct->lightExtension = nullptr;
 
-	m_instances.push_back(instanceStruct);
+	m_instances.push_back(std::unique_ptr<MeshInstanceStruct>(instanceStruct));
 }
 
 bool StaticMesh::GetInstanceTransform(uint32_t instanceIdx, Transform& outTransform)
@@ -45,7 +46,7 @@ bool StaticMesh::GetInstanceTransform(uint32_t instanceIdx, Transform& outTransf
 		return false;
 	}
 
-	outTransform = m_instances[instanceIdx].transform;
+	outTransform = m_instances[instanceIdx]->transform;
 	return true;
 }
 
@@ -56,8 +57,41 @@ bool StaticMesh::GetInstanceUid(uint32_t instanceIdx, uint32_t& outUid)
 		return false;
 	}
 
-	outUid = m_instances[instanceIdx].uid;
+	outUid = m_instances[instanceIdx]->uid;
 	return true;
+}
+
+bool StaticMesh::HasLightExtensions() const
+{
+	for (const auto& instance : m_instances)
+	{
+		if (instance->lightExtension != nullptr)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+const bool StaticMesh::HasLightExtension(const uint32_t& instanceIdx)
+{
+	if (instanceIdx >= m_instances.size())
+	{
+		return false;
+	}
+
+	return m_instances[instanceIdx]->lightExtension != nullptr;
+}
+
+LightExtension* StaticMesh::GetLightExtension(const uint32_t& instanceIdx)
+{
+	if (instanceIdx >= m_instances.size())
+	{
+		return nullptr;
+	}
+
+	return m_instances[instanceIdx]->lightExtension.get();
 }
 
 void StaticMesh::EnablePass(const PassType& renderPass)
@@ -184,8 +218,7 @@ void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandLis
 	{
 		MeshInstanceConstants updateCb = {};
 		
-		MeshInstanceStruct& instance = m_instances[i];
-		Transform& transform = instance.transform;
+		Transform& transform = m_instances[i]->transform;
 		XMMATRIX transformMatrix = XMMatrixIdentity();
 		XMMATRIX rotation = XMMatrixRotationRollPitchYaw(transform.Rotation.Pitch, transform.Rotation.Yaw, transform.Rotation.Roll);
 		XMMATRIX translation = XMMatrixTranslation(transform.Translation.X, transform.Translation.Y, transform.Translation.Z);
@@ -193,6 +226,17 @@ void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandLis
 		transformMatrix = scale * rotation * translation;
 		
 		DirectX::XMStoreFloat4x4(&updateCb.TransformMatrix, DirectX::XMMatrixTranspose(transformMatrix));
+		updateCb.Uid[0] = m_instances[i]->uid;
+
+		LightExtension* lightExtension = m_instances[i]->lightExtension.get();
+		if (lightExtension)
+		{
+			const FVector3& emissionIntensity = lightExtension->GetIntensity();
+			updateCb.LightEmission[0] = emissionIntensity.X;
+			updateCb.LightEmission[1] = emissionIntensity.Y;
+			updateCb.LightEmission[2] = emissionIntensity.Z;
+		}
+
 		(*m_instanceConstants)[i] = updateCb;
 	}
 
@@ -265,14 +309,19 @@ void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandLis
 	}
 }
 
-void StaticMesh::AttachLightExtension(LightExtension* light)
+void StaticMesh::AttachLightExtension(LightExtension* light, const uint32_t& instanceIdx)
 {
 	if (light == nullptr)
 	{
 		return;
 	}
 
-	m_lightExtensions.push_back(std::shared_ptr<LightExtension>(light));
+	if (instanceIdx >= m_instances.size())
+	{
+		return;
+	}
+
+	m_instances[instanceIdx]->lightExtension = std::unique_ptr<LightExtension>(light);
 }
 
 bool StaticMesh::StreamIn(GraphicsContext* graphicsContext)

@@ -16,6 +16,8 @@ private:
 
 	ComPtr<ID3D12Resource> m_worldPosBuffer = nullptr;
 
+	ComPtr<ID3D12Resource> m_emissionBuffer = nullptr;
+
 	const DXGI_FORMAT m_depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
 
 	const DXGI_FORMAT m_diffuseRenderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -25,6 +27,8 @@ private:
 	const DXGI_FORMAT m_normalRenderTargetFormat = DXGI_FORMAT_R32G32B32A32_FLOAT;
 
 	const DXGI_FORMAT m_worldPosRenderTargetFormat = DXGI_FORMAT_R32G32B32A32_FLOAT;
+
+	const DXGI_FORMAT m_emissionRenderTargetFormat = DXGI_FORMAT_R32G32B32A32_FLOAT;
 
 	const float m_bufferClearValue[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
@@ -51,6 +55,10 @@ private:
 
 	UINT64 m_worldPosSrvId = UINT64_MAX;
 
+	UINT64 m_emissionRtvId = UINT64_MAX;
+
+	UINT64 m_emissionSrvId = UINT64_MAX;
+
 public:
 	GeometryPass(GUID passGuid);
 
@@ -67,15 +75,21 @@ public:
 	inline bool MetallicRoughnessBufferBarrierTransition(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter) { return ResourceBarrierTransition(m_metallicRoughnessBuffer.Get(), commandList, stateAfter); }
 	inline bool NormalBufferBarrierTransition(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter) { return ResourceBarrierTransition(m_normalBuffer.Get(), commandList, stateAfter); }
 	inline bool WorldPosBufferBarrierTransition(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter) { return ResourceBarrierTransition(m_worldPosBuffer.Get(), commandList, stateAfter); }
+	inline bool WorldEmissionBufferBarrierTransition(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter) { return ResourceBarrierTransition(m_emissionBuffer.Get(), commandList, stateAfter); }
+
 
 	inline const UINT64 GetDiffuseBufferRtvId() const { return m_diffuseRtvId; }
 	inline const UINT64 GetMetallicRoughnessBufferRtvId() const { return m_metallicRoughnessRtvId; }
 	inline const UINT64 GetNormalBufferRtvId() const { return m_normalRtvId; }
 	inline const UINT64 GetWorldPosBufferRtvId() const { return m_worldPosRtvId; }
+	inline const UINT64 GetEmissionBufferRtvId() const { return m_emissionRtvId; }
+
 
 
 	inline const UINT64 GetDiffuseBufferSrvId() const { return m_diffuseSrvId; }
 	inline const UINT64 GetMetallicRoughnessBufferSrvId() const { return m_metallicRoughnessSrvId; }
 	inline const UINT64 GetNormalBufferSrvId() const { return m_normalSrvId; }
 	inline const UINT64 GetWorldPosBufferSrvId() const { return m_worldPosSrvId; }
+	inline const UINT64 GetEmissionBufferSrvId() const { return m_emissionSrvId; }
+
 };

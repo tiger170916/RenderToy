@@ -16,4 +16,8 @@ struct MeshVertexSimpleDx
 struct MeshInstanceConstants
 {
 	XMFLOAT4X4 TransformMatrix;
+
+	uint32_t Uid[4];
+
+	float LightEmission[4];
 };

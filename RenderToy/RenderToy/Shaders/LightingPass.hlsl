@@ -25,6 +25,9 @@
         "SRV(t3, numDescriptors = 1)" \
     ")," \
     "DescriptorTable(" \
+        "SRV(t4, numDescriptors = 1)" \
+    ")," \
+    "DescriptorTable(" \
         "UAV(u0, numDescriptors = 1)" \
     ")," \
     "DescriptorTable(" \
@@ -55,9 +58,11 @@ Texture2D<float4> normalBuffer              : register(t2);
 
 Texture2D<float4> worldPosBuffer            : register(t3);
 
+Texture2D<float4> emissionBuffer            : register(t4);
+
 RWTexture2D<float> lightMapAtlas            : register(u0);
 
-RWTexture2D<float4> testMap         : register(u1);
+RWTexture2D<float4> testMap                 : register(u1);
 
 SamplerState      pointSampler              : register(s0);
 
@@ -122,6 +127,7 @@ float4 PixelShaderMain(MeshVertexOut vertexOut) : SV_Target0
 
     float3 normal = normalBuffer.SampleLevel(pointSampler, uv, 0).xyz;
     float3 worldPos = worldPosBuffer.SampleLevel(pointSampler, uv, 0).xyz;
+    float3 emission = emissionBuffer.SampleLevel(pointSampler, uv, 0).xyz;
 
     const float3 cameraPos = gCameraPosition.xyz;
     float3 v = normalize(cameraPos - worldPos);
@@ -223,7 +229,7 @@ float4 PixelShaderMain(MeshVertexOut vertexOut) : SV_Target0
     }
    
         
-    float3 color = LoTotal + baseColor * 0.0025f;
+    float3 color = LoTotal + baseColor * 0.0025f + emission;
     float toneMap = 1.0f / 2.2f;
     color = color / (color + float3(1.0f, 1.0f, 1.0f));
     color = pow(color, float3(toneMap, toneMap, toneMap));

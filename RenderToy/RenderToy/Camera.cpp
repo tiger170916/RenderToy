@@ -24,7 +24,7 @@ void Camera::CalculateViewMatrixWithLookAtPosition()
 void Camera::Frame(float delta)
 {
 	static float curPos = 0.0f;
-	static const float speed = 0.05;
+	static const float speed = 0.1f;
 
 	curPos += delta * speed;
 	m_position.X = cos(curPos) * 18.5f;

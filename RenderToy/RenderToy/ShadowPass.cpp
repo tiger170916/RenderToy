@@ -166,12 +166,6 @@ bool ShadowPass::PopulateCommands(World* world, GraphicsContext* graphicsContext
 	ConstantBuffer<LightConstantsDx>* lightCb = world->GetLightConstantBuffer();
 
 	m_atlas->ClearNodes();
-
-	PassBase::PopulateCommands(world, graphicsContext);
-
-	ID3D12GraphicsCommandList* commandList = m_commandBuilder->GetCommandList();
-
-	std::vector<Transform> allLights;
 	std::vector<TextureAtlas::Node> nodes;
 
 	UINT lightItr = 0;
@@ -182,59 +176,72 @@ bool ShadowPass::PopulateCommands(World* world, GraphicsContext* graphicsContext
 			continue;
 		}
 
-		const std::vector<std::shared_ptr<LightExtension>>& lights = staticMesh->GetLightExtensions();
-		for (auto& light : lights)
+		for (uint32_t instanceIdx = 0; instanceIdx < staticMesh->GetNumInstances(); instanceIdx++)
 		{
-			for (uint32_t i = 0; i < staticMesh->GetNumInstances(); i++)
+			if (!staticMesh->HasLightExtension(instanceIdx))
 			{
-				Transform transform;
-				if (!staticMesh->GetInstanceTransform(i, transform))
-				{
-					continue;
-				}
+				continue;
+			}
 
-				uint32_t instanceUid;
-				if (!staticMesh->GetInstanceUid(i, instanceUid))
-				{
-					continue;
-				}
+			LightExtension* light = staticMesh->GetLightExtension(instanceIdx);
+			if (!light)
+			{
+				continue;
+			}
 
-				if (light->GetLightType() == LightType::LightType_Spot)
-				{
- 					SpotLight* spotLight = (SpotLight*)light.get();
+			Transform transform;
+			staticMesh->GetInstanceTransform(instanceIdx, transform);
 
-					const FVector3& intensity = light->GetIntensity();
-					const FVector3& position = light->GetPosition() + transform.Translation;
+			uint32_t instanceUid;
+			staticMesh->GetInstanceUid(instanceIdx, instanceUid);
 
-					allLights.push_back(transform);
-					TextureAtlas::Node node;
-					m_atlas->RequestNode(1, nullptr, node);
-					nodes.push_back(node);
-			
-					(*lightCb)[0].Lights[lightItr].ShadowBufferOffsetX = node.OffsetX;
-					(*lightCb)[0].Lights[lightItr].ShadowBufferOffsetY = node.OffsetY;
-					(*lightCb)[0].Lights[lightItr].Intensity[0] = intensity.X;
-					(*lightCb)[0].Lights[lightItr].Intensity[1] = intensity.Y;
-					(*lightCb)[0].Lights[lightItr].Intensity[2] = intensity.Z;
-					(*lightCb)[0].Lights[lightItr].LightType = (uint32_t)light->GetLightType();
-					(*lightCb)[0].Lights[lightItr].Position[0] = position.X;
-					(*lightCb)[0].Lights[lightItr].Position[1] = position.Y;
-					(*lightCb)[0].Lights[lightItr].Position[2] = position.Z;
-					(*lightCb)[0].Lights[lightItr].ShadowBufferSize = m_l1ShadowMapSize;
-					(*lightCb)[0].Lights[lightItr].LightParentUid = instanceUid;
-					(*lightCb)[0].Lights[lightItr].LightUid = light->GetUid();
+			if (light->GetLightType() == LightType::LightType_Spot)
+			{
+				SpotLight* spotLight = (SpotLight*)light;
 
-					XMMATRIX view = GraphicsUtils::ViewMatrixFromPositionRotation(spotLight->GetPosition() + transform.Translation, spotLight->GetRotator());
-					DirectX::XMStoreFloat4x4(&(*lightCb)[0].Lights[lightItr].Transform,  DirectX::XMMatrixTranspose(spotLight->GetProjectionMatrix()) * DirectX::XMMatrixTranspose(view));
-					lightItr++;
-				}
+				const FVector3& intensity = light->GetIntensity();
+				const FVector3& position = light->GetPosition() + transform.Translation;
+
+				TextureAtlas::Node node;
+				m_atlas->RequestNode(1, nullptr, node);
+				nodes.push_back(node);
+
+				LightConstants lightConsts = {};
+				lightConsts.ShadowBufferOffsetX = node.OffsetX;
+				lightConsts.ShadowBufferOffsetY = node.OffsetY;
+				lightConsts.Intensity[0] = intensity.X;
+				lightConsts.Intensity[1] = intensity.Y;
+				lightConsts.Intensity[2] = intensity.Z;
+				lightConsts.LightType = (uint32_t)light->GetLightType();
+				lightConsts.Position[0] = position.X;
+				lightConsts.Position[1] = position.Y;
+				lightConsts.Position[2] = position.Z;
+				lightConsts.ShadowBufferSize = m_l1ShadowMapSize;
+				lightConsts.LightParentUid = instanceUid;
+				lightConsts.LightUid = light->GetUid();
+
+				(*lightCb)[0].Lights[lightItr] = lightConsts;
+
+				XMMATRIX view = GraphicsUtils::ViewMatrixFromPositionRotation(spotLight->GetPosition() + transform.Translation, spotLight->GetRotator());
+				DirectX::XMStoreFloat4x4(&(*lightCb)[0].Lights[lightItr].Transform, DirectX::XMMatrixTranspose(spotLight->GetProjectionMatrix()) * DirectX::XMMatrixTranspose(view));
+				lightItr++;
 			}
 		}
 	}
 
-	(*lightCb)[0].NumLights[0] = lightItr;
 
+	// No light
+	if (lightItr == 0)
+	{
+		return true;
+	}
+
+	(*lightCb)[0].NumLights[0] = lightItr;
 	lightCb->UpdateToGPU();
+
+	PassBase::PopulateCommands(world, graphicsContext);
+
+	ID3D12GraphicsCommandList* commandList = m_commandBuilder->GetCommandList();
 
 	float clearValue[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 	D3D12_GPU_DESCRIPTOR_HANDLE atlasGpuHandle;
@@ -242,7 +249,6 @@ bool ShadowPass::PopulateCommands(World* world, GraphicsContext* graphicsContext
 	D3D12_CPU_DESCRIPTOR_HANDLE atlasNonShaderVisibleCpuHandle;
 	descriptorHeapManager->GetCbvSrvUavNonShaderVisibleView(m_depthAtlasUavId, atlasNonShaderVisibleCpuHandle);
 
-	lightCb->UpdateToGPU();
 	D3D12_GPU_DESCRIPTOR_HANDLE lightConstantsGpuDescHandle;
 	commandList->SetPipelineState(m_graphicsPipelineState->GetPipelineState());
 	commandList->SetGraphicsRootSignature(m_graphicsPipelineState->GetRootSignature());
@@ -264,7 +270,7 @@ bool ShadowPass::PopulateCommands(World* world, GraphicsContext* graphicsContext
 
 	for (auto& staticMesh : world->GetAllStaticMeshes())
 	{
-		if (!staticMesh->PassEnabled(PassType::GEOMETRY_PASS))
+		if (!staticMesh->PassEnabled(PassType::SHADOW_PASS))
 		{
 			continue;
 		}

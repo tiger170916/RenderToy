@@ -205,7 +205,7 @@ bool LightingPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 	D3D12_CPU_DESCRIPTOR_HANDLE testCpuHandle;
 	descHeapManager->BindCbvSrvUavToPipeline(m_testResourceUavId, testGpuHandle);
 	descHeapManager->GetCbvSrvUavNonShaderVisibleView(m_testResourceUavId, testCpuHandle);
-	commandList->SetGraphicsRootDescriptorTable(8, testGpuHandle);
+	commandList->SetGraphicsRootDescriptorTable(9, testGpuHandle);
 	float clearVal[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	commandList->ClearUnorderedAccessViewFloat(testGpuHandle, testCpuHandle, m_pTestResource.Get(), clearVal, 0, nullptr);
 
@@ -225,17 +225,20 @@ bool LightingPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 		dependencyGeometryPass->MetallicRoughnessBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COMMON);
 		dependencyGeometryPass->NormalBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COMMON);
 		dependencyGeometryPass->WorldPosBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COMMON);
+		dependencyGeometryPass->WorldEmissionBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COMMON);
 
-		D3D12_GPU_DESCRIPTOR_HANDLE geometryPassDiffuseBufferHandle, geometryPassMetallicRoughnessBufferHandle, geometryPassNormalBufferHandle, geometryPassWorldPosBufferHandle;
+		D3D12_GPU_DESCRIPTOR_HANDLE geometryPassDiffuseBufferHandle, geometryPassMetallicRoughnessBufferHandle, geometryPassNormalBufferHandle, geometryPassWorldPosBufferHandle, geometryPassEmissionBufferHandle;
 		descHeapManager->BindCbvSrvUavToPipeline(dependencyGeometryPass->GetDiffuseBufferSrvId(), geometryPassDiffuseBufferHandle);
 		descHeapManager->BindCbvSrvUavToPipeline(dependencyGeometryPass->GetMetallicRoughnessBufferSrvId(), geometryPassMetallicRoughnessBufferHandle);
 		descHeapManager->BindCbvSrvUavToPipeline(dependencyGeometryPass->GetNormalBufferSrvId(), geometryPassNormalBufferHandle);
 		descHeapManager->BindCbvSrvUavToPipeline(dependencyGeometryPass->GetWorldPosBufferSrvId(), geometryPassWorldPosBufferHandle);
+		descHeapManager->BindCbvSrvUavToPipeline(dependencyGeometryPass->GetEmissionBufferSrvId(), geometryPassEmissionBufferHandle);
 
 		commandList->SetGraphicsRootDescriptorTable(3, geometryPassDiffuseBufferHandle);
 		commandList->SetGraphicsRootDescriptorTable(4, geometryPassMetallicRoughnessBufferHandle);
 		commandList->SetGraphicsRootDescriptorTable(5, geometryPassNormalBufferHandle);
 		commandList->SetGraphicsRootDescriptorTable(6, geometryPassWorldPosBufferHandle);
+		commandList->SetGraphicsRootDescriptorTable(7, geometryPassEmissionBufferHandle);
 	}
 
 	if (dependencyShadowPass)
@@ -245,7 +248,7 @@ bool LightingPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 		D3D12_GPU_DESCRIPTOR_HANDLE shadowMapAltasGpuHandle;
 		descHeapManager->BindCbvSrvUavToPipeline(dependencyShadowPass->GetDepthAtlasUavId(), shadowMapAltasGpuHandle);
 
-		commandList->SetGraphicsRootDescriptorTable(7, shadowMapAltasGpuHandle);
+		commandList->SetGraphicsRootDescriptorTable(8, shadowMapAltasGpuHandle);
 	}
 
 	ConstantBuffer<LightConstantsDx>* lightsCb = world->GetLightConstantBuffer();
