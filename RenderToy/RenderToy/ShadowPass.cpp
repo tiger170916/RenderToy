@@ -95,8 +95,7 @@ bool ShadowPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 	};
 
 	pipelineStateDesc.RasterizerState = rasterizerDesc;
-	pipelineStateDesc.DepthStencilState = depthStencilDesc;
-	pipelineStateDesc.DSVFormat = m_rtDepthFormat;
+
 	pipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	pipelineStateDesc.SampleDesc.Count = 1;
 	pipelineStateDesc.SampleDesc.Quality = 0;
@@ -115,40 +114,6 @@ bool ShadowPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 
 	m_viewports[1] = D3D12_VIEWPORT{ 0.0f, 0.0f, (float)m_l2ShadowMapSize, (float)m_l2ShadowMapSize, 0.0f, 1.0f };
 	m_scissorRects[1] = { 0, 0, (long)m_l2ShadowMapSize, (long)m_l2ShadowMapSize };
-
-	if (!GraphicsUtils::CreateDepthStencilResource(
-		pDevice,
-		descHeapManager,
-		m_l1ShadowMapSize,
-		m_l1ShadowMapSize,
-		m_rtDepthFormat,
-		D3D12_RESOURCE_FLAG_NONE,
-		1.0f,
-		0,
-		m_depthStencilBuffers[0].GetAddressOf(),
-		m_dsvIds[0]))
-	{
-		return false;
-	}
-
-	m_resourceStates[m_depthStencilBuffers[0].Get()] = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-
-	if (!GraphicsUtils::CreateDepthStencilResource(
-		pDevice,
-		descHeapManager,
-		m_l1ShadowMapSize,
-		m_l1ShadowMapSize,
-		m_rtDepthFormat,
-		D3D12_RESOURCE_FLAG_NONE,
-		1.0f,
-		0,
-		m_depthStencilBuffers[1].GetAddressOf(),
-		m_dsvIds[1]))
-	{
-		return false;
-	}
-
-	m_resourceStates[m_depthStencilBuffers[1].Get()] = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 
 	return true;
 }
@@ -254,10 +219,8 @@ bool ShadowPass::PopulateCommands(World* world, GraphicsContext* graphicsContext
 	commandList->SetGraphicsRootSignature(m_graphicsPipelineState->GetRootSignature());
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	D3D12_CPU_DESCRIPTOR_HANDLE dsvhandle;
-	descriptorHeapManager->GetDepthStencilViewCpuHandle(m_dsvIds[0], dsvhandle);
-	commandList->OMSetRenderTargets(0, nullptr, false, &dsvhandle);
-	commandList->ClearDepthStencilView(dsvhandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	commandList->OMSetRenderTargets(0, nullptr, false, nullptr);
+
 	ResourceBarrierTransition(m_atlas->GetResource(), commandList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 	commandList->ClearUnorderedAccessViewFloat(atlasGpuHandle, atlasNonShaderVisibleCpuHandle, m_atlas->GetResource(), clearValue, 0, nullptr);
 
