@@ -18,5 +18,5 @@ public:
 
 	virtual bool Initialize(GraphicsContext* graphicsContext) override;
 
-	virtual void DrawEffectiveFrustum(ID3D12GraphicsCommandList* cmdList) override;
+	virtual void DrawEffectiveFrustum(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, FVector3 parentTransform) override;
 };

@@ -43,5 +43,5 @@ public:
 	// Interfaces
 	virtual bool Initialize(GraphicsContext* graphicsContext) = 0;
 
-	virtual void DrawEffectiveFrustum(ID3D12GraphicsCommandList* cmdList) = 0;
+	virtual void DrawEffectiveFrustum(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, FVector3 parentTransform) = 0;
 };

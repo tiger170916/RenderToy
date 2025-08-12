@@ -44,6 +44,8 @@ private:
 
 	PassBase* m_finalRenderOutputPass = nullptr;
 
+	PassBase* m_finalPass = nullptr;
+
 	HANDLE m_renderOutputWorkDoneEvent = NULL;
 
 	bool m_initialized = false;
@@ -66,7 +68,7 @@ public:
 private:
 	bool Validate();
 
-	bool ParseFile(std::vector<PipelineStruct>& outPipelines, std::map<GUID, std::set<GUID, GuidComparator>, GuidComparator>& outExtraDependencies, std::string& outFinalRenderOutputPass);
+	bool ParseFile(std::vector<PipelineStruct>& outPipelines, std::map<GUID, std::set<GUID, GuidComparator>, GuidComparator>& outExtraDependencies, std::string& outFinalRenderOutputPass, std::string& outFinalPass);
 
 	void FlattenRenderGraph(PassBase* randomPass);
 

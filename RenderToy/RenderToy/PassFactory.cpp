@@ -3,6 +3,7 @@
 #include "GeometryPass.h"
 #include "LightingPass.h"
 #include "ShadowPass.h"
+#include "LightShaftPrePass.h"
 
 
 std::map<GUID, std::unique_ptr<PassBase>, GuidComparator> PassFactory::_createdPasses;
@@ -45,6 +46,11 @@ bool PassFactory::CreatePass(PassType type, GUID passGuid, PassBase** ppPass)
 	case PassType::SHADOW_PASS:
 	{
 		pass = new ShadowPass(passGuid);
+		break;
+	}
+	case PassType::LIGHT_SHAFT_PRE_PASS:
+	{
+		pass = new LightShaftPrePass(passGuid);
 		break;
 	}
 	}

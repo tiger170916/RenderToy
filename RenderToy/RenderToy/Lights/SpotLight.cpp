@@ -39,7 +39,7 @@ bool SpotLight::Initialize(GraphicsContext* graphicsContext)
 		f2, f4, f1,
 		f2, f3, f4,
 		n2, f2, n3,
-		n3, f2, n3,
+		n3, f2, f3,
 		f4, f1, n1,
 		f4, n1, n4 };
 
@@ -65,18 +65,40 @@ bool SpotLight::Initialize(GraphicsContext* graphicsContext)
 	m_vertexBufferView.StrideInBytes = sizeof(LightViewFrustumVertexDx);
 	m_vertexBufferView.SizeInBytes = (UINT)verticesDx.size() * sizeof(LightViewFrustumVertexDx);
 
+	m_lightViewFrustumConstantBuffer = std::unique_ptr<ConstantBuffer<LightViewFrustumConstantsDX>>(new ConstantBuffer<LightViewFrustumConstantsDX>());
+	if (!m_lightViewFrustumConstantBuffer->Initialize(graphicsContext))
+	{
+		return false;
+	}
+
 	return true;
 }
 
-void SpotLight::DrawEffectiveFrustum(ID3D12GraphicsCommandList* cmdList)
+void SpotLight::DrawEffectiveFrustum(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, FVector3 parentTransform)
 {
 	if (!cmdList)
 	{
 		return;
 	}
 
+	FVector3 lightPosition = parentTransform + m_position;
+	XMMATRIX rotation = XMMatrixRotationRollPitchYaw(m_rotator.Pitch, m_rotator.Yaw, m_rotator.Roll);
+	XMMATRIX translation = XMMatrixTranslation(lightPosition.X, lightPosition.Y, lightPosition.Z);
+	XMMATRIX transformMatrix = rotation * translation;
+	LightViewFrustumConstantsDX lightFrustumConstantDx = {};
+	DirectX::XMStoreFloat4x4(&lightFrustumConstantDx.Transform, DirectX::XMMatrixTranspose(transformMatrix));
+	(*m_lightViewFrustumConstantBuffer)[0] = lightFrustumConstantDx;
+	m_lightViewFrustumConstantBuffer->UpdateToGPU();
+	
 	m_vertexBufferResource->CopyToDefaultHeap(cmdList);
+
+	D3D12_GPU_DESCRIPTOR_HANDLE cbGpuHandle;
+	if (!m_lightViewFrustumConstantBuffer->BindConstantBufferViewToPipeline(graphicsContext, cbGpuHandle))
+	{
+		return;
+	}
 	cmdList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
+	cmdList->SetGraphicsRootDescriptorTable(1, cbGpuHandle);
 	cmdList->DrawInstanced(24, 1, 0, 0);
 }
 

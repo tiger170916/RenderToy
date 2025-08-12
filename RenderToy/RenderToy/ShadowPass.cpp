@@ -120,8 +120,6 @@ bool ShadowPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 
 bool ShadowPass::PopulateCommands(World* world, GraphicsContext* graphicsContext)
 {
-
-
 	if (world == nullptr || graphicsContext == nullptr)
 	{
 		return false;

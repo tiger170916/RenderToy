@@ -128,6 +128,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="GraphicsUtils.cpp" />
     <ClCompile Include="GuidComparator.cpp" />
     <ClCompile Include="LightingPass.cpp" />
+    <ClCompile Include="LightShaftPrePass.cpp" />
     <ClCompile Include="Lights\LightExtension.cpp" />
     <ClCompile Include="Lights\LightFactory.cpp" />
     <ClCompile Include="Lights\PointLight.cpp" />
@@ -143,6 +144,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="RenderToyApi.cpp" />
     <ClCompile Include="ResourceStreamer.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
+    <ClCompile Include="Shaders\LightFrustumRenderDebugPass.cpp" />
     <ClCompile Include="ShaderType.cpp" />
     <ClCompile Include="ShadowPass.cpp" />
     <ClCompile Include="StaticMesh.cpp" />
@@ -175,6 +177,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="GuidComparator.h" />
     <ClInclude Include="Includes.h" />
     <ClInclude Include="LightingPass.h" />
+    <ClInclude Include="LightShaftPrePass.h" />
     <ClInclude Include="LightStructs.h" />
     <ClInclude Include="Lights\LightExtension.h" />
     <ClInclude Include="Lights\LightFactory.h" />
@@ -195,6 +198,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="RenderToyApi.h" />
     <ClInclude Include="ResourceStreamer.h" />
     <ClInclude Include="ShaderManager.h" />
+    <ClInclude Include="Shaders\LightFrustumRenderDebugPass.h" />
     <ClInclude Include="ShaderType.h" />
     <ClInclude Include="ShadowPass.h" />
     <ClInclude Include="StaticMesh.h" />
@@ -216,6 +220,10 @@ $(SolutionDir)bin\CodeGen.exe</Command>
       </EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </EntryPointName>
+    </FxCompile>
+    <FxCompile Include="Shaders\LightShaftPrePass.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Shaders\ShadowPass.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>

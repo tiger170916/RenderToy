@@ -21,10 +21,3 @@ struct MeshInstanceConstants
 
 	float LightEmission[4];
 };
-
-
-
-struct LightViewFrustumVertexDx
-{
-	float position[3];
-};

@@ -30,7 +30,8 @@ bool RenderGraph::Initialize(GraphicsContext* graphicsContext, ShaderManager* sh
 	std::vector<RenderGraph::PipelineStruct> pipelines;
 	std::map<GUID, std::set<GUID, GuidComparator>, GuidComparator> extraDependencies;
 	std::string finalRenderOutputPass;
-	if (!ParseFile(pipelines, extraDependencies, finalRenderOutputPass))
+	std::string finalPass;
+	if (!ParseFile(pipelines, extraDependencies, finalRenderOutputPass, finalPass))
 	{
 		return false;
 	}
@@ -77,6 +78,11 @@ bool RenderGraph::Initialize(GraphicsContext* graphicsContext, ShaderManager* sh
 				m_finalRenderOutputPass = pPass;
 			}
 
+			if (finalPass.compare(passStruct.Name) == 0)
+			{
+				m_finalPass = pPass;
+			}
+
 			passes[passStruct.Guid] = pPass;
 		}
 	}
@@ -111,7 +117,8 @@ bool RenderGraph::Initialize(GraphicsContext* graphicsContext, ShaderManager* sh
 		}
 	}
 
-	if (!m_finalRenderOutputPass && !finalRenderOutputPass.empty())
+	if ((!m_finalRenderOutputPass && !finalRenderOutputPass.empty())
+		|| !m_finalPass)
 	{
 		return false;
 	}
@@ -265,7 +272,7 @@ bool RenderGraph::ExecuteCommands()
 		commandQueue->DispatchCommands(commandBuilder);
 
 		// Signal
-		if (pass == m_finalRenderOutputPass)
+		if (pass == m_finalPass)
 		{
 			// Set the render work done event when the current pass is the final render stage.
 			pass->CommandQueueSignalAndSetEvent(commandQueue->GetCommandQueue(), m_renderOutputWorkDoneEvent);
@@ -320,19 +327,24 @@ bool RenderGraph::Validate()
 		return false;
 	}
 
+	if (!m_finalPass)
+	{
+		return false;
+	}
+
 	// TODO: Dependency validations
 	return true;
 }
 
 void RenderGraph::WaitForRenderFinalOutputDone()
 {
-	if (m_finalRenderOutputPass)
+	if (m_finalPass)
 	{
 		WaitForSingleObject(m_renderOutputWorkDoneEvent, INFINITE);
 	}
 }
 
-bool RenderGraph::ParseFile(std::vector<RenderGraph::PipelineStruct>& outPipelines, std::map<GUID, std::set<GUID, GuidComparator>, GuidComparator>& outExtraDependencies, std::string& outFinalRenderOutputPass)
+bool RenderGraph::ParseFile(std::vector<RenderGraph::PipelineStruct>& outPipelines, std::map<GUID, std::set<GUID, GuidComparator>, GuidComparator>& outExtraDependencies, std::string& outFinalRenderOutputPass, std::string& outFinalPass)
 {
 	outPipelines.clear();
 	outFinalRenderOutputPass.clear();
@@ -472,6 +484,11 @@ bool RenderGraph::ParseFile(std::vector<RenderGraph::PipelineStruct>& outPipelin
 			if (renderGraph.contains("FinalRenderOutputPass") && renderGraph["FinalRenderOutputPass"].is_string())
 			{
 				outFinalRenderOutputPass = renderGraph["FinalRenderOutputPass"];
+			}
+
+			if (renderGraph.contains("FinalPass") && renderGraph["FinalPass"].is_string())
+			{
+				outFinalPass = renderGraph["FinalPass"];
 			}
 		}
 	}

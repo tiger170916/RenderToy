@@ -28,3 +28,13 @@ struct LightConstantsDx
 
     LightConstants Lights[50];
 };
+
+struct LightViewFrustumVertexDx
+{
+    float position[3];
+};
+
+struct LightViewFrustumConstantsDX
+{
+    XMFLOAT4X4 Transform;
+};

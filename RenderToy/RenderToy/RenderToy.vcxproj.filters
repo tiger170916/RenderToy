@@ -149,6 +149,12 @@
     <ClCompile Include="MeshFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LightShaftPrePass.cpp">
+      <Filter>RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="Shaders\LightFrustumRenderDebugPass.cpp">
+      <Filter>RenderPasses</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -307,6 +313,12 @@
     <ClInclude Include="MeshFactory.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="LightShaftPrePass.h">
+      <Filter>RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="Shaders\LightFrustumRenderDebugPass.h">
+      <Filter>RenderPasses</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\EarlyZPass.hlsl">
@@ -322,6 +334,9 @@
       <Filter>ShaderSource</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\ShadowPass.hlsl">
+      <Filter>ShaderSource</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\LightShaftPrePass.hlsl">
       <Filter>ShaderSource</Filter>
     </FxCompile>
   </ItemGroup>

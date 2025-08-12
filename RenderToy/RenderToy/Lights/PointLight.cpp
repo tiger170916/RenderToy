@@ -11,7 +11,7 @@ bool PointLight::Initialize(GraphicsContext* graphicsContext)
 	return true;
 }
 
-void PointLight::DrawEffectiveFrustum(ID3D12GraphicsCommandList* cmdList)
+void PointLight::DrawEffectiveFrustum(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, FVector3 parentTransform)
 {
 
 }

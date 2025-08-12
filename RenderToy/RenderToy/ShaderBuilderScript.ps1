@@ -87,6 +87,33 @@ Write-Host "LightingPass pixel shader output: $lightingPassPixelShaderOutput"
 # Compile pixel shader
 & $dxc /T ps_6_6 $lightingPassFile /E"PixelShaderMain" /Fo $lightingPassPixelShaderOutput /Od /Zi /Fd $lightingPassPixelShaderPdbOutput /nologo
 
+
+##### LightShaftPrePass #####
+$lightShaftPrePassFile = $shaderDir + "LightShaftPrePass.hlsl"
+$lightShaftPrePassRootSignatureOutput = $outputDir + "light_shaft_pre_pass_root_signature.cso"
+$lightShaftPrePassVertexShaderOutput = $outputDir + "light_shaft_pre_pass_vertex_shader.cso"
+$lightShaftPrePassVertexShaderPdbOutput = $outputDir + "light_shaft_pre_pass_vertex_shader.pdb"
+$lightShaftPrePassPixelShaderOutput = $outputDir + "light_shaft_pre_pass_pixel_shader.cso"
+$lightShaftPrePassPixelShaderPdbOutput = $outputDir + "light_shaft_pre_pass_pixel_shader.pdb"
+$lightFrustumRenderDebugPassPixelShaderOutput = $outputDir + "light_frustum_render_pass_pixel_shader.cso"
+$lightFrustumRenderDebugPassPixelShaderPdbOutput = $outputDir + "light_frustum_render_pass_pixel_shader.pdb"
+
+Write-Host "LightShaftPrePass shader file: $lightShaftPrePassFile"
+Write-Host "LightShaftPrePass root signature output: $lightShaftPrePassRootSignatureOutput"
+Write-Host "LightShaftPrePass vertex shader output: $lightShaftPrePassVertexShaderOutput"
+Write-Host "LightShaftPrePass pixel shader output: $lightShaftPrePassPixelShaderOutput"
+Write-Host "LightFrustumRenderDebugPass pixel shader output: $lightFrustumRenderDebugPassPixelShaderOutput"
+
+# Compile root signature
+& $dxc /T rootsig_1_1 $lightShaftPrePassFile /E "LightShaftPrePassRootsignature" /Fo $lightShaftPrePassRootSignatureOutput /nologo
+# Compile vertex shader
+& $dxc /T vs_6_6 $lightShaftPrePassFile /E"VertexShaderMain" /Fo $lightShaftPrePassVertexShaderOutput /Zi /Fd $lightShaftPrePassVertexShaderPdbOutput /nologo
+# Compile pixel shader
+& $dxc /T ps_6_6 $lightShaftPrePassFile /E"PixelShaderMain" /Fo $lightShaftPrePassPixelShaderOutput /Od /Zi /Fd $lightShaftPrePassPixelShaderPdbOutput /nologo
+# Compile debug render pixel shader
+& $dxc /T ps_6_6 $lightShaftPrePassFile /E"DebugPixelShaderMain" /Fo $lightFrustumRenderDebugPassPixelShaderOutput /Od /Zi /Fd $lightFrustumRenderDebugPassPixelShaderPdbOutput /nologo
+
+
 Write-Host "Shader Build Done!"
 Write-Host "************************"
 Write-Host "************************"

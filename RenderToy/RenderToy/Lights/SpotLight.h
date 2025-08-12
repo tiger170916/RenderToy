@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../Includes.h"
+#include "../ConstantBuffer.h"
+#include "../LightStructs.h"
 #include "LightExtension.h"
 
 class SpotLight : public LightExtension
@@ -22,6 +24,8 @@ private:
 
 	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView = {};
 
+	std::unique_ptr<ConstantBuffer<LightViewFrustumConstantsDX>> m_lightViewFrustumConstantBuffer;
+
 protected:
 	SpotLight(float effectiveRange, FVector3 position, FVector3 intensity, uint32_t uid, FRotator rotator, float aspectRatio, float fov);
 
@@ -34,5 +38,5 @@ public:
 
 	virtual bool Initialize(GraphicsContext* graphicsContext) override;
 
-	void DrawEffectiveFrustum(ID3D12GraphicsCommandList* cmdList);
+	void DrawEffectiveFrustum(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, FVector3 parentTransform);
 };

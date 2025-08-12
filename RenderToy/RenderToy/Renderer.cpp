@@ -107,8 +107,8 @@ bool Renderer::Initialize(HWND hwnd)
 		lightBulbMesh[i]->EnablePass(PassType::SHADOW_PASS);
 
 		// Create a light extension, and attach to the light bulb model
-		LightFactory::Get()->SpawnSpotLight(lightBulbMesh[i].get(), 0, 30.0, FVector3(0.0f, 0.0f, 0.0f), FVector3(30.0f, 30.0f, 30.0f), FRotator(0.0f, 0.0f, 0.0f), 1.0f, 0.2f);
-		LightFactory::Get()->SpawnSpotLight(lightBulbMesh[i].get(), 1, 30.0, FVector3(0.0f, 0.0f, 0.0f), FVector3(30.0f, 30.0f, 30.0f), FRotator(0.0f, 1.0f * DirectX::XM_PI, 0.0f), 1.0f, 0.2f);
+		LightFactory::Get()->SpawnSpotLight(m_graphicsContext.get(), lightBulbMesh[i].get(), 0, 30.0, FVector3(0.0f, 0.0f, 0.0f), FVector3(30.0f, 30.0f, 30.0f), FRotator(0.0f, 0.0f, 0.0f), 1.0f, 0.2f);
+		LightFactory::Get()->SpawnSpotLight(m_graphicsContext.get(), lightBulbMesh[i].get(), 1, 30.0, FVector3(0.0f, 0.0f, 0.0f), FVector3(30.0f, 30.0f, 30.0f), FRotator(0.0f, 1.0f * DirectX::XM_PI, 0.0f), 1.0f, 0.2f);
 
 		lightBulbMesh[i]->BuildResource(m_graphicsContext.get(), m_textureManager.get());
 		lightBulbMesh[i]->QueueStreamingTasks(m_resourceStreamer.get(), 0);

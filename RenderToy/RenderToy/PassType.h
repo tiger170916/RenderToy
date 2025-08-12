@@ -9,4 +9,5 @@ enum class PassType
 	EARLY_Z_PASS = 2,
 	GEOMETRY_PASS = 3,
 	LIGHTING_PASS = 4,
+	LIGHT_SHAFT_PRE_PASS = 5,
 };
