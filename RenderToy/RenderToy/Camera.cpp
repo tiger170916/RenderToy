@@ -27,8 +27,8 @@ void Camera::Frame(float delta)
 	static const float speed = 0.1f;
 
 	curPos += delta * speed;
-	m_position.X = cos(curPos) * 18.5f;
-	m_position.Z = sin(curPos) * 18.5f;
+	m_position.X = cos(curPos) * 35.0f;
+	m_position.Z = sin(curPos) * 35.0f;
 
 	CalculateViewMatrixWithLookAtPosition();
 }

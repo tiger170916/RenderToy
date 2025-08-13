@@ -152,7 +152,7 @@
     <ClCompile Include="LightShaftPrePass.cpp">
       <Filter>RenderPasses</Filter>
     </ClCompile>
-    <ClCompile Include="Shaders\LightFrustumRenderDebugPass.cpp">
+    <ClCompile Include="LightFrustumDebugPass.cpp">
       <Filter>RenderPasses</Filter>
     </ClCompile>
   </ItemGroup>
@@ -316,7 +316,7 @@
     <ClInclude Include="LightShaftPrePass.h">
       <Filter>RenderPasses</Filter>
     </ClInclude>
-    <ClInclude Include="Shaders\LightFrustumRenderDebugPass.h">
+    <ClInclude Include="LightFrustumDebugPass.h">
       <Filter>RenderPasses</Filter>
     </ClInclude>
   </ItemGroup>

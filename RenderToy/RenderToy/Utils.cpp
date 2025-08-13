@@ -8,7 +8,8 @@ std::map<std::string, PassType> Utils::g_passTypeStringLookup
 	{"EARLY_Z_PASS", PassType::EARLY_Z_PASS },
 	{"GEOMETRY_PASS", PassType::GEOMETRY_PASS },
 	{"LIGHTING_PASS", PassType::LIGHTING_PASS },
-	{"LIGHT_SHAFT_PRE_PASS", PassType::LIGHT_SHAFT_PRE_PASS }
+	{"LIGHT_SHAFT_PRE_PASS", PassType::LIGHT_SHAFT_PRE_PASS },
+	{"LIGHT_FRUSTUM_DEBUG_PASS", PassType::LIGHT_FRUSTUM_DEBUG_PASS }
 };
 
 std::filesystem::path Utils::GetWorkingDirectory()

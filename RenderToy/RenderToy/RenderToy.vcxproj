@@ -127,6 +127,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="GraphicsPipelineState.cpp" />
     <ClCompile Include="GraphicsUtils.cpp" />
     <ClCompile Include="GuidComparator.cpp" />
+    <ClCompile Include="LightFrustumDebugPass.cpp" />
     <ClCompile Include="LightingPass.cpp" />
     <ClCompile Include="LightShaftPrePass.cpp" />
     <ClCompile Include="Lights\LightExtension.cpp" />
@@ -144,7 +145,6 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="RenderToyApi.cpp" />
     <ClCompile Include="ResourceStreamer.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
-    <ClCompile Include="Shaders\LightFrustumRenderDebugPass.cpp" />
     <ClCompile Include="ShaderType.cpp" />
     <ClCompile Include="ShadowPass.cpp" />
     <ClCompile Include="StaticMesh.cpp" />
@@ -176,6 +176,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="GraphicsUtils.h" />
     <ClInclude Include="GuidComparator.h" />
     <ClInclude Include="Includes.h" />
+    <ClInclude Include="LightFrustumDebugPass.h" />
     <ClInclude Include="LightingPass.h" />
     <ClInclude Include="LightShaftPrePass.h" />
     <ClInclude Include="LightStructs.h" />
@@ -198,7 +199,6 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="RenderToyApi.h" />
     <ClInclude Include="ResourceStreamer.h" />
     <ClInclude Include="ShaderManager.h" />
-    <ClInclude Include="Shaders\LightFrustumRenderDebugPass.h" />
     <ClInclude Include="ShaderType.h" />
     <ClInclude Include="ShadowPass.h" />
     <ClInclude Include="StaticMesh.h" />

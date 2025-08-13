@@ -36,4 +36,6 @@ public:
 	inline const UINT64 GetDepthBufferDsvId() const { return m_dsvId; }
 
 	inline const UINT64 GetDepthBufferSrvId() const { return m_srvId; }
+
+	inline ID3D12Resource* GetDepthBufferResource() const { return m_depthStencilBuffer.Get(); }
 };
