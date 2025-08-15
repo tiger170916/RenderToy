@@ -16,8 +16,6 @@ private:
 
 	float m_fov;
 
-	float m_nearPlane = 0.1f;
-
 	XMMATRIX m_projectionMatrix;
 
 	std::unique_ptr<D3DResource> m_vertexBufferResource;

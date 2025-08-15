@@ -73,7 +73,7 @@ bool ShadowPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 
 	D3D12_RASTERIZER_DESC rasterizerDesc = {
 	D3D12_FILL_MODE_SOLID,
-	D3D12_CULL_MODE_NONE,
+	D3D12_CULL_MODE_FRONT,
 	FALSE,
 	0,
 	0.0f, //clamp
@@ -186,7 +186,10 @@ bool ShadowPass::PopulateCommands(World* world, GraphicsContext* graphicsContext
 				(*lightCb)[0].Lights[lightItr] = lightConsts;
 
 				XMMATRIX view = GraphicsUtils::ViewMatrixFromPositionRotation(spotLight->GetPosition() + transform.Translation, spotLight->GetRotator());
+				DirectX::XMStoreFloat4x4(&(*lightCb)[0].Lights[lightItr].ViewMatrix, DirectX::XMMatrixTranspose(view));
 				DirectX::XMStoreFloat4x4(&(*lightCb)[0].Lights[lightItr].Transform, DirectX::XMMatrixTranspose(spotLight->GetProjectionMatrix()) * DirectX::XMMatrixTranspose(view));
+				(*lightCb)[0].Lights[lightItr].NearPlane = light->GetNearPlane();
+				(*lightCb)[0].Lights[lightItr].FarPlane = light->GetEffectiveRange();
 				lightItr++;
 			}
 		}

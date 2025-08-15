@@ -6,6 +6,8 @@ struct LightConstants
 {
 	XMFLOAT4X4 Transform;
 
+    XMFLOAT4X4 ViewMatrix;
+
     float Position[4];
 
     float Intensity[4];
@@ -19,8 +21,14 @@ struct LightConstants
     //
     UINT ShadowBufferSize;
     UINT LightType;
-    UINT Pad0[2];
+    UINT ParentUid;
+    UINT Pad0;
+
+    float NearPlane;
+    float FarPlane;
+    float Pad1[2];
 };
+
 
 struct LightConstantsDx
 {

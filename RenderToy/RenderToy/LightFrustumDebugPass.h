@@ -7,7 +7,7 @@ class LightFrustumDebugPass : public RenderPassBase
 private:
 	ComPtr<ID3D12Resource> m_pDepthResource = nullptr;
 
-	DXGI_FORMAT m_depthFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	DXGI_FORMAT m_depthFormat = DXGI_FORMAT_D32_FLOAT;
 
 	UINT64 m_dsvId = UINT64_MAX;
 

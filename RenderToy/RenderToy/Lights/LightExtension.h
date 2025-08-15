@@ -21,6 +21,8 @@ protected:
 
 	float m_effectiveRange = 0;
 
+	float m_nearPlane = 0.3f;
+
 	uint32_t m_uid = 0;
 
 	FVector3 m_intensity;
@@ -38,6 +40,10 @@ public:
 	inline FVector3 GetIntensity() const { return m_intensity; }
 
 	inline uint32_t GetUid() const { return m_uid; }
+
+	inline float GetEffectiveRange () const { return m_effectiveRange; }
+
+	inline float GetNearPlane() const { return m_nearPlane; }
 
 public:
 	// Interfaces

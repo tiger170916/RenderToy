@@ -43,6 +43,18 @@ std::wstring GetShaderRelativePath(const ShaderType & type)
     {
         return std::wstring(L"light_frustum_render_pass_pixel_shader.cso");
     }
+    case ShaderType::LIGHT_SHAFT_PASS_PIXEL_SHADER:
+    {
+        return std::wstring(L"light_shaft_pass_pixel_shader.cso");
+    }
+    case ShaderType::LIGHT_SHAFT_PASS_ROOT_SIGNATURE:
+    {
+        return std::wstring(L"light_shaft_pass_root_signature.cso");
+    }
+    case ShaderType::LIGHT_SHAFT_PASS_VERTEX_SHADER:
+    {
+        return std::wstring(L"light_shaft_pass_vertex_shader.cso");
+    }
     case ShaderType::LIGHT_SHAFT_PRE_PASS_PIXEL_SHADER:
     {
         return std::wstring(L"light_shaft_pre_pass_pixel_shader.cso");

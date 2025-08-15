@@ -32,7 +32,7 @@ bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 	UINT adapterNodeMask = graphicsContext->GetAdapterNodeMask();
 	DescriptorHeapManager* descHeapManager = graphicsContext->GetDescriptorHeapManager();
 
-	m_depthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	//m_depthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
 	// Create the depth/stencil buffer and view.
 	D3D12_RESOURCE_DESC depthStencilResourceDesc = {};
@@ -44,12 +44,12 @@ bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 	depthStencilResourceDesc.MipLevels = 1;
 	depthStencilResourceDesc.SampleDesc.Count = 1;
 	depthStencilResourceDesc.SampleDesc.Quality = 0;
-	depthStencilResourceDesc.Format = m_depthStencilFormat;
+	depthStencilResourceDesc.Format = m_depthFormat;
 	depthStencilResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	depthStencilResourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
 	D3D12_CLEAR_VALUE optClear = {};
-	optClear.Format = m_depthStencilFormat;
+	optClear.Format = m_depthFormat;
 	optClear.DepthStencil.Depth = 1.0f;
 	optClear.DepthStencil.Stencil = 0;
 
@@ -71,7 +71,7 @@ bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
 	dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-	dsvDesc.Format = m_depthStencilFormat;
+	dsvDesc.Format = m_depthFormat;
 	dsvDesc.Texture2D.MipSlice = 0;
 
 	m_dsvId = descHeapManager->CreateDepthStencilView(m_depthStencilBuffer.Get(), &dsvDesc);
@@ -82,7 +82,7 @@ bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+	srvDesc.Format = m_depthSrvFormat;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MostDetailedMip = 0;
 	srvDesc.Texture2D.MipLevels = 1;
@@ -127,7 +127,7 @@ bool EarlyZPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 	pipelineStateDesc.RasterizerState = rasterizerDesc;
 	pipelineStateDesc.DepthStencilState = depthStencilDesc;
 	pipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	pipelineStateDesc.DSVFormat = m_depthStencilFormat;
+	pipelineStateDesc.DSVFormat = m_depthFormat;
 	pipelineStateDesc.SampleDesc.Count = 1;
 	pipelineStateDesc.SampleDesc.Quality = 0;
 	pipelineStateDesc.SampleMask = UINT_MAX;

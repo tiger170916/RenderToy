@@ -90,12 +90,7 @@ PS_OUTPUT PixelShaderMain(MeshVertexOut vertexOut)
     float2 pixelPos = vertexOut.pos.xy;
     float2 screenUv = (float2)pixelPos / float2(width, height);
     
-    float z = vertexOut.pos.z / vertexOut.pos.w;
-    // Early out if the shading point is behind
-    if (depthBuffer.SampleLevel(pointSampler, screenUv, 0).x < z)
-    {
-        return output;  
-    }
+    float z = vertexOut.pos.z;
     
     float2 uv = float2(vertexOut.uv.x, 1.0f - vertexOut.uv.y);
     
@@ -103,6 +98,12 @@ PS_OUTPUT PixelShaderMain(MeshVertexOut vertexOut)
     float3 pos_dy = ddy(vertexOut.worldPos.xyz);
     float2 texC_dx = ddx(vertexOut.uv);
     float2 texC_dy = ddy(vertexOut.uv);
+    
+    // Early out if the shading point is behind
+    if (depthBuffer.SampleLevel(pointSampler, screenUv, 0).x < z)
+    {
+        return output;  
+    }
     
     float3 T = normalize(pos_dx * texC_dy.y - pos_dy * texC_dx.y);
     float3 B = normalize(pos_dy * texC_dx.x - pos_dx * texC_dy.x);

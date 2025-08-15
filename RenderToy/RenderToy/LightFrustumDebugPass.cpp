@@ -106,6 +106,8 @@ bool LightFrustumDebugPass::Initialize(GraphicsContext* graphicsContext, ShaderM
 	m_scissorRect = { 0, 0, (long)width, (long)height };
 
 	m_initialized = true;
+
+	return true;
 }
 
 bool LightFrustumDebugPass::PopulateCommands(World* world, GraphicsContext* graphicsContext)

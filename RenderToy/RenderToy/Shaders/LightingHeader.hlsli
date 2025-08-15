@@ -4,6 +4,8 @@
 struct LightConstants
 {
     float4x4 Transform;
+    
+    float4x4 ViewMatrix;
 
     float4 Position;
 
@@ -20,6 +22,11 @@ struct LightConstants
     uint LightType;
     uint ParentUid;
     uint Pad0;
+    
+    //
+    float NearPlane;
+    float FarPlane;
+    float2 Pad1;
 };
 
 

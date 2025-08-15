@@ -9,7 +9,9 @@ class EarlyZPass : public RenderPassBase
 private:
 	ComPtr<ID3D12Resource> m_depthStencilBuffer = nullptr;
 
-	DXGI_FORMAT m_depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
+	DXGI_FORMAT m_depthFormat = DXGI_FORMAT_D32_FLOAT;
+
+	DXGI_FORMAT m_depthSrvFormat = DXGI_FORMAT_R32_FLOAT;
 
 	UINT64 m_dsvId = UINT64_MAX;
 

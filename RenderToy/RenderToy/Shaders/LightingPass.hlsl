@@ -136,25 +136,26 @@ float4 PixelShaderMain(MeshVertexOut vertexOut) : SV_Target0
     for (uint lightIdx = 0; lightIdx < Lights.NumLights[0]; lightIdx++)
     {
         const float4x4 lightTransform = Lights.LightInstances[lightIdx].Transform;
-        float4 shadowViewPos = mul(float4(worldPos, 1.0f), lightTransform);
-        shadowViewPos /= shadowViewPos.w;
+        const float4x4 lightViewMatrix = Lights.LightInstances[lightIdx].ViewMatrix;
         
-        if (pow(shadowViewPos.x, 2.0f) + pow(shadowViewPos.y, 2.0f) > 1.0f)
+        float4 shadowNcdPos = mul(float4(worldPos, 1.0f), lightTransform);
+        shadowNcdPos /= shadowNcdPos.w;
+        
+        if (pow(shadowNcdPos.x, 2.0f) + pow(shadowNcdPos.y, 2.0f) > 1.0f)
         {
             continue;
         }
         
-        if (shadowViewPos.x < -1.0f || shadowViewPos.x > 1.0f ||
-        shadowViewPos.y < -1.0f || shadowViewPos.y > 1.0f ||
-        shadowViewPos.z < 0.0f || shadowViewPos.z > 1.0f)
+        if (shadowNcdPos.x < -1.0f || shadowNcdPos.x > 1.0f ||
+        shadowNcdPos.y < -1.0f || shadowNcdPos.y > 1.0f ||
+        shadowNcdPos.z < 0.0f || shadowNcdPos.z > 1.0f)
         {
             continue;
         }
         
         // Transform to texture space.
-        //float2 shadowUv = float2(0.5f, 0.5f) * (shadowViewPos.xy + float2(0.5f, 0.5f));
-        float shadowU = (shadowViewPos.x + 1.0) / 2.0;
-        float shadowV = (1.0 - shadowViewPos.y) / 2.0;
+        float shadowU = (shadowNcdPos.x + 1.0) / 2.0;
+        float shadowV = (1.0 - shadowNcdPos.y) / 2.0;
         
         const float3 pointLightPosition = Lights.LightInstances[lightIdx].Position.xyz;
         const float3 radiance = Lights.LightInstances[lightIdx].Intensity.xyz;
@@ -165,12 +166,34 @@ float4 PixelShaderMain(MeshVertexOut vertexOut) : SV_Target0
         int shadowVTex = (int)floor(shadowV * Lights.LightInstances[lightIdx].ShadowBufferSize);
         
         float d = dot(normal, l);
-        float bias = max(0.02 * (1.0f - d), 0.02);
+        
+        if (d <= 0.0f)
+        {
+            continue;
+        }
+        
+        float lightNearPlane = Lights.LightInstances[lightIdx].NearPlane;
+        float lightFarPlane = Lights.LightInstances[lightIdx].FarPlane;
+        
+
+        float4 shadowViewPosition = mul(float4(worldPos, 1.0f), lightViewMatrix);
+        float shadowZ = shadowViewPosition.z /= shadowViewPosition.w;
+        if (shadowZ > lightFarPlane || shadowZ < lightNearPlane)
+        {
+            continue;
+        }
+        
+        float bias = max(lerp(0.0f, 0.02f, (shadowZ - lightNearPlane) / (lightFarPlane - lightNearPlane)) * 0.05f * (1.0f - d), 0.003f);
         
         // calculate pcf
         float shadow = 0.0f;
         int sampleCount = 0;
-        for (int m = -5; m <= 5; m++)
+  
+        
+        uint2 shadowUvInt = uint2(shadowUTex + Lights.LightInstances[lightIdx].ShadowBufferOffsetX, shadowVTex + Lights.LightInstances[lightIdx].ShadowBufferOffsetY);
+        float shadowMapDepth = lightMapAtlas[shadowUvInt];
+                
+        for (int m = -3; m <= 3; m++)
         {
             int u = shadowUTex + m;
             if (u < 0 || u >= Lights.LightInstances[lightIdx].ShadowBufferSize)
@@ -178,7 +201,7 @@ float4 PixelShaderMain(MeshVertexOut vertexOut) : SV_Target0
                 continue;
             }
             
-            for (int n = -5; n <= 5; n++)
+            for (int n = -3; n <= 3; n++)
             {
                 int v = shadowVTex + n;
                 if (v < 0 || v >= Lights.LightInstances[lightIdx].ShadowBufferSize)
@@ -189,8 +212,7 @@ float4 PixelShaderMain(MeshVertexOut vertexOut) : SV_Target0
                 uint2 shadowUvInt = uint2(u + Lights.LightInstances[lightIdx].ShadowBufferOffsetX, v + Lights.LightInstances[lightIdx].ShadowBufferOffsetY);
                 float shadowMapDepth = lightMapAtlas[shadowUvInt];
                 
-                //shadow += shadowViewPos.z - bias > shadowMapDepth ? 1.0f : 0.0f;
-                if (shadowViewPos.z - bias > shadowMapDepth)
+                if (shadowNcdPos.z - bias > shadowMapDepth)
                 {
                     shadow += 1.0f;
                 }
