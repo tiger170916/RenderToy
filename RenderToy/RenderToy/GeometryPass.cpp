@@ -158,7 +158,7 @@ bool GeometryPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 		width,
 		height,
 		m_worldPosRenderTargetFormat,
-		D3D12_RESOURCE_FLAG_NONE,
+		D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
 		m_bufferClearValue,
 		m_worldPosBuffer.GetAddressOf(),
 		m_worldPosRtvId))
@@ -183,8 +183,11 @@ bool GeometryPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 		return false;
 	}
 
-
-
+	m_worldPosUavId = descHeapManager->CreateUnorderedAccessView(m_worldPosBuffer.Get(), nullptr, nullptr);
+	if (m_worldPosUavId == UINT64_MAX)
+	{
+		return false;
+	}
 
 	if (!GraphicsUtils::CreateRenderTargetResource(
 		pDevice,

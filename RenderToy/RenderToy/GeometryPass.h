@@ -59,6 +59,8 @@ private:
 
 	UINT64 m_emissionSrvId = UINT64_MAX;
 
+	UINT64 m_worldPosUavId = UINT64_MAX;
+
 public:
 	GeometryPass(GUID passGuid);
 
@@ -91,5 +93,9 @@ public:
 	inline const UINT64 GetNormalBufferSrvId() const { return m_normalSrvId; }
 	inline const UINT64 GetWorldPosBufferSrvId() const { return m_worldPosSrvId; }
 	inline const UINT64 GetEmissionBufferSrvId() const { return m_emissionSrvId; }
+
+
+
+	inline const UINT64 GetWorldPosBufferUavId() const { return m_worldPosUavId; }
 
 };

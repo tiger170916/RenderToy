@@ -10,6 +10,8 @@ private:
 
 	UINT64 m_rtvId = UINT64_MAX;
 
+	UINT64 m_uavId = UINT64_MAX;
+
 	const DXGI_FORMAT m_renderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	const float m_renderTargetClearValue[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -40,4 +42,5 @@ public:
 	inline bool RenderTargetBufferBarrierTransition(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter) { return ResourceBarrierTransition(m_renderTarget.Get(), commandList, stateAfter); }
 
 	inline const UINT64 GetRenderTargetBufferRtvId() const { return m_rtvId; }
+	inline const UINT64 GetRenderTargetBufferUavId() const { return m_uavId; }
 };

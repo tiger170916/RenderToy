@@ -6,9 +6,6 @@
         "CBV(b0, numDescriptors = 1)" \
     ")," \
     "DescriptorTable(" \
-        "CBV(b1, numDescriptors = 1)" \
-    ")," \
-    "DescriptorTable(" \
         "UAV(u0, numDescriptors = 1)" \
     ")," \
     "DescriptorTable(" \
@@ -20,7 +17,7 @@
 
 struct MeshVertexIn
 {
-    float3 pos : POSITION0;
+    float2 pos : POSITION0;
 };
 
 struct MeshVertexOut
@@ -44,7 +41,7 @@ MeshVertexOut VertexShaderMain(MeshVertexIn vertexIn)
 {
     MeshVertexOut output;
     
-    output.pos = float4(vertexIn.pos, 1.0f);
+    output.pos = float4(vertexIn.pos, 0.1f, 1.0f);
 
     return output;
 }
@@ -61,6 +58,4 @@ void PixelShaderMain(MeshVertexOut vertexOut)
     {
         return;
     }
-    
-    
 }

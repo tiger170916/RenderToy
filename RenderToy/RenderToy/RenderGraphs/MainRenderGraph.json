@@ -59,7 +59,7 @@
             },
             {
                 "Guid": "fa76f8fe-6ea7-450c-8646-bcfb5bf143ea",
-                "Dependencies": [ "7c624db1-ba28-41d2-9aa4-dc97277b4557", "264ac49f-685b-45d2-b3ff-7882dbab72e2" ]
+                "Dependencies": [ "7c624db1-ba28-41d2-9aa4-dc97277b4557", "264ac49f-685b-45d2-b3ff-7882dbab72e2", "8bb18fb8-38ab-4a8b-8962-3d0da37be869" ]
             }
         ],
 

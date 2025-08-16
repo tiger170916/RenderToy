@@ -6,6 +6,11 @@
 
 class LightShaftPass : public RenderPassBase
 {
+private:
+	D3D12_VIEWPORT m_viewport = {};
+
+	D3D12_RECT m_scissorRect = {};
+
 public:
 	LightShaftPass(GUID passGuid);
 

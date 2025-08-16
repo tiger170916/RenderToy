@@ -5,6 +5,7 @@
 #include "Lights/LightFactory.h"
 #include "GraphicsUtils.h"
 
+
 Renderer::~Renderer()
 {
 }
@@ -36,6 +37,11 @@ bool Renderer::Initialize(HWND hwnd)
 	m_graphicsContext = std::unique_ptr<GraphicsContext>(new GraphicsContext());
 
 	if (!m_graphicsContext->Initialize(hwnd))
+	{
+		return false;
+	}
+
+	if (!FullScreenQuad::Get()->Initialize(m_graphicsContext.get()))
 	{
 		return false;
 	}

@@ -46,7 +46,7 @@ bool LightingPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 		width,
 		height,
 		m_renderTargetFormat,
-		D3D12_RESOURCE_FLAG_NONE,
+		D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
 		m_renderTargetClearValue,
 		m_renderTarget.GetAddressOf(),
 		m_rtvId))
@@ -57,6 +57,12 @@ bool LightingPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 	m_renderTarget->SetName(L"Final render target");
 
 	m_resourceStates[m_renderTarget.Get()] = D3D12_RESOURCE_STATE_PRESENT;
+
+	m_uavId = descHeapManager->CreateUnorderedAccessView(m_renderTarget.Get(), nullptr, nullptr);
+	if (m_uavId == UINT64_MAX)
+	{
+		return false;
+	}
 
 	m_graphicsPipelineState = std::unique_ptr<GraphicsPipelineState>(new GraphicsPipelineState());
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC& pipelineStateDesc = m_graphicsPipelineState->GraphicsPipelineStateDesc();
