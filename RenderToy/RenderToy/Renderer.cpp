@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include "FbxLoader.h"
 #include "MeshFactory.h"
+#include "FullscreenQuad.h"
 #include "Lights/LightFactory.h"
 #include "GraphicsUtils.h"
 

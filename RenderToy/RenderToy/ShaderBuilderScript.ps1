@@ -114,6 +114,25 @@ Write-Host "LightFrustumRenderDebugPass pixel shader output: $lightFrustumRender
 & $dxc /T ps_6_6 $lightShaftPrePassFile /E"DebugPixelShaderMain" /Fo $lightFrustumRenderDebugPassPixelShaderOutput /Od /Zi /Fd $lightFrustumRenderDebugPassPixelShaderPdbOutput /nologo
 
 
+##### LightShaftPass #####
+$lightShaftPassFile = $shaderDir + "LightShaftPass.hlsl"
+$lightShaftPassRootSignatureOutput = $outputDir + "light_shaft_pass_root_signature.cso"
+$lightShaftPassVertexShaderOutput = $outputDir + "light_shaft_pass_vertex_shader.cso"
+$lightShaftPassPixelShaderOutput = $outputDir + "light_shaft_pass_pixel_shader.cso"
+$lightShaftPassPIxelShaderPdbOutput = $outputDir + "light_shaft_pass_pixel_shader.pdb"
+
+Write-Host "LightShaftPass shader file: $lightShaftPassFile"
+Write-Host "LightShaftPass root signature output: $lightShaftPassRootSignatureOutput"
+Write-Host "LightShaftPass vertex shader output: $lightShaftPassVertexShaderOutput"
+Write-Host "LightShaftPass pixel shader output: $lightShaftPassPixelShaderOutput"
+
+# Compile root signature
+& $dxc /T rootsig_1_1 $lightShaftPassFile /E "LightShaftPassRootsignature" /Fo $lightShaftPassRootSignatureOutput /nologo
+# Compile vertex shader
+& $dxc /T vs_6_6 $lightShaftPassFile /E"VertexShaderMain" /Fo $lightShaftPassVertexShaderOutput /nologo
+# Compile pixel shader
+& $dxc /T ps_6_6 $lightShaftPassFile /E"PixelShaderMain" /Fo $lightShaftPassPixelShaderOutput /Od /Zi /Fd $lightShaftPassPixelShaderPdbOutput /nologo
+
 Write-Host "Shader Build Done!"
 Write-Host "************************"
 Write-Host "************************"

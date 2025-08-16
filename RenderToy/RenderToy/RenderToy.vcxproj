@@ -118,6 +118,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="CriticalSection.cpp" />
     <ClCompile Include="D3DFence.cpp" />
     <ClCompile Include="D3DResource.cpp" />
+    <ClCompile Include="FullscreenQuad.cpp" />
     <ClCompile Include="GeometryPass.cpp" />
     <ClCompile Include="DescriptorHeapManager.cpp" />
     <ClCompile Include="dllmain.cpp" />
@@ -129,6 +130,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="GuidComparator.cpp" />
     <ClCompile Include="LightFrustumDebugPass.cpp" />
     <ClCompile Include="LightingPass.cpp" />
+    <ClCompile Include="LightShaftPass.cpp" />
     <ClCompile Include="LightShaftPrePass.cpp" />
     <ClCompile Include="Lights\LightExtension.cpp" />
     <ClCompile Include="Lights\LightFactory.cpp" />
@@ -166,6 +168,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="D3DFence.h" />
     <ClInclude Include="D3DResource.h" />
     <ClInclude Include="d3dx12.h" />
+    <ClInclude Include="FullscreenQuad.h" />
     <ClInclude Include="GeometryPass.h" />
     <ClInclude Include="DescriptorHeapManager.h" />
     <ClInclude Include="EarlyZPass.h" />
@@ -178,6 +181,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="Includes.h" />
     <ClInclude Include="LightFrustumDebugPass.h" />
     <ClInclude Include="LightingPass.h" />
+    <ClInclude Include="LightShaftPass.h" />
     <ClInclude Include="LightShaftPrePass.h" />
     <ClInclude Include="LightStructs.h" />
     <ClInclude Include="Lights\LightExtension.h" />
@@ -220,6 +224,10 @@ $(SolutionDir)bin\CodeGen.exe</Command>
       </EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </EntryPointName>
+    </FxCompile>
+    <FxCompile Include="Shaders\LightShaftPass.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Shaders\LightShaftPrePass.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

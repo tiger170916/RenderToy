@@ -13,6 +13,11 @@ struct MeshVertexSimpleDx
 	float position[3];
 };
 
+struct FullScreenVertexDx
+{
+	float position[2];
+};
+
 struct MeshInstanceConstants
 {
 	XMFLOAT4X4 TransformMatrix;

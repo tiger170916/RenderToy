@@ -5,6 +5,7 @@
 #include "ShadowPass.h"
 #include "LightShaftPrePass.h"
 #include "LightFrustumDebugPass.h"
+#include "LightShaftPass.h"
 
 
 std::map<GUID, std::unique_ptr<PassBase>, GuidComparator> PassFactory::_createdPasses;
@@ -22,7 +23,6 @@ bool PassFactory::CreatePass(PassType type, GUID passGuid, PassBase** ppPass)
 	{
 		return true;
 	}
-
 	PassBase* pass = nullptr;
 
 	switch (type)
@@ -32,7 +32,6 @@ bool PassFactory::CreatePass(PassType type, GUID passGuid, PassBase** ppPass)
 		pass = new EarlyZPass(passGuid);
 		break;
 	}
-
 	case PassType::GEOMETRY_PASS:
 	{
 		pass = new GeometryPass(passGuid);
@@ -57,6 +56,11 @@ bool PassFactory::CreatePass(PassType type, GUID passGuid, PassBase** ppPass)
 	case PassType::LIGHT_FRUSTUM_DEBUG_PASS:
 	{
 		pass = new LightFrustumDebugPass(passGuid);
+		break;
+	}
+	case PassType::LIGHT_SHAFT_PASS:
+	{
+		pass = new LightShaftPass(passGuid);
 		break;
 	}
 	}

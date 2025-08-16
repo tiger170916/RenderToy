@@ -155,6 +155,12 @@
     <ClCompile Include="LightFrustumDebugPass.cpp">
       <Filter>RenderPasses</Filter>
     </ClCompile>
+    <ClCompile Include="LightShaftPass.cpp">
+      <Filter>RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="FullscreenQuad.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -319,6 +325,12 @@
     <ClInclude Include="LightFrustumDebugPass.h">
       <Filter>RenderPasses</Filter>
     </ClInclude>
+    <ClInclude Include="LightShaftPass.h">
+      <Filter>RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="FullscreenQuad.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\EarlyZPass.hlsl">
@@ -337,6 +349,9 @@
       <Filter>ShaderSource</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\LightShaftPrePass.hlsl">
+      <Filter>ShaderSource</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\LightShaftPass.hlsl">
       <Filter>ShaderSource</Filter>
     </FxCompile>
   </ItemGroup>
