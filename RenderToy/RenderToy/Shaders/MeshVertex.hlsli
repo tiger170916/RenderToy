@@ -2,7 +2,14 @@ cbuffer cbUniformFrameConstants : register(b0)
 {
     float4x4 gView;
     float4x4 gProjection;
+    float4x4 gInvProjectionMatrix;
+    float4x4 gViewProjectionMatrix;
+    float4x4 gInvViewProjectionMatrix;
+    
     float4 gCameraPosition;
+    
+    float gPixelStepScale;
+    float3 Pad0;
 };
 
 struct MeshInstanceConstants

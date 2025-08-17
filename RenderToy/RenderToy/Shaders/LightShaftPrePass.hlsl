@@ -7,9 +7,6 @@
     "),"\
     "DescriptorTable(" \
         "CBV(b1, numDescriptors = 1)" \
-    "),"\
-    "DescriptorTable(" \
-        "UAV(u0, numDescriptors = 1)" \
     "),"
 
 struct LightShaftPrePassVertexIn
@@ -25,10 +22,17 @@ struct LightShaftPrePassVertexOut
 };
 
 cbuffer cbUniformFrameConstants : register(b0)
-{
+{    
     float4x4 gView;
     float4x4 gProjection;
+    float4x4 gInvProjectionMatrix;
+    float4x4 gViewProjectionMatrix;
+    float4x4 gInvViewProjectionMatrix;
+    
     float4 gCameraPosition;
+    
+    float gPixelStepScale;
+    float3 Pad0;
 };
 
 cbuffer cbFrustumMeshConstants : register(b1)
@@ -36,7 +40,6 @@ cbuffer cbFrustumMeshConstants : register(b1)
     float4x4 TransformMatrix;
 };
 
-RWTexture2D<uint> depthBuffer  : register(u0);
 
 
 [RootSignature(LightShaftPrePassRootsignature)]
@@ -56,17 +59,21 @@ LightShaftPrePassVertexOut VertexShaderMain(LightShaftPrePassVertexIn vertexIn)
 }
 
 [RootSignature(LightShaftPrePassRootsignature)]
-void PixelShaderMain(LightShaftPrePassVertexOut vertexOut)
+float4 PixelShaderMain(LightShaftPrePassVertexOut vertexOut) : SV_Target0
 {
-    float z = vertexOut.pos.z * 0.1;
+    /*
+    float z = vertexOut.pos.z;
  
     
     uint x = (uint) floor(vertexOut.pos.x);
     uint y = (uint) floor(vertexOut.pos.y);
     
-    uint zUint = asuint(z);
+    uint zDepthUint = asuint(z);
     uint originalUint;
-    InterlockedMin(depthBuffer[uint2(x, y)], zUint, originalUint);
+
+    InterlockedMin(depthBuffer[uint2(x, y)], zDepthUint, originalUint);*/
+    return vertexOut.worldPos / vertexOut.worldPos.w;
+
 }
 
 [RootSignature(LightShaftPrePassRootsignature)]

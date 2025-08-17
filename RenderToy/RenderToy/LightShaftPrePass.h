@@ -7,14 +7,23 @@ class LightShaftPrePass : public RenderPassBase
 private:
 	ComPtr<ID3D12Resource> m_pDepthResource = nullptr;
 
-	DXGI_FORMAT m_depthFormat = DXGI_FORMAT_R32_FLOAT;
+	ComPtr<ID3D12Resource> m_pPositionBuffer = nullptr;
 
-	UINT64 m_depthUavId = UINT64_MAX;
+	DXGI_FORMAT m_depthFormat = DXGI_FORMAT_D32_FLOAT;
 
+	DXGI_FORMAT m_positionBufferFormat = DXGI_FORMAT_R32G32B32A32_FLOAT;
+
+	UINT64 m_depthDsvId = UINT64_MAX;
+
+	UINT64 m_positionUavId = UINT64_MAX;
+
+	UINT64 m_positionRtvId = UINT64_MAX;
 
 	D3D12_VIEWPORT m_viewport;
 
 	D3D12_RECT m_scissorRect;
+
+	const float m_bufferClearValue[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 public:
 	LightShaftPrePass(GUID passGuid);
@@ -28,7 +37,7 @@ public:
 
 public:
 	// public resoure getter
-	inline bool DepthBufferBarrierTransition(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter) { return ResourceBarrierTransition(m_pDepthResource.Get(), commandList, stateAfter); }
+	inline bool PositionBufferBarrierTransition(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter) { return ResourceBarrierTransition(m_pPositionBuffer.Get(), commandList, stateAfter); }
 	
-	inline const UINT64 GetDepthBufferUavId() const { return m_depthUavId; }
+	inline const UINT64 GetPositionBufferUavId() const { return m_positionUavId; }
 };

@@ -2,6 +2,7 @@
 #include "GeometryPass.h"
 #include "LightingPass.h"
 #include "LightShaftPrePass.h"
+#include "ShadowPass.h"
 #include "FullscreenQuad.h"
 #include "Macros.h"
 
@@ -106,32 +107,42 @@ bool LightShaftPass::PopulateCommands(World* world, GraphicsContext* graphicsCon
 	commandList->SetGraphicsRootSignature(m_graphicsPipelineState->GetRootSignature());
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	D3D12_GPU_DESCRIPTOR_HANDLE uniformFrameGpuHandle;
+	world->GetUniformFrameConstantBuffer()->BindConstantBufferViewToPipeline(graphicsContext, uniformFrameGpuHandle);
+	commandList->SetGraphicsRootDescriptorTable(0, uniformFrameGpuHandle);
+
 	GeometryPass* dependencyGeometryPass = (GeometryPass*)GetDependencyPassOfType(PassType::GEOMETRY_PASS);
 	LightShaftPrePass* dependencyLightShaftPrePass = (LightShaftPrePass*)GetDependencyPassOfType(PassType::LIGHT_SHAFT_PRE_PASS);
 	LightingPass* dependencyLightingPass = (LightingPass*)GetDependencyPassOfType(PassType::LIGHTING_PASS);
-	if (dependencyGeometryPass && dependencyLightShaftPrePass && dependencyLightingPass)
+	ShadowPass* dependencyShadowPass = (ShadowPass*)GetDependencyPassOfType(PassType::SHADOW_PASS);
+
+	if (dependencyGeometryPass && dependencyLightShaftPrePass && dependencyLightingPass && dependencyShadowPass)
 	{
 		D3D12_GPU_DESCRIPTOR_HANDLE lightingPassRenderTargetHandle;
 		D3D12_GPU_DESCRIPTOR_HANDLE geometryPassWorldPosBufferHandle;
-		D3D12_GPU_DESCRIPTOR_HANDLE lightShaftPrePassDepthBufferHandle;
+		D3D12_GPU_DESCRIPTOR_HANDLE lightShaftPrePassPositionBufferHandle;
+		D3D12_GPU_DESCRIPTOR_HANDLE shadowAtlasHandle;
 
 		dependencyLightingPass->RenderTargetBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		dependencyGeometryPass->WorldPosBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		dependencyLightShaftPrePass->DepthBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		dependencyLightShaftPrePass->PositionBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		dependencyShadowPass->DepthAtlasBarrierTransition(commandList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 		descHeapManager->BindCbvSrvUavToPipeline(dependencyLightingPass->GetRenderTargetBufferUavId(), lightingPassRenderTargetHandle);
 		descHeapManager->BindCbvSrvUavToPipeline(dependencyGeometryPass->GetWorldPosBufferUavId(), geometryPassWorldPosBufferHandle);
-		descHeapManager->BindCbvSrvUavToPipeline(dependencyLightShaftPrePass->GetDepthBufferUavId(), lightShaftPrePassDepthBufferHandle);
+		descHeapManager->BindCbvSrvUavToPipeline(dependencyLightShaftPrePass->GetPositionBufferUavId(), lightShaftPrePassPositionBufferHandle);
+		descHeapManager->BindCbvSrvUavToPipeline(dependencyShadowPass->GetDepthAtlasUavId(), shadowAtlasHandle);
 
-		commandList->SetGraphicsRootDescriptorTable(1, lightingPassRenderTargetHandle);
-		commandList->SetGraphicsRootDescriptorTable(2, geometryPassWorldPosBufferHandle);
-		commandList->SetGraphicsRootDescriptorTable(3, lightShaftPrePassDepthBufferHandle);
+		commandList->SetGraphicsRootDescriptorTable(2, lightingPassRenderTargetHandle);
+		commandList->SetGraphicsRootDescriptorTable(3, geometryPassWorldPosBufferHandle);
+		commandList->SetGraphicsRootDescriptorTable(4, lightShaftPrePassPositionBufferHandle);
+		commandList->SetGraphicsRootDescriptorTable(5, shadowAtlasHandle);
 	}
 
 	ConstantBuffer<LightConstantsDx>* lightCb = world->GetLightConstantBuffer();
 	D3D12_GPU_DESCRIPTOR_HANDLE lightConstantsGpuDescHandle;
 	lightCb->BindConstantBufferViewToPipeline(graphicsContext, lightConstantsGpuDescHandle);
-	commandList->SetGraphicsRootDescriptorTable(0, lightConstantsGpuDescHandle);
+	commandList->SetGraphicsRootDescriptorTable(1, lightConstantsGpuDescHandle);
 
 	commandList->OMSetRenderTargets(0, nullptr, false, nullptr);
 	commandList->RSSetViewports(1, &m_viewport);

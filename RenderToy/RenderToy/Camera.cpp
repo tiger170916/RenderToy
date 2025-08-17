@@ -4,8 +4,15 @@
 Camera::Camera(UINT width, UINT height, FVector3 initPosition, FRotator initRotation)
 	: m_width(width), m_height(height), m_position(initPosition), m_rotator(initRotation)
 {
-	m_projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(0.25f * DirectX::XM_PI, (float)m_width / (float)m_height, 0.5f, 1000.0f);
+	float fov_y = 0.25f * DirectX::XM_PI;
+	float aspectRatio = (float)m_width / (float)m_height;
+	float nearPlane = 0.5f;
+	float farPlane = 1000.0f;
+	m_projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(fov_y, aspectRatio, nearPlane, farPlane);
 	CalculateViewMatrix();
+	float a = tan(fov_y * 0.5f);
+	//m_pixelStepScale = 2.0f * tanf(0.25f * DirectX::XM_PI / (2.0f * (float)width));
+	m_pixelStepScale = tan(fov_y * 0.5f) * aspectRatio * 2.0f / (float)width;
 }
 
 void Camera::CalculateViewMatrix()
@@ -27,8 +34,8 @@ void Camera::Frame(float delta)
 	static const float speed = 0.2f;
 
 	curPos += delta * speed;
-	m_position.X = cos(curPos) * 20.0f;
-	m_position.Z = sin(curPos) * 20.0f;
+	m_position.X = cos(curPos) * 25.0f;
+	m_position.Z = sin(curPos) * 25.0f;
 
 	CalculateViewMatrixWithLookAtPosition();
 }

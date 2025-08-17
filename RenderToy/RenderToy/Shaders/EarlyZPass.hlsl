@@ -17,8 +17,8 @@ MeshVertexOut VertexShaderMain(MeshVertexIn vertexIn, uint instanceID : SV_Insta
     // Transform point to homogeneous space.
     
     float4 pos = mul(float4(vertexIn.pos, 1.0f), MeshInstances[instanceID].TransformMatrix);
-    pos = mul(pos, gView);
-    pos = mul(pos, gProjection);
+    pos = mul(pos, gViewProjectionMatrix);
+    //pos = mul(pos, gProjection);
     
     output.pos = pos;
 

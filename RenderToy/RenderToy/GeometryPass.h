@@ -30,7 +30,7 @@ private:
 
 	const DXGI_FORMAT m_emissionRenderTargetFormat = DXGI_FORMAT_R32G32B32A32_FLOAT;
 
-	const float m_bufferClearValue[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	const float m_bufferClearValue[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 	D3D12_VIEWPORT m_viewport;
 

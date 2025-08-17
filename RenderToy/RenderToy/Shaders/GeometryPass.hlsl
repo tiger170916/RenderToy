@@ -69,8 +69,8 @@ MeshVertexOut VertexShaderMain(MeshVertexIn vertexIn, uint instanceID : SV_Insta
     
     float4 pos = mul(float4(vertexIn.pos, 1.0f), MeshInstances[instanceID].TransformMatrix);
     output.worldPos = pos;
-    pos = mul(pos, gView);
-    pos = mul(pos, gProjection);
+    pos = mul(pos, gViewProjectionMatrix);
+    //pos = mul(pos, gProjection);
     output.uv = vertexIn.uv;
     output.pos = pos;
     output.instanceId = instanceID;

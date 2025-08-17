@@ -18,6 +18,8 @@ private:
 
 	XMMATRIX m_viewMatrix = XMMatrixIdentity();
 
+	float m_pixelStepScale = 0.0f;
+
 	// Basis of coordinate
 	const FVector3 m_basisForward = FVector3(0.0f, 0.0f, 1.0f);
 
@@ -39,6 +41,8 @@ public:
 	inline FVector3 GetPosition() const { return m_position; }
 
 	void Frame(float delta);
+
+	inline const float GetPixelStepScale() const { return m_pixelStepScale; }
 
 private:
 	void CalculateViewMatrix();

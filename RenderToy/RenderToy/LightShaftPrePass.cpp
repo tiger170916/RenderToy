@@ -1,6 +1,7 @@
 #include "LightShaftPrePass.h"
 #include "Macros.h"
 #include "Lights/SpotLight.h"
+#include "GraphicsUtils.h"
 
 LightShaftPrePass::LightShaftPrePass(GUID passGuid)
 	: RenderPassBase(passGuid)
@@ -35,35 +36,41 @@ bool LightShaftPrePass::Initialize(GraphicsContext* graphicsContext, ShaderManag
 	UINT adapterNodeMask = graphicsContext->GetAdapterNodeMask();
 	DescriptorHeapManager* descHeapManager = graphicsContext->GetDescriptorHeapManager();
 
-	D3D12_RESOURCE_DESC depthResourceDesc = {};
-	depthResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	depthResourceDesc.Alignment = 0;
-	depthResourceDesc.Width = width;
-	depthResourceDesc.Height = height;
-	depthResourceDesc.DepthOrArraySize = 1;
-	depthResourceDesc.MipLevels = 1;
-	depthResourceDesc.SampleDesc.Count = 1;
-	depthResourceDesc.SampleDesc.Quality = 0;
-	depthResourceDesc.Format = m_depthFormat;
-	depthResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	depthResourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-
-	D3D12_HEAP_PROPERTIES defaultHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT, adapterNodeMask);
-	if (FAILED(pDevice->CreateCommittedResource(
-		&defaultHeap,
-		D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES,
-		&depthResourceDesc,
-		D3D12_RESOURCE_STATE_COMMON,
-		nullptr,
-		IID_PPV_ARGS(m_pDepthResource.GetAddressOf()))))
+	if (!GraphicsUtils::CreateDepthStencilResource(
+		pDevice,
+		descHeapManager,
+		width,
+		height,
+		m_depthFormat,
+		D3D12_RESOURCE_FLAG_NONE,
+		1.0f,
+		0,
+		m_pDepthResource.GetAddressOf(),
+		m_depthDsvId))
 	{
 		return false;
 	}
 
-	m_resourceStates[m_pDepthResource.Get()] = D3D12_RESOURCE_STATE_COMMON;
+	m_resourceStates[m_pDepthResource.Get()] = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 
-	m_depthUavId = descHeapManager->CreateUnorderedAccessView(m_pDepthResource.Get(), nullptr, nullptr);
-	if (m_depthUavId == UINT64_MAX)
+	if (!GraphicsUtils::CreateRenderTargetResource(
+		pDevice,
+		descHeapManager,
+		width,
+		height,
+		m_positionBufferFormat,
+		D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
+		m_bufferClearValue,
+		m_pPositionBuffer.GetAddressOf(),
+		m_positionRtvId))
+	{
+		return false;
+	}
+
+	m_resourceStates[m_pPositionBuffer.Get()] = D3D12_RESOURCE_STATE_PRESENT;
+
+	m_positionUavId = descHeapManager->CreateUnorderedAccessView(m_pPositionBuffer.Get(), nullptr, nullptr);
+	if (m_positionUavId == UINT64_MAX)
 	{
 		return false;
 	}
@@ -75,12 +82,13 @@ bool LightShaftPrePass::Initialize(GraphicsContext* graphicsContext, ShaderManag
 
 	pipelineStateDesc.NodeMask = adapterNodeMask;
 	pipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);;
-	pipelineStateDesc.NumRenderTargets = 0;
+	pipelineStateDesc.NumRenderTargets = 1;
+	pipelineStateDesc.RTVFormats[0] = m_positionBufferFormat;
 
 	D3D12_DEPTH_STENCIL_DESC depthStencilDesc = {
-		FALSE,
+		TRUE,
 		D3D12_DEPTH_WRITE_MASK_ZERO,
-		D3D12_COMPARISON_FUNC_NONE,
+		D3D12_COMPARISON_FUNC_LESS_EQUAL,
 		FALSE
 	};
 
@@ -103,7 +111,7 @@ bool LightShaftPrePass::Initialize(GraphicsContext* graphicsContext, ShaderManag
 	pipelineStateDesc.RasterizerState = rasterizerDesc;
 	pipelineStateDesc.DepthStencilState = depthStencilDesc;
 	pipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	pipelineStateDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+	pipelineStateDesc.DSVFormat = m_depthFormat;
 	pipelineStateDesc.SampleDesc.Count = 1;
 	pipelineStateDesc.SampleDesc.Quality = 0;
 	pipelineStateDesc.SampleMask = UINT_MAX;
@@ -142,19 +150,19 @@ bool LightShaftPrePass::PopulateCommands(World* world, GraphicsContext* graphics
 	commandList->SetGraphicsRootSignature(m_graphicsPipelineState->GetRootSignature());
 	commandList->SetDescriptorHeaps(1, &descHeap);
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle;
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
+	descHeapManager->GetRenderTargetViewCpuHandle(m_positionRtvId, rtvHandle);
+	descHeapManager->GetDepthStencilViewCpuHandle(m_depthDsvId, dsvHandle);
+
+	commandList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
+	ResourceBarrierTransition(m_pPositionBuffer.Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	commandList->ClearRenderTargetView(rtvHandle, m_bufferClearValue, 0, nullptr);
+	commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+
 	commandList->RSSetViewports(1, &m_viewport);
 	commandList->RSSetScissorRects(1, &m_scissorRect);
-
-	// Transit the render target buffer to copy src state, since this might be copied out as final render result.
-	ResourceBarrierTransition(m_pDepthResource.Get(), commandList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-
-	D3D12_GPU_DESCRIPTOR_HANDLE depthGpuHandle;
-	D3D12_CPU_DESCRIPTOR_HANDLE depthCpuHandle;
-	descHeapManager->BindCbvSrvUavToPipeline(m_depthUavId, depthGpuHandle);
-	descHeapManager->GetCbvSrvUavNonShaderVisibleView(m_depthUavId, depthCpuHandle);
-	commandList->SetGraphicsRootDescriptorTable(2, depthGpuHandle);
-	float clearVal[4] = { 1.0f, 0.0f, 0.0f, 0.0f };
-	commandList->ClearUnorderedAccessViewFloat(depthGpuHandle, depthCpuHandle, m_pDepthResource.Get(), clearVal, 0, nullptr);
 
 	// Bind uniform frame constant buffer
 	D3D12_GPU_DESCRIPTOR_HANDLE uniformFrameGpuHandle;
