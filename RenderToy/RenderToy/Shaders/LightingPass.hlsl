@@ -187,11 +187,9 @@ float4 PixelShaderMain(MeshVertexOut vertexOut) : SV_Target0
         
         // calculate pcf
         float shadow = 0.0f;
-        int sampleCount = 0;
-  
-        
+      
         uint2 shadowUvInt = uint2(shadowUTex + Lights.LightInstances[lightIdx].ShadowBufferOffsetX, shadowVTex + Lights.LightInstances[lightIdx].ShadowBufferOffsetY);
-        float shadowMapDepth = lightMapAtlas[shadowUvInt];
+        //float shadowMapDepth = lightMapAtlas[shadowUvInt];
                 
         for (int m = -3; m <= 3; m++)
         {
@@ -216,12 +214,10 @@ float4 PixelShaderMain(MeshVertexOut vertexOut) : SV_Target0
                 {
                     shadow += 1.0f;
                 }
-                
-                sampleCount += 1;
             }
         }
         
-        shadow = shadow / (float) sampleCount;
+        shadow = shadow / 9.0f;
         
         if (shadow >= 1.0f)
         {

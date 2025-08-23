@@ -73,14 +73,25 @@ bool World::FrameBegin(float delta)
 	XMVECTOR detProj;
 	XMMATRIX invProj = DirectX::XMMatrixInverse(&detProj, DirectX::XMMatrixTranspose(m_activeCamera->GetProjectionMatrix()));
 
+	XMVECTOR detView;
+	XMMATRIX invView = DirectX::XMMatrixInverse(&detView, DirectX::XMMatrixTranspose(m_activeCamera->GetViewMatrix()));
+	XMVECTOR forwardVector = DirectX::XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), invView);
+
 	DirectX::XMStoreFloat4x4(&uniformFrameConstants.ViewProjectionMatrix, viewProj);
 	DirectX::XMStoreFloat4x4(&uniformFrameConstants.InvViewProjectionMatrix, invViewProj);
 	DirectX::XMStoreFloat4x4(&uniformFrameConstants.InvProjectionMatrix, invProj);
+	DirectX::XMStoreFloat4x4(&uniformFrameConstants.InvViewMatrix, invView);
+
 
 	FVector3 cameraPos = m_activeCamera->GetPosition();
 	uniformFrameConstants.CameraPostion[0] = cameraPos.X;
 	uniformFrameConstants.CameraPostion[1] = cameraPos.Y;
 	uniformFrameConstants.CameraPostion[2] = cameraPos.Z;
+
+	uniformFrameConstants.ForwardVector[0] = forwardVector.m128_f32[0];
+	uniformFrameConstants.ForwardVector[1] = forwardVector.m128_f32[1];
+	uniformFrameConstants.ForwardVector[2] = forwardVector.m128_f32[2];
+	uniformFrameConstants.ForwardVector[3] = forwardVector.m128_f32[3];
 
 	uniformFrameConstants.PixelStepScale = m_activeCamera->GetPixelStepScale();
 

@@ -17,7 +17,8 @@ Camera::Camera(UINT width, UINT height, FVector3 initPosition, FRotator initRota
 
 void Camera::CalculateViewMatrix()
 {
-	m_viewMatrix = GraphicsUtils::ViewMatrixFromPositionRotation(m_position, m_rotator);
+	FVector3 forwardDir;
+	m_viewMatrix = GraphicsUtils::ViewMatrixFromPositionRotation(m_position, m_rotator, forwardDir);
 }
 
 void Camera::CalculateViewMatrixWithLookAtPosition()
@@ -34,8 +35,8 @@ void Camera::Frame(float delta)
 	static const float speed = 0.2f;
 
 	curPos += delta * speed;
-	m_position.X = cos(curPos) * 25.0f;
-	m_position.Z = sin(curPos) * 25.0f;
+	m_position.X = cos(curPos) * 20.0f;
+	m_position.Z = sin(curPos) * 20.0f;
 
 	CalculateViewMatrixWithLookAtPosition();
 }

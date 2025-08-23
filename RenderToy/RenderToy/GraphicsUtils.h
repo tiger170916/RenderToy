@@ -39,5 +39,5 @@ public:
 		ID3D12Resource** ppResource,
 		UINT64& outRtvId);
 
-	static XMMATRIX ViewMatrixFromPositionRotation(const FVector3& position, const FRotator& rotator);
+	static XMMATRIX ViewMatrixFromPositionRotation(const FVector3& position, const FRotator& rotator, FVector3& outForwardDir);
 };

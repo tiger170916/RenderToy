@@ -139,7 +139,7 @@ bool GraphicsUtils::CreateRenderTargetResource(
 	return outRtvId != UINT64_MAX;
 }
 
-XMMATRIX GraphicsUtils::ViewMatrixFromPositionRotation(const FVector3& position, const FRotator& rotator) 
+XMMATRIX GraphicsUtils::ViewMatrixFromPositionRotation(const FVector3& position, const FRotator& rotator, FVector3& outForwardDir) 
 {
 	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(rotator.Pitch, rotator.Yaw, rotator.Roll);
 
@@ -158,6 +158,7 @@ XMMATRIX GraphicsUtils::ViewMatrixFromPositionRotation(const FVector3& position,
 
 	FVector3 focusPos = position + forwardDirection;
 
+	outForwardDir = forwardDirection;
 
 	return XMMatrixLookAtLH(
 		XMVectorSet(position.X, position.Y, position.Z, 1.0f),

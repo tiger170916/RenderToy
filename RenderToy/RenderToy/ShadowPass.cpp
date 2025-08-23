@@ -185,7 +185,8 @@ bool ShadowPass::PopulateCommands(World* world, GraphicsContext* graphicsContext
 
 				(*lightCb)[0].Lights[lightItr] = lightConsts;
 
-				XMMATRIX view = GraphicsUtils::ViewMatrixFromPositionRotation(spotLight->GetPosition() + transform.Translation, spotLight->GetRotator());
+				FVector3 forwardDir;
+				XMMATRIX view = GraphicsUtils::ViewMatrixFromPositionRotation(spotLight->GetPosition() + transform.Translation, spotLight->GetRotator(), forwardDir);
 				DirectX::XMStoreFloat4x4(&(*lightCb)[0].Lights[lightItr].ViewMatrix, DirectX::XMMatrixTranspose(view));
 				DirectX::XMStoreFloat4x4(&(*lightCb)[0].Lights[lightItr].Transform, DirectX::XMMatrixTranspose(spotLight->GetProjectionMatrix()) * DirectX::XMMatrixTranspose(view));
 				(*lightCb)[0].Lights[lightItr].NearPlane = light->GetNearPlane();
