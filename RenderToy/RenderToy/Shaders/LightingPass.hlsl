@@ -89,11 +89,11 @@ RWTexture2D<float4> testMap                 : register(u1);
 SamplerState      pointSampler              : register(s0);
 
 [RootSignature(LightingPassRootsignature)]
-MeshPsIn VertexShaderMain(MeshVsIn input, uint instanceID : SV_InstanceID)
+MeshPsInSimple VertexShaderMain(MeshVsInScreenQuad input, uint instanceID : SV_InstanceID)
 {
-    MeshPsIn output;
+    MeshPsInSimple output;
     
-    output.pos = float4(input.pos, 1.0f);
+    output.pos = float4(input.pos, 0.1f, 1.0f);
 
     return output;
 }
@@ -134,7 +134,7 @@ float3 fresnelSchlick(float3 N, float3 H, float3 baseColor, float metallic)
 }
 
 [RootSignature(LightingPassRootsignature)]
-float4 PixelShaderMain(MeshPsIn input) : SV_Target0
+float4 PixelShaderMain(MeshPsInSimple input) : SV_Target0
 {
     float width;
     float height;

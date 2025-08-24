@@ -3,6 +3,7 @@
 #include "ShadowPass.h"
 #include "GraphicsUtils.h"
 #include "MeshFactory.h"
+#include "FullscreenQuad.h"
 #include "Macros.h"
 
 LightingPass::LightingPass(GUID passGuid)
@@ -93,7 +94,7 @@ bool LightingPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 	D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF
 	};
 
-	D3D12_INPUT_ELEMENT_DESC meshInputLayout[] = IA_MESH_LAYOUT;
+	D3D12_INPUT_ELEMENT_DESC meshInputLayout[] = IA_FULLSCREEN_QUAD_LAYOUT;
 
 	pipelineStateDesc.RasterizerState = rasterizerDesc;
 	pipelineStateDesc.DepthStencilState = depthStencilDesc;
@@ -102,7 +103,7 @@ bool LightingPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 	pipelineStateDesc.SampleDesc.Count = 1;
 	pipelineStateDesc.SampleDesc.Quality = 0;
 	pipelineStateDesc.SampleMask = UINT_MAX;
-	pipelineStateDesc.InputLayout.NumElements = NUM_IA_MESH_LAYOUT;
+	pipelineStateDesc.InputLayout.NumElements = NUM_IA_FULLSCREEN_QUAD_LAYOUT;
 	pipelineStateDesc.InputLayout.pInputElementDescs = meshInputLayout;
 
 	if (!m_graphicsPipelineState->Initialize(graphicsContext, shaderManager, ShaderType::LIGHTING_PASS_ROOT_SIGNATURE, ShaderType::LIGHTING_PASS_VERTEX_SHADER, ShaderType::SHADER_TYPE_NONE, ShaderType::LIGHTING_PASS_PIXEL_SHADER))
@@ -112,35 +113,6 @@ bool LightingPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* s
 
 	m_viewport = D3D12_VIEWPORT{ 0.0f, 0.0f, (float)width, (float)height, 0.0f, 1.0f };
 	m_scissorRect = { 0, 0, (long)width, (long)height };
-
-	m_rectangleMesh = std::unique_ptr<StaticMesh>(MeshFactory::Get()->CreateStaticMesh());
-	StaticMesh::MeshVertex point1
-	{
-		.Position = FVector3(-1.0f, -1.0f, 0.1f),
-	};
-	StaticMesh::MeshVertex point2
-	{
-		.Position = FVector3(1.0f, -1.0f, 0.1f),
-	};
-	StaticMesh::MeshVertex point3
-	{
-		.Position = FVector3(1.0f, 1.0f, 0.1f),
-	};
-
-	StaticMesh::MeshVertex point4
-	{
-		.Position = FVector3(-1.0f, 1.0f, 0.1f),
-	};
-
-	m_rectangleMesh->AddTriangle(-1, point1, point3, point2);
-	m_rectangleMesh->AddTriangle(-1, point1, point4, point3);
-
-	// Add an instance with trival transform, since this info is not gonna used.
-	MeshFactory::Get()->StaticMeshAddInstance(m_rectangleMesh.get(), Transform::Identity());
-	if (!m_rectangleMesh->BuildResource(graphicsContext, nullptr))
-	{
-		return false;
-	}
 
 	D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 	D3D12_RESOURCE_DESC testResourceDesc = {};
@@ -267,7 +239,9 @@ bool LightingPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 	}
 
 	// Draw fullscreen rectangle
-	m_rectangleMesh->Draw(graphicsContext, commandList, m_passType, false, false);
+	//m_rectangleMesh->Draw(graphicsContext, commandList, m_passType, false, false);
+	FullScreenQuad* fullscreenQuad = FullScreenQuad::Get();
+	fullscreenQuad->Draw(commandList);
 
 	// Transit the render target buffer to copy src state, since this might be copied out as final render result.
 	ResourceBarrierTransition(m_renderTarget.Get(), commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);

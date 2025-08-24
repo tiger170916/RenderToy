@@ -16,8 +16,6 @@ private:
 
 	const float m_renderTargetClearValue[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
-	std::unique_ptr<StaticMesh> m_rectangleMesh = nullptr;
-
 	D3D12_VIEWPORT m_viewport;
 
 	D3D12_RECT m_scissorRect;

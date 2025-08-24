@@ -1,6 +1,7 @@
 #include "ShadowPass.h"
 #include "Macros.h"
 #include "GraphicsUtils.h"
+#include "FullscreenQuad.h"
 #include "Lights/SpotLight.h"
 #include "Lights/PointLight.h"
 
