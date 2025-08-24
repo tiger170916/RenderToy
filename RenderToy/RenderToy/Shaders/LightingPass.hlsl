@@ -1,6 +1,18 @@
-#include "MeshVertex.hlsli"
+#include "GlobalHeader.hlsli"
+#include "MeshHeader.hlsli"
 #include "LightingHeader.hlsli"
 
+// arg0: uniform cb
+// arg1: mesh cb
+// arg2: lights cb
+// arg3: diffuseBuffer : register(t0);
+// arg4: metallicRoughnessBuffer : register(t1);
+// arg5: normalBuffer : register(t2);
+// arg6: worldPosBuffer : register(t3);
+// arg7: emissionBuffer : register(t4);
+// arg8: lightMapAtlas : register(u0);
+// arg9: testMap : register(u1);
+// arg10: pointSampler (static)
 #define LightingPassRootsignature \
     "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
     "DescriptorTable(" \
@@ -45,6 +57,16 @@ struct PS_OUTPUT
     float4 Diffuse : SV_Target0;
 };
 
+cbuffer cbUniformFrameConstants             : register(b0)
+{
+    UniformFrameConstants gUniformFrameConstants;
+};
+
+cbuffer cbMeshInstances                     : register(b1)
+{
+    MeshInstanceConstants MeshInstances[MAX_MESH_INSTANCE_NUM];
+};
+
 cbuffer cbLightTransformInstances           : register(b2)
 {
     LightBuffer Lights;
@@ -67,11 +89,11 @@ RWTexture2D<float4> testMap                 : register(u1);
 SamplerState      pointSampler              : register(s0);
 
 [RootSignature(LightingPassRootsignature)]
-MeshVertexOut VertexShaderMain(MeshVertexIn vertexIn, uint instanceID : SV_InstanceID)
+MeshPsIn VertexShaderMain(MeshVsIn input, uint instanceID : SV_InstanceID)
 {
-    MeshVertexOut output;
+    MeshPsIn output;
     
-    output.pos = float4(vertexIn.pos, 1.0f);
+    output.pos = float4(input.pos, 1.0f);
 
     return output;
 }
@@ -112,13 +134,13 @@ float3 fresnelSchlick(float3 N, float3 H, float3 baseColor, float metallic)
 }
 
 [RootSignature(LightingPassRootsignature)]
-float4 PixelShaderMain(MeshVertexOut vertexOut) : SV_Target0
+float4 PixelShaderMain(MeshPsIn input) : SV_Target0
 {
     float width;
     float height;
     diffuseBuffer.GetDimensions(width, height);
     
-    float2 uv = vertexOut.pos.xy / float2(width, height);
+    float2 uv = input.pos.xy / float2(width, height);
 
     float3 baseColor = diffuseBuffer.SampleLevel(pointSampler, uv, 0).xyz;
     float2 metallicRoughness = metallicRoughnessBuffer.SampleLevel(pointSampler, uv, 0).xy;
@@ -129,7 +151,7 @@ float4 PixelShaderMain(MeshVertexOut vertexOut) : SV_Target0
     float3 worldPos = worldPosBuffer.SampleLevel(pointSampler, uv, 0).xyz;
     float3 emission = emissionBuffer.SampleLevel(pointSampler, uv, 0).xyz;
 
-    const float3 cameraPos = gCameraPosition.xyz;
+    const float3 cameraPos = gUniformFrameConstants.CameraPosition.xyz;
     float3 v = normalize(cameraPos - worldPos);
     
     float3 LoTotal = float3(0.0f, 0.0f, 0.0f);

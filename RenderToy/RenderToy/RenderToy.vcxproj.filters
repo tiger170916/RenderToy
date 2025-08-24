@@ -336,9 +336,6 @@
     <FxCompile Include="Shaders\EarlyZPass.hlsl">
       <Filter>ShaderSource</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\MeshVertex.hlsli">
-      <Filter>ShaderSource</Filter>
-    </FxCompile>
     <FxCompile Include="Shaders\GeometryPass.hlsl">
       <Filter>ShaderSource</Filter>
     </FxCompile>
@@ -357,6 +354,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\LightingHeader.hlsli">
+      <Filter>ShaderSource</Filter>
+    </None>
+    <None Include="Shaders\GlobalHeader.hlsli">
+      <Filter>ShaderSource</Filter>
+    </None>
+    <None Include="Shaders\MeshHeader.hlsli">
       <Filter>ShaderSource</Filter>
     </None>
   </ItemGroup>

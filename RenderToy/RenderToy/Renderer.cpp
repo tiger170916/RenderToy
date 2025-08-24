@@ -149,7 +149,7 @@ DWORD WINAPI Renderer::RenderThreadRoutine(LPVOID lpParameter)
 	{
 		renderer->Frame();
 
-		Sleep(10);
+		//Sleep(10);
 	}
 
 	return true;

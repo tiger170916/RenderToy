@@ -1,5 +1,7 @@
+#include "GlobalHeader.hlsli"
 
-
+// arg0: uniform cb
+// arg1: light frustum cb
 #define LightShaftPrePassRootsignature \
     "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
     "DescriptorTable(" \
@@ -23,21 +25,10 @@ struct LightShaftPrePassVertexOut
 
 cbuffer cbUniformFrameConstants : register(b0)
 {    
-    float4x4 gView;
-    float4x4 gInvView;
-    float4x4 gProjection;
-    float4x4 gInvProjectionMatrix;
-    float4x4 gViewProjectionMatrix;
-    float4x4 gInvViewProjectionMatrix;
-    
-    float4 gCameraPosition;
-    float4 gForwardVector;
-    
-    float gPixelStepScale;
-    float3 Pad0;
+    UniformFrameConstants gUniformFrameConstants;
 };
 
-cbuffer cbFrustumMeshConstants : register(b1)
+cbuffer cbFrustumMeshConstants  : register(b1)
 {
     float4x4 TransformMatrix;
 };
@@ -53,8 +44,7 @@ LightShaftPrePassVertexOut VertexShaderMain(LightShaftPrePassVertexIn vertexIn)
     
     float4 pos = mul(float4(vertexIn.pos, 1.0f), TransformMatrix);
     output.worldPos = pos;
-    pos = mul(pos, gView);
-    pos = mul(pos, gProjection);
+    pos = mul(pos, gUniformFrameConstants.ViewProjectionMatrix);
     output.pos = pos;
     
     return output;
@@ -63,19 +53,7 @@ LightShaftPrePassVertexOut VertexShaderMain(LightShaftPrePassVertexIn vertexIn)
 [RootSignature(LightShaftPrePassRootsignature)]
 float4 PixelShaderMain(LightShaftPrePassVertexOut vertexOut) : SV_Target0
 {
-    /*
-    float z = vertexOut.pos.z;
- 
-    
-    uint x = (uint) floor(vertexOut.pos.x);
-    uint y = (uint) floor(vertexOut.pos.y);
-    
-    uint zDepthUint = asuint(z);
-    uint originalUint;
-
-    InterlockedMin(depthBuffer[uint2(x, y)], zDepthUint, originalUint);*/
     return vertexOut.worldPos / vertexOut.worldPos.w;
-
 }
 
 [RootSignature(LightShaftPrePassRootsignature)]

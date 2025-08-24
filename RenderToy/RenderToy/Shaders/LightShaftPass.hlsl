@@ -1,6 +1,17 @@
-
+#include "GlobalHeader.hlsli"
+#include "MeshHeader.hlsli"
 #include "LightingHeader.hlsli"
 
+static float sigma_absorbtion = 0.00005f;
+static float sigma_scattering = 0.00015f;
+static float asymettric_coeff = 0.95f;
+
+// arg0: uniform cb
+// arg1: lights cb
+// arg2: colorBuffer
+// arg3: positionBuffer
+// arg4: lightFrustumPositionBuffer
+// arg5: lightAtlas
 #define LightShaftPassRootsignature \
     "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
     "DescriptorTable(" \
@@ -22,57 +33,32 @@
         "UAV(u3, numDescriptors = 1)" \
     "),"
 
-static float sigma_absorbtion = 0.00005f;
-static float sigma_scattering = 0.00015f;
-static float asymettric_coeff = 0.95f;
 
-#define ONE_OVER_4PI            0.079577f
-
-struct MeshVertexIn
+cbuffer cbUniformFrameConstants                 : register(b0)
 {
-    float2 pos : POSITION0;
+    UniformFrameConstants gUniformFrameConstants;
 };
 
-struct MeshVertexOut
-{
-    float4 pos : SV_Position;
-};
-
-cbuffer cbUniformFrameConstants : register(b0)
-{
-    float4x4 gView;
-    float4x4 gInvView;
-    float4x4 gProjection;
-    float4x4 gInvProjectionMatrix;
-    float4x4 gViewProjectionMatrix;
-    float4x4 gInvViewProjectionMatrix;
-    
-    float4 gCameraPosition;
-    float4 gForwardVector;
-    
-    float gPixelStepScale;
-    float3 Pad0;
-};
-
-cbuffer cbLightTransformInstances : register(b1)
+cbuffer cbLightTransformInstances               : register(b1)
 {
     LightBuffer Lights;
 };
 
-RWTexture2D<float4> colorBuffer : register(u0);
+RWTexture2D<float4> colorBuffer                 : register(u0);
 
-RWTexture2D<float4> positionBuffer : register(u1);
+RWTexture2D<float4> positionBuffer              : register(u1);
 
-RWTexture2D<float4> lightFrustumPositionBuffer : register(u2);
+RWTexture2D<float4> lightFrustumPositionBuffer  : register(u2);
 
-RWTexture2D<float> lightAtlas : register(u3);
+RWTexture2D<float> lightAtlas                   : register(u3);
+
 
 [RootSignature(LightShaftPassRootsignature)]
-MeshVertexOut VertexShaderMain(MeshVertexIn vertexIn)
+MeshPsInSimple VertexShaderMain(MeshVsInScreenQuad input)
 {
-    MeshVertexOut output;
+    MeshPsInSimple output;
     
-    output.pos = float4(vertexIn.pos, 0.1f, 1.0f);
+    output.pos = float4(input.pos, 0.1f, 1.0f);
 
     return output;
 }
@@ -123,7 +109,7 @@ void EvalLight(
     }
     
     // Get the position of the sample particle in view space.
-        float4 particalPosViewSpace = mul(float4(particlePosWorld, 1.0f), gView);
+        float4 particalPosViewSpace = mul(float4(particlePosWorld, 1.0f), gUniformFrameConstants.View);
     particalPosViewSpace /= particalPosViewSpace.w;
     
     if (shadingPointViewZ != 0.0f && particalPosViewSpace.z >= shadingPointViewZ)
@@ -253,23 +239,23 @@ void RayTraceRange(
 }
 
 [RootSignature(LightShaftPassRootsignature)]
-void PixelShaderMain(MeshVertexOut vertexOut)
+void PixelShaderMain(MeshPsInSimple input)
 {
     uint texWidth;
     uint texHeight;
     
     positionBuffer.GetDimensions(texWidth, texHeight);
     // Get screen coordinate of the pixel
-    uint2 screenSpaceCoord = (uint2) floor(vertexOut.pos.xy); 
+    uint2 screenSpaceCoord = (uint2) floor(input.pos.xy); 
     // Get normalized screen coordinate of the pixel
     float2 normalizedSpaceCoord = float2((float) screenSpaceCoord.x / (float) texWidth * 2.0f - 1.0f, 1.0f - (float) screenSpaceCoord.y / (float) texHeight * 2.0f);
 
     // Get near point of the pixel in world space
-    float4 nearPoint = mul(float4(normalizedSpaceCoord.x, normalizedSpaceCoord.y, 0.01f, 1.0f), gInvViewProjectionMatrix);
+    float4 nearPoint = mul(float4(normalizedSpaceCoord.x, normalizedSpaceCoord.y, 0.01f, 1.0f), gUniformFrameConstants.InvViewProjectionMatrix);
     nearPoint /= nearPoint.w;
     
     // Get ray direction vector
-    float3 rayDir = normalize(nearPoint.xyz - gCameraPosition.xyz);
+    float3 rayDir = normalize(nearPoint.xyz - gUniformFrameConstants.CameraPosition.xyz);
     
     float4 shadingPointWorldPos = positionBuffer[screenSpaceCoord];
     float4 shadingPointViewPos = float4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -277,11 +263,11 @@ void PixelShaderMain(MeshVertexOut vertexOut)
     // Get the shading point in view space. the float4 vector is zero if there is not shading point at current pixel
     if (shadingPointWorldPos.w > 0.0f)
     {
-        shadingPointViewPos = mul(shadingPointWorldPos, gView);
+        shadingPointViewPos = mul(shadingPointWorldPos, gUniformFrameConstants.View);
     }
     
     float3 originPosition = nearPoint.xyz;
-    float offset = hash(vertexOut.pos.xy);  // random offset to reduce halo artifact
+    float offset = hash(input.pos.xy);  // random offset to reduce halo artifact
     
     // Light caused by inscattering
     float3 L = float3(0.0f, 0.0f, 0.0f);

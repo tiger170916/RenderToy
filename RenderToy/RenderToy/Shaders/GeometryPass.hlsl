@@ -1,5 +1,15 @@
-#include "MeshVertex.hlsli"
+#include "GlobalHeader.hlsli"
+#include "MeshHeader.hlsli"
 
+// arg0: uniform cb
+// arg1: mesh cb
+// arg2: depthBuffer
+// arg3: baseColorTex
+// arg4: metallicTex
+// arg5: roughnessTex
+// arg6: normalTex
+// arg7: point sampler (static)
+// arg8: linear sampler (static)
 #define GeometryPassRootsignature \
     "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
     "DescriptorTable(" \
@@ -49,6 +59,16 @@ struct PS_OUTPUT
     float4 Emission             : SV_Target4;
 };
 
+cbuffer cbUniformFrameConstants     : register(b0)
+{
+    UniformFrameConstants gUniformFrameConstants;
+};
+
+cbuffer cbMeshInstances             : register(b1)
+{
+    MeshInstanceConstants MeshInstances[MAX_MESH_INSTANCE_NUM];
+};
+
 Texture2D<float4> depthBuffer       : register(t0);
 Texture2D<float4> baseColorTex      : register(t1);
 Texture2D<float4> metallicTex       : register(t2);
@@ -61,17 +81,16 @@ SamplerState      pointSampler      : register(s0);
 SamplerState      linearSampler     : register(s1);
 
 [RootSignature(GeometryPassRootsignature)]
-MeshVertexOut VertexShaderMain(MeshVertexIn vertexIn, uint instanceID : SV_InstanceID)
+MeshPsIn VertexShaderMain(MeshVsIn input, uint instanceID : SV_InstanceID)
 {
-    MeshVertexOut output;
+    MeshPsIn output;
     
     // Transform point to homogeneous space.
-    
-    float4 pos = mul(float4(vertexIn.pos, 1.0f), MeshInstances[instanceID].TransformMatrix);
+    float4 pos = mul(float4(input.pos, 1.0f), MeshInstances[instanceID].TransformMatrix);
     output.worldPos = pos;
-    pos = mul(pos, gViewProjectionMatrix);
-    //pos = mul(pos, gProjection);
-    output.uv = vertexIn.uv;
+    pos = mul(pos, gUniformFrameConstants.ViewProjectionMatrix);
+
+    output.uv = input.uv;
     output.pos = pos;
     output.instanceId = instanceID;
     
@@ -79,7 +98,7 @@ MeshVertexOut VertexShaderMain(MeshVertexIn vertexIn, uint instanceID : SV_Insta
 }
 
 [RootSignature(GeometryPassRootsignature)]
-PS_OUTPUT PixelShaderMain(MeshVertexOut vertexOut)
+PS_OUTPUT PixelShaderMain(MeshPsIn input)
 {
     PS_OUTPUT output;
     
@@ -87,17 +106,17 @@ PS_OUTPUT PixelShaderMain(MeshVertexOut vertexOut)
     float height;
     depthBuffer.GetDimensions(width, height);
     
-    float2 pixelPos = vertexOut.pos.xy;
+    float2 pixelPos = input.pos.xy;
     float2 screenUv = (float2)pixelPos / float2(width, height);
     
-    float z = vertexOut.pos.z;
+    float z = input.pos.z;
     
-    float2 uv = float2(vertexOut.uv.x, 1.0f - vertexOut.uv.y);
+    float2 uv = float2(input.uv.x, 1.0f - input.uv.y);
     
-    float3 pos_dx = ddx(vertexOut.worldPos.xyz);
-    float3 pos_dy = ddy(vertexOut.worldPos.xyz);
-    float2 texC_dx = ddx(vertexOut.uv);
-    float2 texC_dy = ddy(vertexOut.uv);
+    float3 pos_dx = ddx(input.worldPos.xyz);
+    float3 pos_dy = ddy(input.worldPos.xyz);
+    float2 texC_dx = ddx(input.uv);
+    float2 texC_dy = ddy(input.uv);
     
     // Early out if the shading point is behind
     if (depthBuffer.SampleLevel(pointSampler, screenUv, 0).x < z)
@@ -119,11 +138,11 @@ PS_OUTPUT PixelShaderMain(MeshVertexOut vertexOut)
     normal3 = (normal3 * 2.0f) - 1.0f;
     normal3 = normalize(mul(normal3, TBN));
     
-    output.BaseColor = baseColorTex.SampleLevel(linearSampler, float2(vertexOut.uv.x, 1.0f - vertexOut.uv.y), 0);
+    output.BaseColor = baseColorTex.SampleLevel(linearSampler, float2(input.uv.x, 1.0f - input.uv.y), 0);
     output.MetallicRoughness = float2(metallic, roughness);
     output.Normal = float4(normal3, 0.0f);
-    output.WorldPos = vertexOut.worldPos;
-    output.Emission = MeshInstances[vertexOut.instanceId].LightEmission;
+    output.WorldPos = input.worldPos;
+    output.Emission = MeshInstances[input.instanceId].LightEmission;
     
     return output;
 }

@@ -1,5 +1,9 @@
+#include "MeshHeader.hlsli"
 #include "LightingHeader.hlsli"
 
+// arg0: mesh cb
+// arg1: light cb
+// arg2: depth atlas
 #define ShadowPassRootsignature \
     "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
     "DescriptorTable(" \
@@ -12,17 +16,9 @@
         "UAV(u0, numDescriptors = 1)" \
     ")," \
 
-
-struct MeshConstants
-{
-    float4x4 WorldTransform;
-    
-    uint4 Uid;
-};
-
 cbuffer cbMeshInstances                         : register(b1)
 {
-    MeshConstants MeshInstances[64];
+    MeshInstanceConstants MeshInstances[MAX_MESH_INSTANCE_NUM];
 }
 
 cbuffer cbLightTransformInstances               : register(b2)
@@ -30,35 +26,16 @@ cbuffer cbLightTransformInstances               : register(b2)
     LightBuffer Lights;
 };
 
-RWTexture2D <uint> depthAtlas                  : register(u0);
-
-struct SimpleMeshVsInput
-{
-    float3 pos : POSITION;
-};
-
-struct SimpleMeshGsInput
-{
-    float4 pos :SV_POSITION;
-        
-    uint Instance : InstanceID;
-};
-
-struct SimpleMeshPsInput
-{
-    float4 pos : SV_Position;
-    
-    uint LightIndex : LIGHT_INDEX;
-};
+RWTexture2D <uint> depthAtlas                   : register(u0);
 
 
 
 [RootSignature(ShadowPassRootsignature)]
-SimpleMeshGsInput VertexShaderMain(SimpleMeshVsInput vertexIn, uint instanceID : SV_InstanceID)
+MeshGsInShadow VertexShaderMain(MeshVsInSimple input, uint instanceID : SV_InstanceID)
 {
-    SimpleMeshGsInput output;
+    MeshGsInShadow output;
     
-    output.pos = float4(vertexIn.pos, 1.0f);
+    output.pos = float4(input.pos, 1.0f);
     //mul(float4(vertexIn.pos, 1.0f), MeshInstances[instanceID].WorldTransform);
     output.Instance = instanceID;
 
@@ -67,7 +44,7 @@ SimpleMeshGsInput VertexShaderMain(SimpleMeshVsInput vertexIn, uint instanceID :
 
 [RootSignature(ShadowPassRootsignature)]
 [maxvertexcount(50)]
-void GeometryShaderMain(triangle SimpleMeshGsInput input[3], inout TriangleStream<SimpleMeshPsInput> OutputStream)
+void GeometryShaderMain(triangle MeshGsInShadow input[3], inout TriangleStream<MeshPsInShadow> OutputStream)
 {
     for (uint i = 0; i < Lights.NumLights[0]; i++)
     {
@@ -76,13 +53,13 @@ void GeometryShaderMain(triangle SimpleMeshGsInput input[3], inout TriangleStrea
             return;
         }
         
-        SimpleMeshPsInput output0;
-        SimpleMeshPsInput output1;
-        SimpleMeshPsInput output2;
+        MeshPsInShadow output0;
+        MeshPsInShadow output1;
+        MeshPsInShadow output2;
         
-        output0.pos = mul(input[0].pos, MeshInstances[input[0].Instance].WorldTransform);
-        output1.pos = mul(input[1].pos, MeshInstances[input[0].Instance].WorldTransform);
-        output2.pos = mul(input[2].pos, MeshInstances[input[0].Instance].WorldTransform);
+        output0.pos = mul(input[0].pos, MeshInstances[input[0].Instance].TransformMatrix);
+        output1.pos = mul(input[1].pos, MeshInstances[input[0].Instance].TransformMatrix);
+        output2.pos = mul(input[2].pos, MeshInstances[input[0].Instance].TransformMatrix);
         output0.pos = mul(output0.pos, Lights.LightInstances[i].Transform);
         output1.pos = mul(output1.pos, Lights.LightInstances[i].Transform);
         output2.pos = mul(output2.pos, Lights.LightInstances[i].Transform);
@@ -102,15 +79,15 @@ void GeometryShaderMain(triangle SimpleMeshGsInput input[3], inout TriangleStrea
 }
 
 [RootSignature(ShadowPassRootsignature)]
-void PixelShaderMain(SimpleMeshPsInput vertexOut)
+void PixelShaderMain(MeshPsInShadow input)
 {
     
-    float z = vertexOut.pos.z;
-    uint offsetX = Lights.LightInstances[vertexOut.LightIndex].ShadowBufferOffsetX;
-    uint offsetY = Lights.LightInstances[vertexOut.LightIndex].ShadowBufferOffsetY;
+    float z = input.pos.z;
+    uint offsetX = Lights.LightInstances[input.LightIndex].ShadowBufferOffsetX;
+    uint offsetY = Lights.LightInstances[input.LightIndex].ShadowBufferOffsetY;
     
-    uint x = offsetX + (uint) floor(vertexOut.pos.x);
-    uint y = offsetY + (uint) floor(vertexOut.pos.y);
+    uint x = offsetX + (uint) floor(input.pos.x);
+    uint y = offsetY + (uint) floor(input.pos.y);
     
     uint zUint = asuint(z);
     uint originalUint;
