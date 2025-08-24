@@ -93,6 +93,7 @@ MeshPsIn VertexShaderMain(MeshVsIn input, uint instanceID : SV_InstanceID)
     output.uv = input.uv;
     output.pos = pos;
     output.instanceId = instanceID;
+    output.normalIA = input.normal;   // no need, just leave it as is
     
     return output;
 }

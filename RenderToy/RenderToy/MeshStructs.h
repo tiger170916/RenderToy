@@ -6,6 +6,8 @@ struct MeshVertexDx
 	float position[3];
 
 	float UV0[2];
+
+	float Normal[3];
 };
 
 struct MeshVertexSimpleDx

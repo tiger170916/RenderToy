@@ -16,6 +16,8 @@ struct MeshVsIn
     float3 pos : POSITION0;
     
     float2 uv : TEXCOORD0;
+    
+    float3 normal : NORMAL0;
 };
 
 struct MeshPsIn
@@ -27,6 +29,8 @@ struct MeshPsIn
     float2 uv : TEXCOORD0;
     
     uint instanceId : SV_InstanceID;
+    
+    float3 normalIA : NORMAL0;  // Normal from IA, this is in general not used
 };
 
 

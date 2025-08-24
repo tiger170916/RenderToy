@@ -161,6 +161,9 @@
     <ClCompile Include="FullscreenQuad.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SilhouetteRenderPass.cpp">
+      <Filter>RenderPasses</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -331,6 +334,9 @@
     <ClInclude Include="FullscreenQuad.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="SilhouetteRenderPass.h">
+      <Filter>RenderPasses</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\EarlyZPass.hlsl">
@@ -349,6 +355,9 @@
       <Filter>ShaderSource</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\LightShaftPass.hlsl">
+      <Filter>ShaderSource</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\SihouetteRender.hlsl">
       <Filter>ShaderSource</Filter>
     </FxCompile>
   </ItemGroup>

@@ -134,9 +134,14 @@ bool StaticMesh::BuildResource(GraphicsContext* graphicsContext, TextureManager*
 			vertDx.position[2] = vert.Position.Z;
 			vertDx.UV0[0] = vert.UvSets[0].X;
 			vertDx.UV0[1] = vert.UvSets[0].Y;
+			vertDx.Normal[0] = vert.Normal.X;
+			vertDx.Normal[1] = vert.Normal.Y;
+			vertDx.Normal[2] = vert.Normal.Z;
+
 			vertSimpleDx.position[0] = vert.Position.X;
 			vertSimpleDx.position[1] = vert.Position.Y;
 			vertSimpleDx.position[2] = vert.Position.Z;
+
 			verticesDx.push_back(vertDx);
 			verticesSimpleDx.push_back(vertSimpleDx);
 		}
