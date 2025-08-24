@@ -22,8 +22,11 @@
         "UAV(u3, numDescriptors = 1)" \
     "),"
 
-static float sigma_absorbtion = 0.002f;
-static float sigma_scattering = 0.002f;
+static float sigma_absorbtion = 0.00005f;
+static float sigma_scattering = 0.00015f;
+static float asymettric_coeff = 0.95f;
+
+#define ONE_OVER_4PI            0.079577f
 
 struct MeshVertexIn
 {
@@ -79,6 +82,12 @@ float hash(float2 uv)
     return frac(sin(uv.x) * sin(uv.y) * 125545.545);
 }
 
+float HenyeyGreensteinPhase(float3 lightDir, float3 scatterInDir, float asymmetric)
+{
+    float a_square = asymmetric * asymmetric;
+    return ONE_OVER_4PI * (1.0f - a_square) / pow((1.0f + a_square - 2.0f * asymmetric * dot(lightDir, scatterInDir)), 1.5f);
+}
+
 void EquiAngularSample(float3 rayOrigin, float3 rayDir, float3 lightPos, float maxDist, float xi, out float dist, out float pdf)
 {
     float delta = dot(lightPos - rayOrigin, rayDir);
@@ -95,122 +104,32 @@ void EquiAngularSample(float3 rayOrigin, float3 rayDir, float3 lightPos, float m
     pdf = D / ((thetaB - thetaA) * (D * D + t * t));
 }
 
-float3 EvalLight(int numSamples, float3 rayOrigin, float3 rayDir, float maxDist, float xi, float backPosZ)
-{
-    float3 L = float3(0.0f, 0.0f, 0.0f);
-    float3 irradiance = float3(0.0f, 0.0f, 0.0f);
-    for (int lightIdx = 0; lightIdx < Lights.NumLights[0]; lightIdx++)
-    {
-        LightConstants light = Lights.LightInstances[lightIdx];
-        float particleDist;
-        float particlePdf;
-        EquiAngularSample(rayOrigin, rayDir,  light.Position.xyz, maxDist, xi, particleDist, particlePdf);
-        particlePdf *= (float) numSamples;
-        
-        float3 particlePos = rayOrigin + particleDist * rayDir;
-        
-        float4 particalPosView = mul(float4(particlePos, 1.0f), gView);
-        particalPosView /= particalPosView.w;
-        
-        if (backPosZ != 0.0f && particalPosView.z >= backPosZ)
-        {
-            continue;
-        }
-        
-        float4 shadowNcdPos = mul(float4(particlePos, 1.0f), light.Transform);
-        shadowNcdPos /= shadowNcdPos.w;
-        
-        
-        if (shadowNcdPos.z < 0.0f)
-        {
-            continue;
-        }
-        
-        float lightAngle = pow(shadowNcdPos.x, 2.0f) + pow(shadowNcdPos.y, 2.0f);
-        if (lightAngle > 1.0f)
-        {
-            continue;
-        }
-        
-        // Transform to texture space.
-        float shadowU = (shadowNcdPos.x + 1.0) / 2.0;
-        float shadowV = (1.0 - shadowNcdPos.y) / 2.0;
-                
-        int shadowUTex = (int) floor(shadowU * light.ShadowBufferSize);
-        int shadowVTex = (int) floor(shadowV * light.ShadowBufferSize);
-        //uint2 shadowUvInt = uint2(shadowUTex + light.ShadowBufferOffsetX, shadowVTex + light.ShadowBufferOffsetY);
-            
-        //float shadowMapDepth = lightAtlas[shadowUvInt];
-                
-        //if (shadowMapDepth <= shadowNcdPos.z)
-        //{
-        //    continue;
-        //}
-        
-        float shadow = 0.0f;
-        for (int m = -3; m <= 3; m++)
-        {
-            int u = shadowUTex + m;
-            if (u < 0 || u >= light.ShadowBufferSize)
-            {
-                continue;
-            }
-            
-            for (int n = -3; n <= 3; n++)
-            {
-                int v = shadowVTex + n;
-                if (v < 0 || v >= light.ShadowBufferSize)
-                {
-                    continue;
-                }
-                
-                uint2 shadowUvInt = uint2(u + light.ShadowBufferOffsetX, v + light.ShadowBufferOffsetY);
-                float shadowMapDepth = lightAtlas[shadowUvInt];
-                
-                if (shadowNcdPos.z > shadowMapDepth)
-                {
-                    shadow += 1.0f;
-                }
-            }
-        }
-        
-        shadow = shadow / 9.0f;
-        
-        if (shadow >= 1.0f)
-        {
-            continue;
-        }
-
-        
-        float lightDist = distance(light.Position.xyz, particlePos);
-        float distAttenuation = (lightDist / light.FarPlane) * (lightDist / light.FarPlane);
-                
-        float trans = exp(-(sigma_absorbtion + sigma_absorbtion) * (particleDist + lightDist));
-        float3 Li = exp(-lightDist * (sigma_absorbtion + sigma_absorbtion)) * float3(5.0f, 5.0f, 5.0f) * lightAngle * (1.0f - distAttenuation) * (1.0f - shadow) / particlePdf;
-        L += Li * sigma_scattering;
-    }
-
-    return L;
-}
-
 void EvalLight(
     float3 particlePosWorld,
     float shadingPointViewZ,
     float particleDist,
     float particlePdf,
+    float distDelta,  // distance from the last step to current (stepsize)
     LightConstants light,
-    out float3 L,
-    out bool endTracing)
+    float phase,
+    inout float3 outL,
+    inout float outTransmittance,
+    inout bool outEndTracing)
 {	        
-    endTracing = false;
+    if (outTransmittance <= 0.01)
+    {
+        outEndTracing = true;
+        return;
+    }
+    
     // Get the position of the sample particle in view space.
-    float4 particalPosViewSpace = mul(float4(particlePosWorld, 1.0f), gView);
+        float4 particalPosViewSpace = mul(float4(particlePosWorld, 1.0f), gView);
     particalPosViewSpace /= particalPosViewSpace.w;
     
     if (shadingPointViewZ != 0.0f && particalPosViewSpace.z >= shadingPointViewZ)
     {
         // The sample point is behind the shading point. end the ray marching here.
-        endTracing = true;
+        outEndTracing = true;
         return;
     }
         
@@ -274,10 +193,9 @@ void EvalLight(
         
     float lightDist = distance(light.Position.xyz, particlePosWorld);
     float distAttenuation = (lightDist / light.FarPlane) * (lightDist / light.FarPlane);
-                
-    float trans = exp(-(sigma_absorbtion + sigma_absorbtion) * (particleDist + lightDist));
-    float3 Li = exp(-1.0f * (sigma_absorbtion + sigma_absorbtion)) * float3(5.0f, 5.0f, 0.0f);// * lightAngle * (1.0f - distAttenuation) * (1.0f - shadow) / particlePdf;
-    L += Li * sigma_scattering;
+    float3 Li =  light.Intensity.xyz * exp((-sigma_absorbtion - sigma_absorbtion) * lightDist) * phase * outTransmittance * distDelta * lightAngle * (1.0f - distAttenuation) * (1.0f - shadow) / particlePdf;
+    outL += Li * sigma_scattering;
+    outTransmittance *= exp((-sigma_absorbtion - sigma_absorbtion) * distDelta);
 }
 
 void RayTraceRange(
@@ -289,10 +207,11 @@ void RayTraceRange(
     int numSamples,       // number of samples on range [startDist, endDist]
     LightConstants light, // light source
     float offset,         // random offset to reduce halo artifact    
-    out float3 L          // light output
+    inout float3 L,       // light output
+    inout float transmittance,  // current transmittance along view direct output
+    inout bool endTracing // end tracing flag, set to true if ray marching should be stopped
 )
 {
-    L = float3(0.0f, 0.0f, 0.0f);
     float3 startPos = originPos + startDist * rayDir;
     float3 endPost = originPos + endDist * rayDir;
     float maxDist = endDist - startDist;
@@ -305,31 +224,37 @@ void RayTraceRange(
     float thetaA = atan(-delta / D);
     float thetaB = atan((maxDist - delta) / D);
     
+    float prevActualDist = startDist;
     for (int i = 0; i < numSamples; i++)
     {
         // equi-angular sampling
         float xi = ((float) i + offset) / (float) numSamples;
         float t = D * tan(lerp(thetaA, thetaB, xi));
         float particleDist = delta + t;
+        
+        float currentActualDist = particleDist + startDist;
+        float distDelta = currentActualDist - prevActualDist;
+        distDelta = 0.2f;
         float particlePdf = D / ((thetaB - thetaA) * (D * D + t * t));
         particlePdf *= (float) numSamples;
         
         float3 particalPosWorld = startPos + particleDist * rayDir;
         
-        bool endTracing = false;
-        EvalLight(particalPosWorld, shadingPointZ, particleDist, particlePdf, light, L, endTracing);
+        float phase = HenyeyGreensteinPhase(normalize(particalPosWorld.xyz - light.Position.xyz), - rayDir, asymettric_coeff);
+        EvalLight(particalPosWorld, shadingPointZ, particleDist, particlePdf, distDelta, light, phase, L, transmittance, endTracing);
         
         if (endTracing)
         {
             return;
         }
+        
+        prevActualDist = currentActualDist;
     }
 }
 
 [RootSignature(LightShaftPassRootsignature)]
 void PixelShaderMain(MeshVertexOut vertexOut)
 {
-    /*
     uint texWidth;
     uint texHeight;
     
@@ -361,112 +286,50 @@ void PixelShaderMain(MeshVertexOut vertexOut)
     // Light caused by inscattering
     float3 L = float3(0.0f, 0.0f, 0.0f);
     
+    float totalTransmittance = 1.0f;
     // Do ray marching per light source
     for (int lightIdx = 0; lightIdx < Lights.NumLights[0]; lightIdx++)
     {
+        float transmittance = 1.0f;
+        bool endTracing = false;
         LightConstants light = Lights.LightInstances[lightIdx];
         // Range 1 : [0.1, 5.0]
-        RayTraceRange(originPosition, rayDir, 0.1f, 5.0f, shadingPointViewPos.z, 1, light, offset, L);
-        // Range 2 : [5.0, 15.0]
-        //RayTraceRange(originPosition, rayDir, 5.0f, 15.0f, shadingPointViewPos.z, 20, light, offset, L);
-        // Range 3 : [15.0, 25.0]
-        //RayTraceRange(originPosition, rayDir, 15.0f, 25.0f, shadingPointViewPos.z, 20, light, offset, L);
-        // Range 4 : [25.0, 35.0]
-        //RayTraceRange(originPosition, rayDir, 25.0f, 35.0f, shadingPointViewPos.z, 20, light, offset, L);
+        RayTraceRange(originPosition, rayDir, 0.1f, 5.0f, shadingPointViewPos.z, 10, light, offset, L, transmittance, endTracing);
+        
+        if (!endTracing)
+        {
+            // Range 2 : [5.0, 15.0]
+            RayTraceRange(originPosition, rayDir, 5.0f, 15.0f, shadingPointViewPos.z, 30, light, offset, L, transmittance, endTracing);
+        }
+        
+        if (!endTracing)
+        {
+            // Range 3 : [15.0, 25.0]
+            RayTraceRange(originPosition, rayDir, 15.0f, 25.0f, shadingPointViewPos.z, 70, light, offset, L, transmittance, endTracing);
+        }
+        
+        if (!endTracing)
+        {
+            // Range 4 : [25.0, 35.0]
+            RayTraceRange(originPosition, rayDir, 25.0f, 35.0f, shadingPointViewPos.z, 70, light, offset, L, transmittance, endTracing);
+        }
+        
+        totalTransmittance += transmittance;
     }
+    
+    float avgTransmittance = totalTransmittance / 4.0f;
     
     float toneMap = 1.0f / 2.2f;
+    // tonu map the scattering light
     L = L / (L + float3(1.0f, 1.0f, 1.0f));
     L = pow(L, float3(toneMap, toneMap, toneMap));
         
-    float4 color = colorBuffer[screenSpaceCoord];
-    color += float4(L, 0.0f);
-    colorBuffer[screenSpaceCoord] = color;
-        */
+    float4 colorOrigin = colorBuffer[screenSpaceCoord];
+    float4 mixedColor = colorOrigin * (1.0f - avgTransmittance) + float4(L, 0.0f);
     
-    uint texWidth;
-    uint texHeight;
+    // tone map the mixed color again
+    mixedColor.xyz = mixedColor.xyz / (mixedColor.xyz + float3(1.0f, 1.0f, 1.0f));
+    mixedColor.xyz = pow(mixedColor.xyz, float3(toneMap, toneMap, toneMap));
     
-    positionBuffer.GetDimensions(texWidth, texHeight);
-    // Get screen coordinate of the pixel
-    uint2 screenSpaceCoord = (uint2) floor(vertexOut.pos.xy);
-    // Get normalized screen coordinate of the pixel
-    float2 normalizedSpaceCoord = float2((float) screenSpaceCoord.x / (float) texWidth * 2.0f - 1.0f, 1.0f - (float) screenSpaceCoord.y / (float) texHeight * 2.0f);
-    
-    float4 backPosWorld = float4(positionBuffer[screenSpaceCoord].xyz, 1.0f);
-    float4 backPosView = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    
-    if (positionBuffer[screenSpaceCoord].w != 0.0f)
-    {
-        backPosView = mul(backPosWorld, gView);
-    } 
-    
-    float2 ndc = float2((float) screenSpaceCoord.x / (float) texWidth * 2.0f - 1.0f, 1.0f - (float) screenSpaceCoord.y / (float) texHeight * 2.0f);
-    
-    float4 nearPoint = mul(float4(ndc.x, ndc.y, 0.01f, 1.0f), gInvViewProjectionMatrix);
-    nearPoint /= nearPoint.w;
-    float3 rayMarchDir = normalize(nearPoint.xyz - gCameraPosition.xyz);
-    float4 middlePoint = mul(float4(0.0f, 0.0f, 0.01f, 1.0f), gInvViewProjectionMatrix);
-    middlePoint /= middlePoint.w;
-    float3 middleDir = normalize(middlePoint.xyz - gCameraPosition.xyz);
-   
-    float distScale = dot(middleDir, rayMarchDir);
-    
-    float maxDist = 5.0f / distScale;
-    int numSamples = 10;
-    float startDist = 0.1f;
-    
-    float3 rayMarchStart = nearPoint.xyz + rayMarchDir * startDist;
-    
-    float3 L = 0.0f;
-    
-    float offset = 0.0f;
-    for (int i = 0; i < numSamples; i++)
-    {
-        float xi = ((float) i + offset) / (float)numSamples;
-        L += EvalLight(numSamples, rayMarchStart, rayMarchDir, maxDist, xi, backPosView.z);
-    }
-    
-    numSamples = 25;
-    startDist = startDist + maxDist;
-    maxDist = 10.0f / distScale;
-    rayMarchStart = nearPoint.xyz + rayMarchDir * startDist;
-    offset = hash(vertexOut.pos.xy + rayMarchStart.z);
-    for (int j = 0; j < numSamples; j++)
-    {
-        float xi = ((float) j + offset) / (float) numSamples;
-        L += EvalLight(numSamples, rayMarchStart, rayMarchDir, maxDist, xi, backPosView.z);
-    }
-    
-    numSamples = 50;
-    startDist = startDist + maxDist;
-    maxDist = 10.0f / distScale;
-    rayMarchStart = nearPoint.xyz + rayMarchDir * startDist;
-    offset = hash(vertexOut.pos.xy + rayMarchStart.z);
-    for (int k = 0; k < numSamples; k++)
-    {
-        float xi = ((float) k + offset) / (float) numSamples;
-        L += EvalLight(numSamples, rayMarchStart, rayMarchDir, maxDist, xi, backPosView.z);
-    }
-    
-    numSamples = 50;
-    startDist = startDist + maxDist;
-    maxDist = 10.0f / distScale;
-    rayMarchStart = nearPoint.xyz + rayMarchDir * startDist;
-    offset = hash(vertexOut.pos.xy + rayMarchStart.z);
-    for (int m = 0; m < numSamples; m++)
-    {
-        float xi = ((float) m + offset) / (float) numSamples;
-        L += EvalLight(numSamples, rayMarchStart, rayMarchDir, maxDist, xi, backPosView.z);
-    }
-    
-    
-   
-        
-    
-        float toneMap = 1.0f / 2.2f;
-    L = L / (L + float3(1.0f, 1.0f, 1.0f));
-    L = pow(L, float3(toneMap, toneMap, toneMap));
-        
-    colorBuffer[screenSpaceCoord] += float4(L, 1.0f);
+    colorBuffer[screenSpaceCoord] = mixedColor;
 }

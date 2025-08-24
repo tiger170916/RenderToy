@@ -247,7 +247,7 @@ float4 PixelShaderMain(MeshVertexOut vertexOut) : SV_Target0
     }
    
         
-    float3 color = LoTotal + baseColor * 0.0025f + emission;
+    float3 color = LoTotal /*+ baseColor * 0.0025f*/ + emission;
     float toneMap = 1.0f / 2.2f;
     color = color / (color + float3(1.0f, 1.0f, 1.0f));
     color = pow(color, float3(toneMap, toneMap, toneMap));
