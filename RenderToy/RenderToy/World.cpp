@@ -94,6 +94,10 @@ bool World::FrameBegin(float delta)
 	uniformFrameConstants.ForwardVector[3] = forwardVector.m128_f32[3];
 
 	uniformFrameConstants.PixelStepScale = m_activeCamera->GetPixelStepScale();
+	uniformFrameConstants.RenderTargetHeight = m_activeCamera->GetWidth();
+	uniformFrameConstants.RenderTargetWidth = m_activeCamera->GetHeight();
+	uniformFrameConstants.PixelWidthInNdc = 2.0f / (float)m_activeCamera->GetWidth();
+	uniformFrameConstants.PixelHeightInNdc = 2.0f / (float)m_activeCamera->GetHeight();
 
 	(*m_uniformFrameConstantBuffer)[0] = uniformFrameConstants;
 	m_uniformFrameConstantBuffer->UpdateToGPU();

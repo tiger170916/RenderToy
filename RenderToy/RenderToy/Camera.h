@@ -44,6 +44,10 @@ public:
 
 	inline const float GetPixelStepScale() const { return m_pixelStepScale; }
 
+	inline const UINT GetWidth() const { return m_width; }
+
+	inline const UINT GetHeight() const { return m_height; }
+
 private:
 	void CalculateViewMatrix();
 

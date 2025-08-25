@@ -83,6 +83,26 @@ std::wstring GetShaderRelativePath(const ShaderType & type)
     {
         return std::wstring(L"shadow_pass_vertex_shader.cso");
     }
+    case ShaderType::SIHOUETTE_RENDER_PASS_DEPTH_STENCIL_VERTEX_SHADER:
+    {
+        return std::wstring(L"sihouette_render_pass_depth_stencil_vertex_shader.cso");
+    }
+    case ShaderType::SIHOUETTE_RENDER_PASS_GEOMETRY_SHADER:
+    {
+        return std::wstring(L"sihouette_render_pass_geometry_shader.cso");
+    }
+    case ShaderType::SIHOUETTE_RENDER_PASS_PIXEL_SHADER:
+    {
+        return std::wstring(L"sihouette_render_pass_pixel_shader.cso");
+    }
+    case ShaderType::SIHOUETTE_RENDER_PASS_ROOT_SIGNATURE:
+    {
+        return std::wstring(L"sihouette_render_pass_root_signature.cso");
+    }
+    case ShaderType::SIHOUETTE_RENDER_PASS_VERTEX_SHADER:
+    {
+        return std::wstring(L"sihouette_render_pass_vertex_shader.cso");
+    }
     }
     return std::wstring();
 }

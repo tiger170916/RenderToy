@@ -15,4 +15,9 @@ struct UniformFrameConstants
 
 	float		PixelStepScale;
 	float		Pad[3];
+
+	uint32_t RenderTargetWidth;
+	uint32_t RenderTargetHeight;
+	float PixelWidthInNdc;
+	float PixelHeightInNdc;
 };

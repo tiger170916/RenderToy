@@ -69,3 +69,11 @@ struct MeshPsInShadow
 };
 
 //
+struct MeshGsInSihouette
+{
+    float4 pos : SV_Position;
+    
+    uint Instance : GSInstanceID;
+    
+    float3 normalIA : NORMAL0;
+};
