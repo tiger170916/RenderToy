@@ -41,4 +41,5 @@ public:
 
 	inline const UINT64 GetRenderTargetBufferRtvId() const { return m_rtvId; }
 	inline const UINT64 GetRenderTargetBufferUavId() const { return m_uavId; }
+	inline const DXGI_FORMAT GetRenderTargetFormat() const { return m_renderTargetFormat; }
 };

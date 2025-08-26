@@ -11,6 +11,7 @@ std::map<std::string, PassType> Utils::g_passTypeStringLookup
 	{"LIGHT_SHAFT_PRE_PASS", PassType::LIGHT_SHAFT_PRE_PASS },
 	{"LIGHT_FRUSTUM_DEBUG_PASS", PassType::LIGHT_FRUSTUM_DEBUG_PASS },
 	{"LIGHT_SHAFT_PASS", PassType::LIGHT_SHAFT_PASS },
+	{"SILHOUETTE_RENDER_PASS", PassType::SILHOUETTE_RENDER_PASS },
 };
 
 std::filesystem::path Utils::GetWorkingDirectory()

@@ -6,6 +6,7 @@
 #include "LightShaftPrePass.h"
 #include "LightFrustumDebugPass.h"
 #include "LightShaftPass.h"
+#include "SilhouetteRenderPass.h"
 
 
 std::map<GUID, std::unique_ptr<PassBase>, GuidComparator> PassFactory::_createdPasses;
@@ -63,13 +64,17 @@ bool PassFactory::CreatePass(PassType type, GUID passGuid, PassBase** ppPass)
 		pass = new LightShaftPass(passGuid);
 		break;
 	}
+	case PassType::SILHOUETTE_RENDER_PASS:
+	{
+		pass = new SilhouetteRenderPass(passGuid);
+		break;
 	}
 
 	if (pass == nullptr)
 	{
 		return false;
 	}
-
+	}
 	_createdPasses[passGuid] = std::unique_ptr<PassBase>(pass);
 	*ppPass = pass;
 	

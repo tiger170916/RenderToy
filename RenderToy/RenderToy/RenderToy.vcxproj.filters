@@ -357,7 +357,7 @@
     <FxCompile Include="Shaders\LightShaftPass.hlsl">
       <Filter>ShaderSource</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\SihouetteRender.hlsl">
+    <FxCompile Include="Shaders\SilhouetteRender.hlsl">
       <Filter>ShaderSource</Filter>
     </FxCompile>
   </ItemGroup>

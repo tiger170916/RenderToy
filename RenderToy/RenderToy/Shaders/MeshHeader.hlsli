@@ -69,7 +69,7 @@ struct MeshPsInShadow
 };
 
 //
-struct MeshGsInSihouette
+struct MeshGsInSilhouette
 {
     float4 pos : SV_Position;
     

@@ -9,7 +9,7 @@ class SilhouetteRenderPass : public RenderPassBase
 private:
 	std::unique_ptr<GraphicsPipelineState> m_depthPipelineState = nullptr;
 
-	std::unique_ptr<GraphicsPipelineState> m_stencilPipeline = nullptr;
+	std::unique_ptr<GraphicsPipelineState> m_stencilPipelineState = nullptr;
 
 	std::unique_ptr<GraphicsPipelineState> m_silhouettePipelineState = nullptr;
 

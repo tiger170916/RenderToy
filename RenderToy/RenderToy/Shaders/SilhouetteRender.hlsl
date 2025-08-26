@@ -4,7 +4,7 @@
 #define OUTLINE_THICKNESS        10
 // Param1: uniform cb
 // Param2: mesh cb
-#define SihouetteRenderRootsignature \
+#define SilhouetteRenderRootsignature \
     "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)," \
     "DescriptorTable(" \
         "CBV(b0, numDescriptors = 1)" \
@@ -23,7 +23,7 @@ cbuffer cbMeshInstances : register(b1)
     MeshInstanceConstants MeshInstances[MAX_MESH_INSTANCE_NUM];
 };
 
-[RootSignature(SihouetteRenderRootsignature)]
+[RootSignature(SilhouetteRenderRootsignature)]
 MeshPsInSimple DepthStencilVertexShaderMain(MeshVsIn input, uint instanceID : SV_InstanceID)
 {
     MeshPsInSimple output;
@@ -38,10 +38,10 @@ MeshPsInSimple DepthStencilVertexShaderMain(MeshVsIn input, uint instanceID : SV
     return output;
 }
 
-[RootSignature(SihouetteRenderRootsignature)]
-MeshGsInSihouette SihouetteVertexShaderMain(MeshVsIn input, uint instanceID : SV_InstanceID)
+[RootSignature(SilhouetteRenderRootsignature)]
+MeshGsInSilhouette SilhouetteVertexShaderMain(MeshVsIn input, uint instanceID : SV_InstanceID)
 {
-    MeshGsInSihouette output;
+    MeshGsInSilhouette output;
     
     // Transform point to homogeneous space.
     float4 pos = mul(float4(input.pos, 1.0f), MeshInstances[instanceID].TransformMatrix);
@@ -57,9 +57,9 @@ MeshGsInSihouette SihouetteVertexShaderMain(MeshVsIn input, uint instanceID : SV
     return output;
 }
 
-[RootSignature(SihouetteRenderRootsignature)]
+[RootSignature(SilhouetteRenderRootsignature)]
 [maxvertexcount(50)]
-void SihouetteGeometryShaderMain(triangle MeshGsInSihouette input[3], inout TriangleStream<MeshPsInSimple> OutputStream)
+void SilhouetteGeometryShaderMain(triangle MeshGsInSilhouette input[3], inout TriangleStream<MeshPsInSimple> OutputStream)
 {
     MeshPsInSimple output0;
     MeshPsInSimple output1;
@@ -81,8 +81,8 @@ void SihouetteGeometryShaderMain(triangle MeshGsInSihouette input[3], inout Tria
     OutputStream.RestartStrip();
 }
 
-[RootSignature(SihouetteRenderRootsignature)]
-float4 SihouettePixelShaderMain(MeshPsInSimple input) : SV_Target0
+[RootSignature(SilhouetteRenderRootsignature)]
+float4 SilhouettePixelShaderMain(MeshPsInSimple input) : SV_Target0
 {
     return float4(0.3f, 0.89f, 0.55f, 0.0f);
 }

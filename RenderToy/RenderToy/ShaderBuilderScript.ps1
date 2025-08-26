@@ -133,35 +133,35 @@ Write-Host "LightShaftPass pixel shader output: $lightShaftPassPixelShaderOutput
 # Compile pixel shader
 & $dxc /T ps_6_6 $lightShaftPassFile /E"PixelShaderMain" /Fo $lightShaftPassPixelShaderOutput /Od /Zi /Fd $lightShaftPassPixelShaderPdbOutput /nologo
 
-##### SihouetteRenderPass #####
-$sihouetteRenderPassFile = $shaderDir + "SihouetteRender.hlsl"
-$sihouetteRenderPassRootsignatureOutput = $outputDir + "sihouette_render_pass_root_signature.cso"
-$sihouetteRenderPassDepthStencilVertexShaderOutput = $outputDir + "sihouette_render_pass_depth_stencil_vertex_shader.cso"
-$sihouetteRenderPassDepthStencilVertexShaderPdbOutput = $outputDir + "sihouette_render_pass_depth_stencil_vertex_shader.pdb"
-$sihouetteRenderPassVertexShaderOutput = $outputDir + "sihouette_render_pass_vertex_shader.cso"
-$sihouetteRenderPassVertexShaderPdbOutput = $outputDir + "sihouette_render_pass_vertex_shader.pdb"
-$sihouetteRenderPassGeometryShaderOutput = $outputDir + "sihouette_render_pass_geometry_shader.cso"
-$sihouetteRenderPassGeometryShaderPdbOutput = $outputDir + "sihouette_render_pass_geometry_shader.pdb"
-$sihouetteRenderPassPixelShaderOutput = $outputDir + "sihouette_render_pass_pixel_shader.cso"
-$sihouetteRenderPassPixelShaderPdbOutput = $outputDir + "sihouette_render_pass_pixel_shader.pdb"
+##### SilhouetteRenderPass #####
+$silhouetteRenderPassFile = $shaderDir + "SilhouetteRender.hlsl"
+$silhouetteRenderPassRootsignatureOutput = $outputDir + "silhouette_render_pass_root_signature.cso"
+$silhouetteRenderPassDepthStencilVertexShaderOutput = $outputDir + "silhouette_render_pass_depth_stencil_vertex_shader.cso"
+$silhouetteRenderPassDepthStencilVertexShaderPdbOutput = $outputDir + "silhouette_render_pass_depth_stencil_vertex_shader.pdb"
+$silhouetteRenderPassVertexShaderOutput = $outputDir + "silhouette_render_pass_vertex_shader.cso"
+$silhouetteRenderPassVertexShaderPdbOutput = $outputDir + "silhouette_render_pass_vertex_shader.pdb"
+$silhouetteRenderPassGeometryShaderOutput = $outputDir + "silhouette_render_pass_geometry_shader.cso"
+$silhouetteRenderPassGeometryShaderPdbOutput = $outputDir + "silhouette_render_pass_geometry_shader.pdb"
+$silhouetteRenderPassPixelShaderOutput = $outputDir + "silhouette_render_pass_pixel_shader.cso"
+$silhouetteRenderPassPixelShaderPdbOutput = $outputDir + "silhouette_render_pass_pixel_shader.pdb"
 
-Write-Host "SihouetteRenderPass shader file: $sihouetteRenderPassFile"
-Write-Host "SihouetteRenderPass root signature output: $sihouetteRenderPassRootsignatureOutput"
-Write-Host "SihouetteRenderPass depth stencil vertex shader output: $sihouetteRenderPassDepthStencilVertexShaderOutput"
-Write-Host "SihouetteRenderPass sihouette vertex shader output: $sihouetteRenderPassVertexShaderOutput"
-Write-Host "SihouetteRenderPass sihouette geometry shader output: $sihouetteRenderPassGeometryShaderOutput"
-Write-Host "SihouetteRenderPass sihouette pixel shader output: $sihouetteRenderPassPixelShaderOutput"
+Write-Host "SilhouetteRenderPass shader file: $silhouetteRenderPassFile"
+Write-Host "SilhouetteRenderPass root signature output: $silhouetteRenderPassRootsignatureOutput"
+Write-Host "SilhouetteRenderPass depth stencil vertex shader output: $silhouetteRenderPassDepthStencilVertexShaderOutput"
+Write-Host "SilhouetteRenderPass silhouette vertex shader output: $silhouetteRenderPassVertexShaderOutput"
+Write-Host "SilhouetteRenderPass silhouette geometry shader output: $silhouetteRenderPassGeometryShaderOutput"
+Write-Host "SilhouetteRenderPass silhouette pixel shader output: $silhouetteRenderPassPixelShaderOutput"
 
 # Compile root signature
-& $dxc /T rootsig_1_1 $sihouetteRenderPassFile /E "SihouetteRenderRootsignature" /Fo $sihouetteRenderPassRootsignatureOutput /nologo
+& $dxc /T rootsig_1_1 $silhouetteRenderPassFile /E "SilhouetteRenderRootsignature" /Fo $silhouetteRenderPassRootsignatureOutput /nologo
 # Compile pre process vertex shader
-& $dxc /T vs_6_6 $sihouetteRenderPassFile /E"DepthStencilVertexShaderMain" /Fo $sihouetteRenderPassDepthStencilVertexShaderOutput /Od /Zi /Fd $sihouetteRenderPassDepthStencilVertexShaderPdbOutput /nologo
-# Compile sihouette vertex shader 
-& $dxc /T vs_6_6 $sihouetteRenderPassFile /E"SihouetteVertexShaderMain" /Fo $sihouetteRenderPassVertexShaderOutput /Od /Zi /Fd $sihouetteRenderPassVertexShaderPdbOutput /nologo
-# Compile sihouette geometry shader
-& $dxc /T gs_6_6 $sihouetteRenderPassFile /E"SihouetteGeometryShaderMain" /Fo $sihouetteRenderPassGeometryShaderOutput /Od /Zi /Fd $sihouetteRenderPassGeometryShaderPdbOutput /nologo
-# Compile sihouette pixel shader
-& $dxc /T ps_6_6 $sihouetteRenderPassFile /E"SihouettePixelShaderMain" /Fo $sihouetteRenderPassPixelShaderOutput /Od /Zi /Fd $sihouetteRenderPassPixelShaderPdbOutput /nologo
+& $dxc /T vs_6_6 $silhouetteRenderPassFile /E"DepthStencilVertexShaderMain" /Fo $silhouetteRenderPassDepthStencilVertexShaderOutput /Od /Zi /Fd $silhouetteRenderPassDepthStencilVertexShaderPdbOutput /nologo
+# Compile silhouette vertex shader 
+& $dxc /T vs_6_6 $silhouetteRenderPassFile /E"SilhouetteVertexShaderMain" /Fo $silhouetteRenderPassVertexShaderOutput /Od /Zi /Fd $silhouetteRenderPassVertexShaderPdbOutput /nologo
+# Compile silhouette geometry shader
+& $dxc /T gs_6_6 $silhouetteRenderPassFile /E"SilhouetteGeometryShaderMain" /Fo $silhouetteRenderPassGeometryShaderOutput /Od /Zi /Fd $silhouetteRenderPassGeometryShaderPdbOutput /nologo
+# Compile silhouette pixel shader
+& $dxc /T ps_6_6 $silhouetteRenderPassFile /E"SilhouettePixelShaderMain" /Fo $silhouetteRenderPassPixelShaderOutput /Od /Zi /Fd $silhouetteRenderPassPixelShaderPdbOutput /nologo
 
 
 

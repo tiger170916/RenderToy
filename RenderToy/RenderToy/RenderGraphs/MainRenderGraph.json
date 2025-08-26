@@ -39,6 +39,11 @@
                         "Name": "LightShaftPass",
                         "Guid": "fa76f8fe-6ea7-450c-8646-bcfb5bf143ea",
                         "Type": "LIGHT_SHAFT_PASS"
+                    },
+                    {
+                        "Name": "SilhouetteRenderPass",
+                        "Guid": "50e29423-1f5f-4ac1-b469-0e326c75a806",
+                        "Type": "SILHOUETTE_RENDER_PASS"
                     }
                 ]
             }
@@ -60,10 +65,14 @@
             {
                 "Guid": "fa76f8fe-6ea7-450c-8646-bcfb5bf143ea",
                 "Dependencies": [ "7c624db1-ba28-41d2-9aa4-dc97277b4557", "264ac49f-685b-45d2-b3ff-7882dbab72e2", "8bb18fb8-38ab-4a8b-8962-3d0da37be869", "bb701ce1-521e-4c06-b7fe-5f25b9d26be0" ]
+            },
+            {
+                "Guid": "50e29423-1f5f-4ac1-b469-0e326c75a806",
+                "Dependencies": [ "8bb18fb8-38ab-4a8b-8962-3d0da37be869" ]
             }
         ],
 
         "FinalRenderOutputPass": "LightingPass",
-        "FinalPass": "LightShaftPass"
+        "FinalPass": "SilhouetteRenderPass"
     }
 }
