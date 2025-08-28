@@ -86,10 +86,12 @@ bool Renderer::Initialize(HWND hwnd)
 	{
 		Transform transform = Transform::Identity();
 		transform.Rotation.Pitch = -DirectX::XM_PI * 0.5f;
+		mesh->SetSelected(true);
 		MeshFactory::Get()->StaticMeshAddInstance(mesh.get(), transform);
 		mesh->EnablePass(PassType::EARLY_Z_PASS);
 		mesh->EnablePass(PassType::GEOMETRY_PASS);
 		mesh->EnablePass(PassType::SHADOW_PASS);
+
 
 		mesh->BuildResource(m_graphicsContext.get(), m_textureManager.get());
 		mesh->QueueStreamingTasks(m_resourceStreamer.get(), 0);

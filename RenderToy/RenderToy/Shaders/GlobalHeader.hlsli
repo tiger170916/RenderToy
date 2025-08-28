@@ -5,6 +5,7 @@ struct UniformFrameConstants
 {
     float4x4 View;
     float4x4 InvView;
+    float4x4 VectorView;
     float4x4 Projection;
     float4x4 InvProjectionMatrix;
     float4x4 ViewProjectionMatrix;

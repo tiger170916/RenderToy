@@ -5,6 +5,8 @@ struct MeshInstanceConstants
 {
     float4x4 TransformMatrix;
     
+    float4x4 InvTransformMatrix;
+    
     uint4 Uid;
     
     float4 LightEmission;

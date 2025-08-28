@@ -230,7 +230,13 @@ void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandLis
 		XMMATRIX scale = XMMatrixScaling(transform.Scale.X, transform.Scale.Y, transform.Scale.Z);
 		transformMatrix = scale * rotation * translation;
 		
-		DirectX::XMStoreFloat4x4(&updateCb.TransformMatrix, DirectX::XMMatrixTranspose(transformMatrix));
+		DirectX::XMMATRIX transformTranspose = DirectX::XMMatrixTranspose(transformMatrix);
+		DirectX::XMStoreFloat4x4(&updateCb.TransformMatrix, transformTranspose);
+
+		XMVECTOR detTransformTranspose;
+		XMMATRIX invTransformTranspose = DirectX::XMMatrixInverse(&detTransformTranspose, transformMatrix);
+		DirectX::XMStoreFloat4x4(&updateCb.InvTransformMatrix, invTransformTranspose);
+
 		updateCb.Uid[0] = m_instances[i]->uid;
 
 		LightExtension* lightExtension = m_instances[i]->lightExtension.get();

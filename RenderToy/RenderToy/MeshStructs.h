@@ -24,6 +24,8 @@ struct MeshInstanceConstants
 {
 	XMFLOAT4X4 TransformMatrix;
 
+	XMFLOAT4X4 InvTransformMatrix;
+
 	uint32_t Uid[4];
 
 	float LightEmission[4];

@@ -5,6 +5,7 @@ struct UniformFrameConstants
 {
 	XMFLOAT4X4  ViewMatrix;
 	XMFLOAT4X4  InvViewMatrix;
+	XMFLOAT4X4  VectorViewMatrix;
 	XMFLOAT4X4  ProjectionMatrix;
 	XMFLOAT4X4  InvProjectionMatrix;
 	XMFLOAT4X4  ViewProjectionMatrix;

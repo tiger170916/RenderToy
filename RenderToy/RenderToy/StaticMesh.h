@@ -62,10 +62,13 @@ private:
 
 	std::unique_ptr<ConstantBuffer<MeshInstanceConstants>> m_instanceConstants;
 
+	bool m_selected = false;
+
 	//std::vector<std::shared_ptr<LightExtension>> m_lightExtensions;
 
 	// The mesh marked for destory should not be used anymore.
 	bool m_markedForDestroy = false;
+
 
 public:
 	// Stream Interface implementation
@@ -110,6 +113,10 @@ public:
 	inline void MarkForDestory() { m_markedForDestroy = true; }
 
 	inline const bool& IsMarkedForDestroy() const { return m_markedForDestroy; }
+
+	inline void SetSelected(const bool selected) { m_selected = selected; }
+
+	inline const bool& IsSelected() const { return m_selected; }
 
 
 	// Instance getters

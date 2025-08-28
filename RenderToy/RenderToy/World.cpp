@@ -75,12 +75,20 @@ bool World::FrameBegin(float delta)
 
 	XMVECTOR detView;
 	XMMATRIX invView = DirectX::XMMatrixInverse(&detView, DirectX::XMMatrixTranspose(m_activeCamera->GetViewMatrix()));
+
+	XMVECTOR detVectorView;
+	XMMATRIX vectorView = DirectX::XMMatrixInverse(&detVectorView, m_activeCamera->GetViewMatrix());
+
+	XMMATRIX i = vectorView* m_activeCamera->GetViewMatrix();
+
+
 	XMVECTOR forwardVector = DirectX::XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), invView);
 
 	DirectX::XMStoreFloat4x4(&uniformFrameConstants.ViewProjectionMatrix, viewProj);
 	DirectX::XMStoreFloat4x4(&uniformFrameConstants.InvViewProjectionMatrix, invViewProj);
 	DirectX::XMStoreFloat4x4(&uniformFrameConstants.InvProjectionMatrix, invProj);
 	DirectX::XMStoreFloat4x4(&uniformFrameConstants.InvViewMatrix, invView);
+	DirectX::XMStoreFloat4x4(&uniformFrameConstants.VectorViewMatrix, vectorView);
 
 
 	FVector3 cameraPos = m_activeCamera->GetPosition();

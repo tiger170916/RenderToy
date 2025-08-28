@@ -1,9 +1,13 @@
 #include "SilhouetteRenderPass.h"
 #include "LightingPass.h"
+#include "GraphicsUtils.h"
 #include "Macros.h"
 
 SilhouetteRenderPass::SilhouetteRenderPass(GUID passGuid)
-	: RenderPassBase(passGuid){}
+	: RenderPassBase(passGuid)
+{
+	m_passType = PassType::SILHOUETTE_RENDER_PASS;
+}
 
 SilhouetteRenderPass::~SilhouetteRenderPass()
 {
@@ -40,37 +44,23 @@ bool SilhouetteRenderPass::Initialize(GraphicsContext* graphicsContext, ShaderMa
 	UINT adapterNodeMask = graphicsContext->GetAdapterNodeMask();
 	DescriptorHeapManager* descHeapManager = graphicsContext->GetDescriptorHeapManager();
 
-
 	// Create the depth/stencil buffer and view.
-	D3D12_RESOURCE_DESC depthStencilResourceDesc = {};
-	depthStencilResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	depthStencilResourceDesc.Alignment = 0;
-	depthStencilResourceDesc.Width = width;
-	depthStencilResourceDesc.Height = height;
-	depthStencilResourceDesc.DepthOrArraySize = 1;
-	depthStencilResourceDesc.MipLevels = 1;
-	depthStencilResourceDesc.SampleDesc.Count = 1;
-	depthStencilResourceDesc.SampleDesc.Quality = 0;
-	depthStencilResourceDesc.Format = m_depthFormat;
-	depthStencilResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	depthStencilResourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-
-	D3D12_CLEAR_VALUE optClear = {};
-	optClear.Format = m_depthFormat;
-	optClear.DepthStencil.Depth = 1.0f;
-	optClear.DepthStencil.Stencil = 0;
-
-	D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-	if (FAILED(pDevice->CreateCommittedResource(
-		&heapProperties,
-		D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES,
-		&depthStencilResourceDesc,
-		D3D12_RESOURCE_STATE_DEPTH_WRITE,
-		&optClear,
-		IID_PPV_ARGS(m_depthStencilBuffer.GetAddressOf()))))
+	if (!GraphicsUtils::CreateDepthStencilResource(
+		pDevice,
+		descHeapManager,
+		width,
+		height,
+		m_depthFormat,
+		D3D12_RESOURCE_FLAG_NONE,
+		1.0f,
+		0,
+		m_depthStencilBuffer.GetAddressOf(),
+		m_dsvId))
 	{
 		return false;
 	}
+
+	m_resourceStates[m_depthStencilBuffer.Get()] = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 
 	D3D12_INPUT_ELEMENT_DESC meshInputLayout[] = IA_MESH_LAYOUT;
 
@@ -81,7 +71,7 @@ bool SilhouetteRenderPass::Initialize(GraphicsContext* graphicsContext, ShaderMa
 	depthPipelineStateDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 	depthPipelineStateDesc.DepthStencilState.DepthEnable = true;
 	depthPipelineStateDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-	depthPipelineStateDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+	depthPipelineStateDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 	depthPipelineStateDesc.DepthStencilState.StencilEnable = false;
 
 	depthPipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -111,7 +101,7 @@ bool SilhouetteRenderPass::Initialize(GraphicsContext* graphicsContext, ShaderMa
 	stencilPipelineStateDesc.DepthStencilState.FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
 	stencilPipelineStateDesc.DepthStencilState.FrontFace.StencilPassOp = D3D12_STENCIL_OP_REPLACE;
 	stencilPipelineStateDesc.DepthStencilState.BackFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
-	stencilPipelineStateDesc.DepthStencilState.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+	stencilPipelineStateDesc.DepthStencilState.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_NEVER;
 	stencilPipelineStateDesc.DepthStencilState.BackFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
 	stencilPipelineStateDesc.DepthStencilState.BackFace.StencilPassOp = D3D12_STENCIL_OP_REPLACE;
 	if (!m_stencilPipelineState->Initialize(graphicsContext, shaderManager, ShaderType::SILHOUETTE_RENDER_PASS_ROOT_SIGNATURE, ShaderType::SILHOUETTE_RENDER_PASS_DEPTH_STENCIL_VERTEX_SHADER, ShaderType::SHADER_TYPE_NONE, ShaderType::SHADER_TYPE_NONE))
@@ -126,11 +116,11 @@ bool SilhouetteRenderPass::Initialize(GraphicsContext* graphicsContext, ShaderMa
 	silhouettePipelineStateDesc.DepthStencilState.StencilEnable = true;
 	silhouettePipelineStateDesc.DepthStencilState.StencilReadMask = 0xFF;
 	silhouettePipelineStateDesc.DepthStencilState.StencilWriteMask = 0x00;
-	silhouettePipelineStateDesc.DepthStencilState.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_LESS;
+	silhouettePipelineStateDesc.DepthStencilState.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_GREATER;
 	silhouettePipelineStateDesc.DepthStencilState.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
 	silhouettePipelineStateDesc.DepthStencilState.FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
 	silhouettePipelineStateDesc.DepthStencilState.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
-	silhouettePipelineStateDesc.DepthStencilState.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_LESS;
+	silhouettePipelineStateDesc.DepthStencilState.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_GREATER;
 	silhouettePipelineStateDesc.DepthStencilState.BackFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
 	silhouettePipelineStateDesc.DepthStencilState.BackFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
 	silhouettePipelineStateDesc.DepthStencilState.BackFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
@@ -165,10 +155,82 @@ bool SilhouetteRenderPass::PopulateCommands(World* world, GraphicsContext* graph
 		return false;
 	}
 
+	LightingPass* dependencyLightingPass = (LightingPass*)GetDependencyPassOfType(PassType::LIGHTING_PASS);
+	if (!dependencyLightingPass)
+	{
+		return false;
+	}
+
 	PassBase::PopulateCommands(world, graphicsContext);
 
 
 	ID3D12GraphicsCommandList* commandList = m_commandBuilder->GetCommandList();
+	DescriptorHeapManager* descHeapManager = graphicsContext->GetDescriptorHeapManager();
+
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
+	descHeapManager->GetDepthStencilViewCpuHandle(m_dsvId, dsvHandle);
+
+	// step 1. draw depth
+	// Set pso
+	commandList->SetPipelineState(m_depthPipelineState->GetPipelineState());
+	commandList->SetGraphicsRootSignature(m_depthPipelineState->GetRootSignature());
+
+	ResourceBarrierTransition(m_depthStencilBuffer.Get(), commandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+	commandList->OMSetRenderTargets(0, nullptr, false, &dsvHandle);
+	commandList->RSSetViewports(1, &m_viewport);
+	commandList->RSSetScissorRects(1, &m_scissorRect);
+
+	// Bind uniform frame constant buffer
+	D3D12_GPU_DESCRIPTOR_HANDLE uniformFrameGpuHandle;
+
+	world->GetUniformFrameConstantBuffer()->BindConstantBufferViewToPipeline(graphicsContext, uniformFrameGpuHandle);
+	commandList->SetGraphicsRootDescriptorTable(0, uniformFrameGpuHandle);
+
+	for (auto& staticMesh : world->GetAllStaticMeshes())
+	{
+		staticMesh->Draw(graphicsContext, commandList, m_passType, false, false);
+	}
+
+	// step 2. draw stencil
+	commandList->SetPipelineState(m_stencilPipelineState->GetPipelineState());
+	commandList->SetGraphicsRootSignature(m_stencilPipelineState->GetRootSignature());
+	commandList->SetGraphicsRootDescriptorTable(0, uniformFrameGpuHandle);
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	commandList->OMSetRenderTargets(0, nullptr, false, &dsvHandle);
+	commandList->RSSetViewports(1, &m_viewport);
+	commandList->RSSetScissorRects(1, &m_scissorRect);
+	commandList->OMSetStencilRef(1);
+	for (auto& staticMesh : world->GetAllStaticMeshes())
+	{
+		if (!staticMesh->IsSelected())
+		{
+			continue;
+		}
+		staticMesh->Draw(graphicsContext, commandList, m_passType, false, false);
+	}
+
+	// step 3. draw silhouette
+	commandList->SetPipelineState(m_silhouettePipelineState->GetPipelineState());
+	commandList->SetGraphicsRootSignature(m_silhouettePipelineState->GetRootSignature());
+	commandList->SetGraphicsRootDescriptorTable(0, uniformFrameGpuHandle);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle;
+	descHeapManager->GetRenderTargetViewCpuHandle(dependencyLightingPass->GetRenderTargetBufferRtvId(), rtvHandle);
+	dependencyLightingPass->RenderTargetBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	commandList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
+	for (auto& staticMesh : world->GetAllStaticMeshes())
+	{
+		if (!staticMesh->IsSelected())
+		{
+			continue;
+		}
+		staticMesh->Draw(graphicsContext, commandList, m_passType, false, false);
+	}
+
+	dependencyLightingPass->RenderTargetBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
 	commandList->Close();
 	return true;
