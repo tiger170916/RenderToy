@@ -41,3 +41,11 @@ PassType Utils::GetPassTypeFromString(std::string str)
 
 	return PassType::NONE;
 }
+
+uint64_t Utils::GetCurrentTimeInMicroSec()
+{
+	// Get the count in microseconds
+	auto now = std::chrono::high_resolution_clock::now();
+	auto duration_since_epoch = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch());
+	return duration_since_epoch.count();
+}

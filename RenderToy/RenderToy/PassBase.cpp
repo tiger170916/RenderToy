@@ -120,6 +120,11 @@ bool PassBase::PopulateCommands(World* world, GraphicsContext* graphicsContext)
 	return true;
 }
 
+bool PassBase::UpdateBuffers(World* world)
+{
+	return true;
+}
+
 ID3D12Resource* PassBase::GetFinalRenderPassOutputResource() const
 {
 	return nullptr;

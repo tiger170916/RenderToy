@@ -88,6 +88,22 @@ typedef struct FVector3
 		return temp;
 	}
 
+	FVector3& operator*=(const float& rhs)
+	{
+		this->X *= rhs;
+		this->Y *= rhs;
+		this->Z *= rhs;
+
+		return *this;
+	}
+
+	FVector3 operator*(const float& rhs) const
+	{
+		FVector3 temp = *this;
+		temp *= rhs;
+		return temp;
+	}
+
 } FTranslation, FScale;
 
 struct FRotator

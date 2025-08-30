@@ -128,6 +128,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="GraphicsPipelineState.cpp" />
     <ClCompile Include="GraphicsUtils.cpp" />
     <ClCompile Include="GuidComparator.cpp" />
+    <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="LightFrustumDebugPass.cpp" />
     <ClCompile Include="LightingPass.cpp" />
     <ClCompile Include="LightShaftPass.cpp" />
@@ -157,6 +158,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="UidGenerator.cpp" />
     <ClCompile Include="Utils.cpp" />
+    <ClCompile Include="WndProc.cpp" />
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -179,7 +181,9 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="GraphicsPipelineState.h" />
     <ClInclude Include="GraphicsUtils.h" />
     <ClInclude Include="GuidComparator.h" />
+    <ClInclude Include="IControllable.h" />
     <ClInclude Include="Includes.h" />
+    <ClInclude Include="InputManager.h" />
     <ClInclude Include="LightFrustumDebugPass.h" />
     <ClInclude Include="LightingPass.h" />
     <ClInclude Include="LightShaftPass.h" />
@@ -216,6 +220,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="UidGenerator.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="Vectors.h" />
+    <ClInclude Include="WndProc.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>
@@ -253,6 +258,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="Shaders\GlobalHeader.hlsli">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -268,5 +274,12 @@ $(SolutionDir)bin\CodeGen.exe</Command>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\directxtk12_desktop_2019.2025.7.10.1\build\native\directxtk12_desktop_2019.targets" Condition="Exists('..\packages\directxtk12_desktop_2019.2025.7.10.1\build\native\directxtk12_desktop_2019.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\directxtk12_desktop_2019.2025.7.10.1\build\native\directxtk12_desktop_2019.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\directxtk12_desktop_2019.2025.7.10.1\build\native\directxtk12_desktop_2019.targets'))" />
+  </Target>
 </Project>

@@ -2,8 +2,9 @@
 
 #include "Includes.h"
 #include "Vectors.h"
+#include "IControllable.h"
 
-class Camera
+class Camera : public IControllable
 {
 private:
 	FVector3 m_position = FVector3::Zero();
@@ -28,6 +29,10 @@ private:
 	const FVector3 m_basisUp = FVector3(0.0f, 1.0f, 0.0f);
 
 	bool m_cinematic = true;
+
+public:
+	// IControllable interface
+	virtual void ProcessInput(DirectX::Mouse::State mouseState, DirectX::Keyboard::State keyboardState, float deltaTime) override;
 
 public:
 	Camera(UINT width, UINT height, FVector3 initPosition, FRotator initRotation);

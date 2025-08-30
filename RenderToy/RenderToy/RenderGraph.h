@@ -61,6 +61,8 @@ public:
 
 	bool ExecuteCommands();
 
+	bool UpdateBuffers(World* world);
+
 	ID3D12Resource* GetFinalRenderOutputResource();
 
 	void WaitForRenderFinalOutputDone();

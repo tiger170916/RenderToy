@@ -13,6 +13,8 @@
 #include <d3d12.h>
 #include <directxmath.h>
 #include <wrl.h>
+#include "Keyboard.h"	// Microsoft DirectXTK header
+#include "Mouse.h"		// Microsoft DirectXTK header
 #include "d3dx12.h"
 
 

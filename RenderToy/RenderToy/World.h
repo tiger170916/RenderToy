@@ -41,5 +41,7 @@ public:
 
 	inline ConstantBuffer<LightConstantsDx>* GetLightConstantBuffer() const { return m_lightConstants.get(); }
 
+	bool UpdateBuffers();
+
 	bool FrameBegin(float delta);
 };

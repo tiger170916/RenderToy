@@ -98,6 +98,8 @@ public:
 
 	bool BuildResource(GraphicsContext* graphicsContext, TextureManager* textureManager);
 
+	bool UpdateBuffers();
+
 	void Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, PassType passType, bool useSimpleVertex, bool setTextures);
 
 	void AttachLightExtension(LightExtension* light, const uint32_t& instanceIdx);

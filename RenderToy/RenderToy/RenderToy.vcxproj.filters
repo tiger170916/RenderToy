@@ -164,6 +164,12 @@
     <ClCompile Include="SilhouetteRenderPass.cpp">
       <Filter>RenderPasses</Filter>
     </ClCompile>
+    <ClCompile Include="InputManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WndProc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -337,6 +343,15 @@
     <ClInclude Include="SilhouetteRenderPass.h">
       <Filter>RenderPasses</Filter>
     </ClInclude>
+    <ClInclude Include="InputManager.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WndProc.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IControllable.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\EarlyZPass.hlsl">
@@ -371,5 +386,6 @@
     <None Include="Shaders\MeshHeader.hlsli">
       <Filter>ShaderSource</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

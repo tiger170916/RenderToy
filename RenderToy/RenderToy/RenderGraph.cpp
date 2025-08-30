@@ -237,6 +237,16 @@ Pipeline* RenderGraph::GetParentPipeline(PassBase* pass)
 	return nullptr;
 }
 
+bool RenderGraphUpdateBuffers(World* world)
+{
+	if (!world)
+	{
+		return false;
+	}
+	
+	return true;
+}
+
 bool RenderGraph::ExecuteCommands()
 {
 	uint64_t waitForStaringSignal = m_startingFence->GetCurrentFenceValue() + 1;
@@ -342,6 +352,23 @@ void RenderGraph::WaitForRenderFinalOutputDone()
 	{
 		WaitForSingleObject(m_renderOutputWorkDoneEvent, INFINITE);
 	}
+}
+
+bool RenderGraph::UpdateBuffers(World* world)
+{
+	if (!world)
+	{
+		return false;
+	}
+
+	bool succ = world->UpdateBuffers();
+
+	for (auto& pass : m_allPasses)
+	{
+		succ &= pass->UpdateBuffers(world);
+	}
+
+	return succ;
 }
 
 bool RenderGraph::ParseFile(std::vector<RenderGraph::PipelineStruct>& outPipelines, std::map<GUID, std::set<GUID, GuidComparator>, GuidComparator>& outExtraDependencies, std::string& outFinalRenderOutputPass, std::string& outFinalPass)

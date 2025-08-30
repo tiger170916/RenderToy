@@ -17,4 +17,6 @@ public:
 	static std::filesystem::path GetWorkingDirectory();
 
 	static PassType GetPassTypeFromString(std::string str);
+
+	static uint64_t GetCurrentTimeInMicroSec();
 };

@@ -48,6 +48,8 @@ public:
 
 	virtual bool PopulateCommands(World* world, GraphicsContext* graphicsContext);
 
+	virtual bool UpdateBuffers(World* world);
+
 	// A pass that can be used as final stage of render pass has to override this function, and return the corresponding buffer.
 	virtual ID3D12Resource* GetFinalRenderPassOutputResource() const;
 

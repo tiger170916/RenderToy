@@ -165,3 +165,23 @@ XMMATRIX GraphicsUtils::ViewMatrixFromPositionRotation(const FVector3& position,
 		XMVectorSet(focusPos.X, focusPos.Y, focusPos.Z, 1.0f),
 		XMVectorSet(upDirection.X, upDirection.Y, upDirection.Z, 1.0f));
 }
+
+void GraphicsUtils::GetForwardRightUpVectorFromRotator(const FRotator& rotator, FVector3& outForward, FVector3& outRight, FVector3& outUp)
+{
+	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(rotator.Pitch, rotator.Yaw, rotator.Roll);
+	XMVECTOR forwardDirXM = XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 1.0f), rotationMatrix);
+	XMVECTOR rightDirXM = XMVector3Transform(XMVectorSet(1.0f, 0.0f, 0.0f, 1.0f), rotationMatrix);
+	XMVECTOR upDirXM = XMVector3Transform(XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f), rotationMatrix);
+
+	outForward.X = forwardDirXM.m128_f32[0];
+	outForward.Y = forwardDirXM.m128_f32[1];
+	outForward.Z = forwardDirXM.m128_f32[2];
+
+	outRight.X = rightDirXM.m128_f32[0];
+	outRight.Y = rightDirXM.m128_f32[1];
+	outRight.Z = rightDirXM.m128_f32[2];
+
+	outUp.X = upDirXM.m128_f32[0];
+	outUp.Y = upDirXM.m128_f32[1];
+	outUp.Z = upDirXM.m128_f32[2];
+}

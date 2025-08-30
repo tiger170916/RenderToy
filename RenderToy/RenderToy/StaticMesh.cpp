@@ -207,29 +207,19 @@ bool StaticMesh::BuildResource(GraphicsContext* graphicsContext, TextureManager*
 	return true;
 }
 
-void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, PassType passType, bool useSimpleVertex, bool setTextures)
+bool StaticMesh::UpdateBuffers()
 {
-	if (!graphicsContext || !cmdList)
-	{
-		return;
-	}
-
-	if (m_instances.empty())
-	{
-		return;
-	}
-
 	for (int i = 0; i < m_instances.size(); i++)
 	{
 		MeshInstanceConstants updateCb = {};
-		
+
 		Transform& transform = m_instances[i]->transform;
 		XMMATRIX transformMatrix = XMMatrixIdentity();
 		XMMATRIX rotation = XMMatrixRotationRollPitchYaw(transform.Rotation.Pitch, transform.Rotation.Yaw, transform.Rotation.Roll);
 		XMMATRIX translation = XMMatrixTranslation(transform.Translation.X, transform.Translation.Y, transform.Translation.Z);
 		XMMATRIX scale = XMMatrixScaling(transform.Scale.X, transform.Scale.Y, transform.Scale.Z);
 		transformMatrix = scale * rotation * translation;
-		
+
 		DirectX::XMMATRIX transformTranspose = DirectX::XMMatrixTranspose(transformMatrix);
 		DirectX::XMStoreFloat4x4(&updateCb.TransformMatrix, transformTranspose);
 
@@ -252,6 +242,21 @@ void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandLis
 	}
 
 	if (!m_instanceConstants->UpdateToGPU())
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, PassType passType, bool useSimpleVertex, bool setTextures)
+{
+	if (!graphicsContext || !cmdList)
+	{
+		return;
+	}
+
+	if (m_instances.empty())
 	{
 		return;
 	}

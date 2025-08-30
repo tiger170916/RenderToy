@@ -40,4 +40,6 @@ public:
 		UINT64& outRtvId);
 
 	static XMMATRIX ViewMatrixFromPositionRotation(const FVector3& position, const FRotator& rotator, FVector3& outForwardDir);
+
+	static void GetForwardRightUpVectorFromRotator(const FRotator& rotator, FVector3& outForward, FVector3& outRight, FVector3& outUp);
 };

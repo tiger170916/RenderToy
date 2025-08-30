@@ -155,6 +155,7 @@ bool SilhouetteRenderPass::PopulateCommands(World* world, GraphicsContext* graph
 		return false;
 	}
 
+	
 	LightingPass* dependencyLightingPass = (LightingPass*)GetDependencyPassOfType(PassType::LIGHTING_PASS);
 	if (!dependencyLightingPass)
 	{
@@ -165,6 +166,7 @@ bool SilhouetteRenderPass::PopulateCommands(World* world, GraphicsContext* graph
 
 
 	ID3D12GraphicsCommandList* commandList = m_commandBuilder->GetCommandList();
+
 	DescriptorHeapManager* descHeapManager = graphicsContext->GetDescriptorHeapManager();
 
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;

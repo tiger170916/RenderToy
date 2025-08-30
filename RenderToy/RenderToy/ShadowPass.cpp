@@ -119,14 +119,13 @@ bool ShadowPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 	return true;
 }
 
-bool ShadowPass::PopulateCommands(World* world, GraphicsContext* graphicsContext)
+bool ShadowPass::UpdateBuffers(World* world)
 {
-	if (world == nullptr || graphicsContext == nullptr)
+	if (!PassBase::UpdateBuffers(world))
 	{
 		return false;
 	}
 
-	DescriptorHeapManager* descriptorHeapManager = graphicsContext->GetDescriptorHeapManager();
 	ConstantBuffer<LightConstantsDx>* lightCb = world->GetLightConstantBuffer();
 
 	m_atlas->ClearNodes();
@@ -142,11 +141,6 @@ bool ShadowPass::PopulateCommands(World* world, GraphicsContext* graphicsContext
 
 		for (uint32_t instanceIdx = 0; instanceIdx < staticMesh->GetNumInstances(); instanceIdx++)
 		{
-			if (!staticMesh->HasLightExtension(instanceIdx))
-			{
-				continue;
-			}
-
 			LightExtension* light = staticMesh->GetLightExtension(instanceIdx);
 			if (!light)
 			{
@@ -206,6 +200,19 @@ bool ShadowPass::PopulateCommands(World* world, GraphicsContext* graphicsContext
 
 	(*lightCb)[0].NumLights[0] = lightItr;
 	lightCb->UpdateToGPU();
+
+	return true;
+}
+
+bool ShadowPass::PopulateCommands(World* world, GraphicsContext* graphicsContext)
+{
+	if (world == nullptr || graphicsContext == nullptr)
+	{
+		return false;
+	}
+
+	DescriptorHeapManager* descriptorHeapManager = graphicsContext->GetDescriptorHeapManager();
+	ConstantBuffer<LightConstantsDx>* lightCb = world->GetLightConstantBuffer();
 
 	PassBase::PopulateCommands(world, graphicsContext);
 

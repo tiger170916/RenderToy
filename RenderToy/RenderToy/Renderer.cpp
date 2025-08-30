@@ -4,6 +4,7 @@
 #include "FullscreenQuad.h"
 #include "Lights/LightFactory.h"
 #include "GraphicsUtils.h"
+#include "Utils.h"
 
 
 Renderer::~Renderer()
@@ -16,6 +17,8 @@ void Renderer::RenderStop()
 	{
 		m_resourceStreamer->StopStreaming();
 		m_resourceStreamer.reset();
+		m_stateUpdating = false;
+		m_rendering = false;
 	}
 }
 
@@ -32,6 +35,8 @@ bool Renderer::Initialize(HWND hwnd)
 	{
 		return true;
 	}
+
+	m_stateUpdateCriticalSection = std::unique_ptr<CriticalSection>(new CriticalSection());
 
 	// Initialize graphics device
 	m_graphicsContext = std::unique_ptr<GraphicsContext>(new GraphicsContext());
@@ -58,6 +63,14 @@ bool Renderer::Initialize(HWND hwnd)
 
 	m_swapchain = std::unique_ptr<Swapchain>(new Swapchain());
 	if (!m_swapchain->Initialize(m_graphicsContext.get())) 
+	{
+		return false;
+	}
+
+	WndProc::Get()->Initialize(hwnd);
+
+	m_inputManager = std::unique_ptr<InputManager>(new InputManager());
+	if (!m_inputManager->Initialize(hwnd))
 	{
 		return false;
 	}
@@ -103,7 +116,7 @@ bool Renderer::Initialize(HWND hwnd)
 		Transform lightBulbTransform1 = Transform::Identity();
 		lightBulbTransform1.Translation = FVector3(3.0f, 1.0f, -8.5f);
 		lightBulbTransform1.Rotation.Pitch = DirectX::XM_PI * 0.5f;
-
+		lightBulbMesh[i]->SetSelected(true);
 		Transform lightBulbTransform2 = Transform::Identity();
 		lightBulbTransform2.Translation = FVector3(3.0f, 1.0f, 12.5f);
 		lightBulbTransform2.Rotation.Pitch = DirectX::XM_PI * 0.5f;
@@ -126,6 +139,8 @@ bool Renderer::Initialize(HWND hwnd)
 	m_activeWorld->SpawnStaticMeshes(meshes);
 	m_activeWorld->SpawnStaticMeshes(lightBulbMesh);
 
+	m_inputManager->SetControlObject(m_activeWorld->GetActiveCamera());
+
 	m_initialized = true;
 	return true;
 }
@@ -133,8 +148,46 @@ bool Renderer::Initialize(HWND hwnd)
 bool Renderer::RenderStart()
 {
 	m_renderThreadHandle = CreateThread(NULL, 0, RenderThreadRoutine, this, NULL, NULL);
+	m_stateUpdateThreadHandle = CreateThread(NULL, 0, StateUpdateThreadRoutine, this, NULL, NULL);
 	
 	return true;
+}
+
+DWORD WINAPI Renderer::StateUpdateThreadRoutine(LPVOID lpParameter)
+{
+	if (lpParameter == nullptr)
+	{
+		return 1;
+	}
+
+	Renderer* renderer = (Renderer*)lpParameter;
+	renderer->m_stateUpdating = true;
+
+	while (renderer->m_stateUpdating)
+	{
+		uint64_t nowInMicroSecs = Utils::GetCurrentTimeInMicroSec();
+		float delta = 0.0f;
+		if (renderer->m_lastStateUpdateTime > 0)
+		{
+			// Get delta in unit of second
+			delta = (float)(nowInMicroSecs - renderer->m_lastStateUpdateTime) / 1000000.0f;
+		}
+
+		// Update input
+		if (renderer->m_inputManager)
+		{
+			renderer->m_stateUpdateCriticalSection->EnterCriticalSection();
+
+			renderer->m_inputManager->Update(delta);
+
+			renderer->m_stateUpdateCriticalSection->ExitCriticalSection();
+		}
+
+		renderer->m_lastStateUpdateTime = nowInMicroSecs;
+		Sleep(1);
+	}
+
+	return 0;
 }
 
 DWORD WINAPI Renderer::RenderThreadRoutine(LPVOID lpParameter)
@@ -159,10 +212,7 @@ DWORD WINAPI Renderer::RenderThreadRoutine(LPVOID lpParameter)
 
 void Renderer::Frame()
 {
-	// Get the count in microseconds
-	auto now = std::chrono::high_resolution_clock::now();
-	auto duration_since_epoch = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch());
-	uint64_t nowInMicroSecs = duration_since_epoch.count();
+	uint64_t nowInMicroSecs = Utils::GetCurrentTimeInMicroSec();
 
 	float delta = 0.0f;
 	if (m_lastRenderTime > 0)
@@ -182,6 +232,12 @@ void Renderer::Frame()
 
 void Renderer::FrameBegin(float delta)
 {
+	m_stateUpdateCriticalSection->EnterCriticalSection();
+
+	m_mainRenderGraph->UpdateBuffers(m_activeWorld.get());
+
+	m_stateUpdateCriticalSection->ExitCriticalSection();
+
 	m_activeWorld->FrameBegin(delta);
 }
 

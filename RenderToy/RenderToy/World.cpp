@@ -58,9 +58,9 @@ void World::SpawnStaticMeshes(std::vector<std::shared_ptr<StaticMesh>>& staticMe
 	}
 }
 
-bool World::FrameBegin(float delta)
+bool World::UpdateBuffers()
 {
-	m_activeCamera->Frame(delta);
+	// Update uniform frame constants
 	UniformFrameConstants uniformFrameConstants = {};
 	DirectX::XMStoreFloat4x4(&uniformFrameConstants.ViewMatrix, DirectX::XMMatrixTranspose(m_activeCamera->GetViewMatrix()));
 	DirectX::XMStoreFloat4x4(&uniformFrameConstants.ProjectionMatrix, DirectX::XMMatrixTranspose(m_activeCamera->GetProjectionMatrix()));
@@ -78,8 +78,6 @@ bool World::FrameBegin(float delta)
 
 	XMVECTOR detVectorView;
 	XMMATRIX vectorView = DirectX::XMMatrixInverse(&detVectorView, m_activeCamera->GetViewMatrix());
-
-	XMMATRIX i = vectorView* m_activeCamera->GetViewMatrix();
 
 
 	XMVECTOR forwardVector = DirectX::XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), invView);
@@ -108,7 +106,19 @@ bool World::FrameBegin(float delta)
 	uniformFrameConstants.PixelHeightInNdc = 2.0f / (float)m_activeCamera->GetHeight();
 
 	(*m_uniformFrameConstantBuffer)[0] = uniformFrameConstants;
-	m_uniformFrameConstantBuffer->UpdateToGPU();
+	bool succ = m_uniformFrameConstantBuffer->UpdateToGPU();
 
+	for (auto& staticMesh : m_staticMeshes)
+	{
+		succ &= staticMesh->UpdateBuffers();
+	}
+
+
+	return succ;
+}
+
+bool World::FrameBegin(float delta)
+{
+	
 	return true;
 }
