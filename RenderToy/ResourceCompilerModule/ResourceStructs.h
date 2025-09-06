@@ -16,8 +16,8 @@ namespace ResourceCompilerModule
 	{
 		std::uint32_t MagicNum;
 		uint32_t Version;
-		uint32_t TileNameStrIndex;
-		uint32_t SizeNameStr;
+		char TileName[512];
+
 		float BboxMinX;
 		float BboxMinY;
 		float BboxMaxX;
@@ -26,23 +26,21 @@ namespace ResourceCompilerModule
 		uint32_t NumStaticMeshes;
 		uint32_t NumStaticMeshInstances;
 		uint32_t NumLightExtensions;
+		uint32_t NumMeshParts;
 
 		uint32_t MeshHeadersOffset;
 		uint32_t StaticMeshInstancesOffset;
 		uint32_t LightExtensionsOffset;
-		uint32_t StringsOffset;
-
-		uint32_t StringTotalLength;
+		uint32_t MeshPartsOffset;
 	};
 
 	struct StaticMeshHeader
 	{
-		int32_t MeshNameIndex;
-		int32_t MeshNameSize;
-		int32_t MeshDataOffset;
-		int32_t MeshDataSize;
-		int32_t InstanceCount;
-		int32_t InstanceIndex;
+		char MeshName[512];
+		uint32_t InstanceCount;
+		uint32_t InstanceIndex;
+		uint32_t MeshPartCount;
+		uint32_t MeshPartIndex;
 	};
 
 	struct StaticMeshInstanceHeader
@@ -64,6 +62,41 @@ namespace ResourceCompilerModule
 		float AttenuationRadius;
 		float AspectRatio;
 		float Fov;
+	};
+
+	struct MeshPartHeader
+	{
+		uint32_t MeshDataOffset;
+		uint32_t MeshDataSize;
+		uint32_t NumVertices;
+
+		char BaseColorTextureName[512];
+		uint32_t BaseColorTextureOffset;
+		uint32_t BaseColorTextureWidth;
+		uint32_t BaseColorTextureHeight;
+		uint32_t BaseColorTextureDataSize;
+		uint32_t BaseColorNumChannels;
+
+		char MetallicTextureName[512];
+		uint32_t MetallicTextureOffset;
+		uint32_t MetallicTextureWidth;
+		uint32_t MetallicTextureHeight;
+		uint32_t MetallicTextureDataSize;
+		uint32_t MetallicNumChannels;
+		
+		char RoughnessTextureName[512];
+		uint32_t RoughnessTextureOffset;
+		uint32_t RoughnessTextureWidth;
+		uint32_t RoughnessTextureHeight;
+		uint32_t RoughnessTextureDataSize;
+		uint32_t RoughnessNumChannels;
+
+		char NormalTextureName[512];
+		uint32_t NormalTextureOffset;
+		uint32_t NormalTextureWidth;
+		uint32_t NormalTextureHeight;
+		uint32_t NormalTextureDataSize;
+		uint32_t NormalNumChannels;
 	};
 
 	struct MeshVertexDx

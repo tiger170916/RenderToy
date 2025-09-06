@@ -1,5 +1,4 @@
 #include "ResourceCompiler.h"
-#include "BinaryFileLoader.h"
 #include <fstream>
 #include <memory>
 
@@ -62,9 +61,6 @@ bool ResourceCompiler::CompileRoot(const char* rootFile)
 	}
 
 	succ = world->PackToBinary(rootFile);
-
-	BinaryFileLoader binFileLoader;
-	binFileLoader.LoadBinary("C:\\ZemingGit\\RenderToy\\bin\\ResourceCompiler\\World\\TestWorld\\Tile_1_1.bin");
 
 	return succ;
 }

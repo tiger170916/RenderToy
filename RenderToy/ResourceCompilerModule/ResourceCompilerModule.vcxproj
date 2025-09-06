@@ -57,7 +57,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>RESOURCE_COMPILER_MODULE_EXPORT;_DEBUG;RESOURCECOMPILERMODULE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>FBXSDK_SHARED;RESOURCE_COMPILER_MODULE_EXPORT;_DEBUG;RESOURCECOMPILERMODULE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -67,7 +67,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Rpcrt4.lib;libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(ProjectDir)ResourceCompilerModuleApi.h" "$(SolutionDir)Includes\ResourceCompilerModuleApi.h";
@@ -82,7 +82,7 @@ copy /Y "$(SolutionDir)FbxSdk\lib\x64\debug\libfbxsdk.dll" "$(SolutionDir)bin\Re
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>RESOURCE_COMPILER_MODULE_EXPORT;NDEBUG;RESOURCECOMPILERMODULE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>FBXSDK_SHARED;RESOURCE_COMPILER_MODULE_EXPORT;NDEBUG;RESOURCECOMPILERMODULE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -94,7 +94,7 @@ copy /Y "$(SolutionDir)FbxSdk\lib\x64\debug\libfbxsdk.dll" "$(SolutionDir)bin\Re
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Rpcrt4.lib;libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(ProjectDir)ResourceCompilerModuleApi.h" "$(SolutionDir)Includes\ResourceCompilerModuleApi.h";
@@ -107,8 +107,10 @@ copy /Y "$(SolutionDir)FbxSdk\lib\x64\release\libfbxsdk.dll" "$(SolutionDir)bin\
     <ClCompile Include="BinaryFileLoader.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="FbxLoader.cpp" />
+    <ClCompile Include="GuidComparator.cpp" />
     <ClCompile Include="ResourceCompiler.cpp" />
     <ClCompile Include="ResourceCompilerModuleApi.cpp" />
+    <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="Utils.cpp" />
     <ClCompile Include="World.cpp" />
   </ItemGroup>
@@ -116,10 +118,12 @@ copy /Y "$(SolutionDir)FbxSdk\lib\x64\release\libfbxsdk.dll" "$(SolutionDir)bin\
     <ClInclude Include="3rdParty\json.hpp" />
     <ClInclude Include="BinaryFileLoader.h" />
     <ClInclude Include="FbxLoader.h" />
+    <ClInclude Include="GuidComparator.h" />
     <ClInclude Include="ResourceCompiler.h" />
     <ClInclude Include="ResourceCompilerModuleApi.h" />
     <ClInclude Include="ResourceStructs.h" />
     <ClInclude Include="Structs.h" />
+    <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>

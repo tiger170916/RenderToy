@@ -1,16 +1,16 @@
 #include "FbxLoader.h"
-/*
-FbxLoader::FbxLoader(std::string fileName, float scale)
-    : m_fileName(fileName), m_scale(scale)
-{
+#include "TextureLoader.h"
 
+FbxLoader::FbxLoader(StaticMeshStruct* staticMeshStruct)
+    : m_staticMeshStruct(staticMeshStruct)
+{
 }
 
-bool FbxLoader::Load(std::filesystem::path filePath)
+bool FbxLoader::Load(bool loadHeaders, uint32_t* meshOffset, std::ofstream* file)
 {
-    if (m_loaded)
+    if (!std::filesystem::exists(m_staticMeshStruct->AssetPath))
     {
-        return true;
+        return false;
     }
 
     // Initialize the FBX SDK manager
@@ -18,6 +18,7 @@ bool FbxLoader::Load(std::filesystem::path filePath)
     if (!m_fbxManager)
     {
         m_fbxManager->Destroy();
+        m_fbxManager = nullptr;
         return false;
     }
 
@@ -28,10 +29,14 @@ bool FbxLoader::Load(std::filesystem::path filePath)
 
     // Create an importer
     FbxImporter* lImporter = FbxImporter::Create(m_fbxManager, "");
-    if (!lImporter->Initialize(m_fileName.c_str(), -1, m_fbxManager->GetIOSettings()))
+    if (!lImporter->Initialize(m_staticMeshStruct->AssetPath.string().c_str(), -1, m_fbxManager->GetIOSettings()))
     {
+        const char* str = lImporter->GetStatus().GetErrorString();
+
         m_fbxManager->Destroy();
+        m_fbxManager = nullptr;
         return false;
+
     }
 
     // Create a scene and import the file contents into it
@@ -46,13 +51,13 @@ bool FbxLoader::Load(std::filesystem::path filePath)
 
     // Process the scene's root node
     FbxNode* lRootNode = lScene->GetRootNode();
-    ProcessNode(lRootNode);
+    ProcessNode(lRootNode, m_staticMeshStruct, loadHeaders, meshOffset, file);
     m_loaded = true;
 
     return true;
 }
 
-void FbxLoader::ProcessMesh(FbxNode* pNode, FbxMesh* pMesh)
+void FbxLoader::ProcessMesh(FbxNode* pNode, FbxMesh* pMesh, StaticMeshStruct* staticMeshStruct, bool loadHeaders, uint32_t* meshOffset, std::ofstream* file)
 {
     if (!pNode || !pMesh || !pMesh->IsTriangleMesh()) // expecting a triangle mesh
     {
@@ -68,9 +73,6 @@ void FbxLoader::ProcessMesh(FbxNode* pNode, FbxMesh* pMesh)
         return;
     }
 
-    // Create new static mesh
-    StaticMesh* staticMesh = MeshFactory::Get()->CreateStaticMesh();
-    outMeshes.push_back(std::shared_ptr<StaticMesh>(staticMesh));
 
     // Access normals
     FbxLayerElementNormal* pNormals = pMesh->GetLayer(0)->GetNormals();
@@ -81,10 +83,147 @@ void FbxLoader::ProcessMesh(FbxNode* pNode, FbxMesh* pMesh)
     FbxLayerElementArrayTemplate<int>* pMaterialIndices = nullptr;
     FbxGeometryElement::EMappingMode materialMappingMode = FbxGeometryElement::eNone;
 
-    bool isSingleMaterial = false;
-    int singleMaterialId = -1;  // -1 indicates no material 
+    // Check if it has material defined in the fbx
+    bool hasMaterial = pMesh->GetElementMaterial(0) != nullptr;
+    bool useOverrideMaterial = false;
+    if (!staticMeshStruct->OverrideBaseColorTexture.empty())
+    {
+        useOverrideMaterial = true;
+    }
 
-    if (!pMesh->GetElementMaterial())
+    if (useOverrideMaterial)
+    {
+        if (loadHeaders)
+        {
+            MeshPartHeader meshPartHeader = {};
+            meshPartHeader.NumVertices = triangleCount * 3;
+            meshPartHeader.MeshDataSize = triangleCount * 3 * sizeof(MeshVertexDx);
+            meshPartHeader.MeshDataOffset = 0;
+            m_meshPartHeaders.push_back(meshPartHeader);
+        }
+        else
+        {
+            std::vector<MeshVertexDx> verticesDx;
+
+            for (int triangleIndex = 0; triangleIndex < triangleCount; ++triangleIndex)
+            {
+                MeshVertexDx v1Dx {};
+                MeshVertexDx v2Dx {};
+                MeshVertexDx v3Dx {};
+
+                int vertexIdx1 = triangleIndex * 3;
+
+                int pointIdx1 = pMesh->GetPolygonVertex(triangleIndex, 0);
+                int pointIdx2 = pMesh->GetPolygonVertex(triangleIndex, 1);
+                int pointIdx3 = pMesh->GetPolygonVertex(triangleIndex, 2);
+
+                FbxVector4 v1 = controlPoints[pointIdx1];
+                FbxVector4 v2 = controlPoints[pointIdx2];
+                FbxVector4 v3 = controlPoints[pointIdx3];
+
+                v1Dx.position[0] = (float)v1[0];
+                v1Dx.position[1] = (float)v1[1];
+                v1Dx.position[2] = (float)v1[2];
+
+                v2Dx.position[0] = (float)v2[0];
+                v2Dx.position[1] = (float)v2[1];
+                v2Dx.position[2] = (float)v2[2];
+
+                v3Dx.position[0] = (float)v3[0];
+                v3Dx.position[1] = (float)v3[1];
+                v3Dx.position[2] = (float)v3[2];
+
+                verticesDx.push_back(v1Dx);
+                verticesDx.push_back(v2Dx);
+                verticesDx.push_back(v3Dx);
+            }
+
+            uint32_t meshSize = (uint32_t)verticesDx.size() * sizeof(MeshVertexDx);
+            file->seekp(*meshOffset);
+            file->write((char*)verticesDx.data(), meshSize);
+
+            MeshPartHeader& meshPartHeader = m_meshPartHeaders[0];
+            m_meshPartHeaders[0].MeshDataOffset = *meshOffset;
+            (*meshOffset) += meshSize;
+
+            // Load textures
+            TextureLoader texLoader;
+
+            meshPartHeader.BaseColorTextureOffset = *meshOffset;
+
+            if (std::filesystem::exists(staticMeshStruct->OverrideBaseColorTexture))
+            {
+                texLoader.LoadTexture(
+                    staticMeshStruct->OverrideBaseColorTexture,
+                    file, meshOffset,
+                    meshPartHeader.BaseColorTextureWidth,
+                    meshPartHeader.BaseColorTextureHeight,
+                    meshPartHeader.BaseColorTextureDataSize,
+                    meshPartHeader.BaseColorNumChannels);
+
+                std::filesystem::path baseColorFileName = staticMeshStruct->OverrideBaseColorTexture.stem();
+                std::string baseColorFileNameStr = baseColorFileName.string();
+                memcpy(meshPartHeader.BaseColorTextureName, baseColorFileNameStr.c_str(), baseColorFileNameStr.size());
+            }
+
+            meshPartHeader.MetallicTextureOffset = *meshOffset;
+            if (std::filesystem::exists(staticMeshStruct->OverrideMetallicTexture))
+            {
+                texLoader.LoadTexture(
+                    staticMeshStruct->OverrideMetallicTexture,
+                    file, meshOffset,
+                    meshPartHeader.MetallicTextureWidth,
+                    meshPartHeader.MetallicTextureHeight,
+                    meshPartHeader.MetallicTextureDataSize,
+                    meshPartHeader.MetallicNumChannels);
+
+                std::filesystem::path metallicFileName = staticMeshStruct->OverrideMetallicTexture.stem();
+                std::string metallicFileNameStr = metallicFileName.string();
+                memcpy(meshPartHeader.MetallicTextureName, metallicFileNameStr.c_str(), metallicFileNameStr.size());
+            }
+
+
+            if (std::filesystem::exists(staticMeshStruct->OverrideRoughnessTexture))
+            {
+                meshPartHeader.RoughnessTextureOffset = *meshOffset;
+                texLoader.LoadTexture(
+                    staticMeshStruct->OverrideRoughnessTexture,
+                    file, meshOffset,
+                    meshPartHeader.RoughnessTextureWidth,
+                    meshPartHeader.RoughnessTextureHeight,
+                    meshPartHeader.RoughnessTextureDataSize,
+                    meshPartHeader.RoughnessNumChannels);
+
+                std::filesystem::path roughnessFileName = staticMeshStruct->OverrideRoughnessTexture.stem();
+                std::string roughnessFileNameStr = roughnessFileName.string();
+                memcpy(meshPartHeader.RoughnessTextureName, roughnessFileNameStr.c_str(), roughnessFileNameStr.size());
+            }
+
+            meshPartHeader.NormalTextureOffset = *meshOffset;
+            if (std::filesystem::exists(staticMeshStruct->OverrideNormalTexture))
+            {
+                texLoader.LoadTexture(
+                    staticMeshStruct->OverrideNormalTexture,
+                    file, meshOffset,
+                    meshPartHeader.NormalTextureWidth,
+                    meshPartHeader.NormalTextureHeight,
+                    meshPartHeader.NormalTextureDataSize,
+                    meshPartHeader.NormalNumChannels);
+
+                std::filesystem::path normalFileName = staticMeshStruct->OverrideNormalTexture.stem();
+                std::string normalFileNameStr = normalFileName.string();
+                memcpy(meshPartHeader.NormalTextureName, normalFileNameStr.c_str(), normalFileNameStr.size());
+            }
+        }
+    }
+
+    
+    /*
+    bool isSingleMaterial = false; 
+    int singleMaterialId = -1;  // -1 indicates no material 
+    
+    const auto materialIndices = pMesh->Getpolygonmaterial
+    if (!pMesh->GetElementMaterial(13))
     {
         isSingleMaterial = true;
     }
@@ -272,10 +411,10 @@ void FbxLoader::ProcessMesh(FbxNode* pNode, FbxMesh* pMesh)
     newMaterial->SetAmbientOcclusionTexturePath(ambientOcclusion);
 
     staticMesh->AddMaterial(newMaterial);
-    //}
+    //}*/
 }
 
-void FbxLoader::ProcessNode(FbxNode* pNode)
+void FbxLoader::ProcessNode(FbxNode* pNode, StaticMeshStruct* staticMeshStruct, bool loadHeaders, uint32_t* meshOffset, std::ofstream* file)
 {
     // Process the node's attributes
     for (int i = 0; i < pNode->GetNodeAttributeCount(); ++i)
@@ -284,18 +423,18 @@ void FbxLoader::ProcessNode(FbxNode* pNode)
         if (pAttribute->GetAttributeType() == FbxNodeAttribute::eMesh)
         {
             FbxMesh* pMesh = static_cast<FbxMesh*>(pAttribute);
-            ProcessMesh(pNode, pMesh);
+            ProcessMesh(pNode, pMesh, staticMeshStruct, loadHeaders, meshOffset, file);
         }
     }
 
     // Recursively process child nodes
     for (int i = 0; i < pNode->GetChildCount(); ++i)
     {
-        ProcessNode(pNode->GetChild(i));
+        ProcessNode(pNode->GetChild(i), staticMeshStruct, loadHeaders, meshOffset, file);
     }
 }
 
 FbxLoader::~FbxLoader()
 {
     m_fbxManager->Destroy();
-}*/
+}

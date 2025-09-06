@@ -2,6 +2,7 @@
 #include <fstream>
 #include "ResourceStructs.h"
 #include "Utils.h"
+#include "FbxLoader.h"
 
 using namespace ResourceCompilerModule;
 
@@ -114,7 +115,8 @@ bool World::AddStaticMesh(json staticMeshNode, TileStruct* tileStruct, std::file
 	// Get mesh info
 	staticMeshStruct->MeshName = staticMeshNode["Name"];
 	std::string meshAsset = staticMeshNode["MeshAsset"];
-	std::filesystem::path meshAssetPath = rootDir.append(meshAsset);
+	std::filesystem::path meshAssetPath = rootDir;
+	meshAssetPath.append(meshAsset);
 	staticMeshStruct->AssetPath = meshAssetPath;
 
 	std::filesystem::path normalOverrideTexture;
@@ -127,19 +129,23 @@ bool World::AddStaticMesh(json staticMeshNode, TileStruct* tileStruct, std::file
 		auto overrideTextures = staticMeshNode["TextureOverride"];
 		if (overrideTextures.contains("Normal"))
 		{
-			staticMeshStruct->OverrideNormalTexture = rootDir.append(overrideTextures["Normal"].get<std::string>());
+			staticMeshStruct->OverrideNormalTexture = rootDir;
+			staticMeshStruct->OverrideNormalTexture.append(overrideTextures["Normal"].get<std::string>());
 		}
 		if (overrideTextures.contains("Metallic"))
 		{
-			staticMeshStruct->OverrideMetallicTexture = rootDir.append(overrideTextures["Metallic"].get<std::string>());
+			staticMeshStruct->OverrideMetallicTexture = rootDir;
+			staticMeshStruct->OverrideMetallicTexture.append(overrideTextures["Metallic"].get<std::string>());
 		}
 		if (overrideTextures.contains("Roughness"))
 		{
-			staticMeshStruct->OverrideRoughnessTexture = rootDir.append(overrideTextures["Roughness"].get<std::string>());
+			staticMeshStruct->OverrideRoughnessTexture = rootDir;
+			staticMeshStruct->OverrideRoughnessTexture .append(overrideTextures["Roughness"].get<std::string>());
 		}
 		if (overrideTextures.contains("BaseColor"))
 		{
-			staticMeshStruct->OverrideBaseColorTexture = rootDir.append(overrideTextures["BaseColor"].get<std::string>());
+			staticMeshStruct->OverrideBaseColorTexture = rootDir;
+			staticMeshStruct->OverrideBaseColorTexture.append(overrideTextures["BaseColor"].get<std::string>());
 		}
 	}
 
@@ -238,8 +244,7 @@ bool World::PackToBinary(std::filesystem::path rootFilePath)
 		TileHeader tileHeader = {};
 		tileHeader.MagicNum = 0x12345678;   // 0x12345678 - Magic number  (4 bytes)
 		tileHeader.Version = 0x00000001;	// 0x00000001 - Version       (4 bytes)
-		tileHeader.TileNameStrIndex = 0;	// place holder for now		  (4 bytes)
-		tileHeader.SizeNameStr = (uint32_t)tile->Name.size() + 1;	// Size name string (4 bytes) 
+		memcpy(tileHeader.TileName, tile->Name.c_str(), tile->Name.size());
 		tileHeader.BboxMinX = tile->BboxMin[0];	// BboxMin 8 bytes
 		tileHeader.BboxMinY = tile->BboxMin[1];
 		tileHeader.BboxMaxX = tile->BboxMax[0];	// Bboxmax 8 bytes
@@ -249,10 +254,8 @@ bool World::PackToBinary(std::filesystem::path rootFilePath)
 		std::vector<StaticMeshHeader> staticMeshHeaders;
 		std::vector<StaticMeshInstanceHeader> staticMeshInstanceHeaders;
 		std::vector<LightExtensionHeader> lightExtensionHeaders;
-		std::vector<std::string*> strings;
 		uint32_t stringItr = 0;
 
-		strings.push_back(&tile->Name);
 		stringItr += ((uint32_t)tile->Name.size() + 1);
 
 		uint32_t lightExtensionIndex = 0;
@@ -299,13 +302,11 @@ bool World::PackToBinary(std::filesystem::path rootFilePath)
 			}
 
 			StaticMeshHeader staticMeshHeader = {};
-			staticMeshHeader.MeshNameIndex = stringItr; // Place holder
-			staticMeshHeader.MeshNameSize = (uint32_t)(staticMesh->MeshName.size() + 1);
+			memcpy(staticMeshHeader.MeshName, staticMesh->MeshName.data(), staticMesh->MeshName.size());
 			staticMeshHeader.InstanceCount = (uint32_t)staticMesh->Instances.size();
 			staticMeshHeader.InstanceIndex = staticMeshInstanceIndex; // Place holder
 			staticMeshHeaders.push_back(staticMeshHeader);
 			stringItr += (uint32_t)(staticMesh->MeshName.size() + 1);
-			strings.push_back(&staticMesh->MeshName);
 		}
 
 		uint32_t meshHeadersOffset = 1024;
@@ -316,24 +317,56 @@ bool World::PackToBinary(std::filesystem::path rootFilePath)
 		tileHeader.MeshHeadersOffset = meshHeadersOffset;
 		tileHeader.StaticMeshInstancesOffset = staticMeshInstancesOffset;
 		tileHeader.LightExtensionsOffset = lightExtensionsOffset;
-		tileHeader.StringsOffset = stringsOffset;
-		tileHeader.StringTotalLength = stringItr + 1;
 
 		tileHeader.NumLightExtensions = (uint32_t)lightExtensionHeaders.size();
 		tileHeader.NumStaticMeshes = (uint32_t)staticMeshHeaders.size();
 		tileHeader.NumStaticMeshInstances = (uint32_t)staticMeshInstanceHeaders.size();
-		
+
+		// Get mesh part headers
+		int totalNumMeshParts = 0;
+		std::vector<std::unique_ptr<FbxLoader>> fbxLoaders;
+		for (size_t i = 0; i < tile->StaticMeshes.size(); i++)
+		{
+			StaticMeshStruct* staticMesh = tile->StaticMeshes[i].get();
+			FbxLoader *loader = new FbxLoader(staticMesh);
+			loader->Load(true, nullptr, nullptr);
+			totalNumMeshParts += (int)loader->GetMeshPartHeaders().size();
+			fbxLoaders.push_back(std::unique_ptr<FbxLoader>(loader));
+		}
+
+		uint32_t meshPartHeadersOffset = 1024 + (uint32_t)staticMeshHeaders.size() * sizeof(StaticMeshHeader) 
+							+ (uint32_t)staticMeshInstanceHeaders.size() * sizeof(StaticMeshInstanceHeader)
+							+ (uint32_t)lightExtensionHeaders.size() * sizeof(LightExtensionHeader);
+		tileHeader.MeshPartsOffset = meshPartHeadersOffset;
+		tileHeader.NumMeshParts = totalNumMeshParts;
+
+		uint32_t currentMeshOffset = meshPartHeadersOffset + totalNumMeshParts * sizeof(MeshPartHeader);
+
+
+		std::vector<MeshPartHeader> allMeshPartHeaders;
+		uint32_t currentMeshPartHeaderIdx = 0;
+		for (size_t i = 0; i < fbxLoaders.size(); i++)
+		{
+			FbxLoader* loader = fbxLoaders[i].get();
+			loader->Load(false, &currentMeshOffset, &file);
+			for (auto& meshPartHeader : loader->GetMeshPartHeaders())
+			{
+				currentMeshOffset += meshPartHeader.MeshDataSize;
+				allMeshPartHeaders.push_back(meshPartHeader);
+			}
+
+			staticMeshHeaders[i].MeshPartIndex = currentMeshPartHeaderIdx;
+			staticMeshHeaders[i].MeshPartCount = (uint32_t)loader->GetMeshPartHeaders().size();
+			currentMeshPartHeaderIdx += staticMeshHeaders[i].MeshPartCount;
+		}
+
 		memcpy(headerBytes, &tileHeader, sizeof(TileHeader));
+		file.seekp(0);
 		file.write((char*)headerBytes, 1024);
 		file.write((char*)staticMeshHeaders.data(), staticMeshHeaders.size() * sizeof(StaticMeshHeader));
 		file.write((char*)staticMeshInstanceHeaders.data(), staticMeshInstanceHeaders.size() * sizeof(StaticMeshInstanceHeader));
 		file.write((char*)lightExtensionHeaders.data(), lightExtensionHeaders.size() * sizeof(LightExtensionHeader));
-
-		for (int i = 0; i < strings.size(); i++)
-		{
-			std::string* strPtr = strings[i];
-			file.write(strPtr->data(), strPtr->length() + 1);
-		}
+		file.write((char*)allMeshPartHeaders.data(), allMeshPartHeaders.size() * sizeof(MeshPartHeader));
 
 		file.close();
 	}
