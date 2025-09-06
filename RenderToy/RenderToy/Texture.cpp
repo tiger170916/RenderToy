@@ -175,6 +175,7 @@ bool Texture::StreamIn(GraphicsContext* graphicsContext)
 	free(data);
 
 	// Create shader resource view.
+
 	D3D12_SHADER_RESOURCE_VIEW_DESC srv{};
 	srv.Format = m_dxgiFormat;
 	srv.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;

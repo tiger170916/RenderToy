@@ -352,6 +352,12 @@
     <ClInclude Include="IControllable.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\Includes\ResourceCompilerModuleApi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Includes\ResourceStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\EarlyZPass.hlsl">

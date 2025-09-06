@@ -98,7 +98,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>Rpcrt4.lib;libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Rpcrt4.lib;libfbxsdk.lib;ResourceCompilerModule.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(ProjectDir)RenderToyApi.h" "$(SolutionDir)Includes\RenderToyApi.h";
@@ -162,6 +162,8 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Includes\ResourceCompilerModuleApi.h" />
+    <ClInclude Include="..\Includes\ResourceStructs.h" />
     <ClInclude Include="3rdParty\json.hpp" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CommandBuilder.h" />
