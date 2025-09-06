@@ -71,6 +71,7 @@
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(ProjectDir)ResourceCompilerModuleApi.h" "$(SolutionDir)Includes\ResourceCompilerModuleApi.h";
+copy /Y "$(ProjectDir)ResourceStructs.h" "$(SolutionDir)Includes\ResourceStructs.h";
 copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)Libs\$(ProjectName).lib";
 copy /Y "$(SolutionDir)bin\$(ProjectName).dll" "$(SolutionDir)bin\ResourceCompiler\$(ProjectName).dll";
 copy /Y "$(SolutionDir)FbxSdk\lib\x64\debug\libfbxsdk.dll" "$(SolutionDir)bin\ResourceCompiler\libfbxsdk.dll";</Command>
@@ -98,6 +99,7 @@ copy /Y "$(SolutionDir)FbxSdk\lib\x64\debug\libfbxsdk.dll" "$(SolutionDir)bin\Re
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(ProjectDir)ResourceCompilerModuleApi.h" "$(SolutionDir)Includes\ResourceCompilerModuleApi.h";
+copy /Y "$(ProjectDir)ResourceStructs.h" "$(SolutionDir)Includes\ResourceStructs.h";
 copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)Libs\$(ProjectName).lib";
 copy /Y "$(SolutionDir)bin\$(ProjectName).dll" "$(SolutionDir)bin\ResourceCompiler\$(ProjectName).dll";
 copy /Y "$(SolutionDir)FbxSdk\lib\x64\release\libfbxsdk.dll" "$(SolutionDir)bin\ResourceCompiler\libfbxsdk.dll";</Command>
