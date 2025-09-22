@@ -3,11 +3,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerCommand>$(SolutionDir)bin\ResourceCompiler\ResourceCompilerConsole.exe  </LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>$(SolutionDir)bin\ResourceCompiler\World\TestWorld.json</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>$(SolutionDir)bin\ResourceCompiler\World\TestWorld.json $(SolutionDir)bin\ResourceCompiler\World\Meshes.json $(SolutionDir)bin\ResourceCompiler\World\Textures.json</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerCommand>$(SolutionDir)bin\ResourceCompiler\ResourceCompilerConsole.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>$(SolutionDir)bin\ResourceCompiler\World\TestWorld.json</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>$(SolutionDir)bin\ResourceCompiler\World\TestWorld.json $(SolutionDir)bin\ResourceCompiler\World\Meshes.json $(SolutionDir)bin\ResourceCompiler\World\Textures.json</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

@@ -26,13 +26,8 @@ struct StaticMeshInstanceStruct
 
 struct StaticMeshStruct
 {
-	std::string MeshName;
-
-	std::filesystem::path AssetPath;
-	std::filesystem::path OverrideNormalTexture;
-	std::filesystem::path OverrideMetallicTexture;
-	std::filesystem::path OverrideRoughnessTexture;
-	std::filesystem::path OverrideBaseColorTexture;
+	std::string File;
+	std::string Name;
 
 	std::vector<std::shared_ptr<StaticMeshInstanceStruct>> Instances;
 };
@@ -44,4 +39,20 @@ struct TileStruct
 	float BboxMax[2];
 
 	std::vector<std::shared_ptr<StaticMeshStruct>> StaticMeshes;
+};
+
+// Meshes
+struct StaticMeshDefine
+{
+	std::string Name;
+	std::string MeshAssetPath;
+
+	bool HasOverrideMaterial;
+	std::string OverrideMaterialName;
+};
+
+struct TextureDefine
+{
+	std::string Name;
+	std::string File;
 };

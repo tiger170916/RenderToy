@@ -32,12 +32,8 @@ void World::AddTile(std::string tileName, const float bboxMin[2], const float bb
 
 bool World::AddStaticMeshAsset(
 	std::string tileName,
-	std::string meshName,
-	std::filesystem::path assetPath,
-	std::filesystem::path overrideNormalTexture,
-	std::filesystem::path overrideMetallicTexture,
-	std::filesystem::path overrideRoughnessTexture,
-	std::filesystem::path overrideBaseColorTexture)
+	std::string meshFileName,
+	std::string meshName)
 {
 	TileStruct* foundTile = nullptr;
 	for (auto& tile : m_tiles)
@@ -55,13 +51,8 @@ bool World::AddStaticMeshAsset(
 	}
 
 	StaticMeshStruct * staticMeshStruct = new StaticMeshStruct();
-	staticMeshStruct->MeshName = meshName;
-
-	staticMeshStruct->AssetPath = assetPath;
-	staticMeshStruct->OverrideNormalTexture = overrideNormalTexture;
-	staticMeshStruct->OverrideMetallicTexture = overrideMetallicTexture;
-	staticMeshStruct->OverrideRoughnessTexture = overrideRoughnessTexture;
-	staticMeshStruct->OverrideBaseColorTexture = overrideBaseColorTexture;
+	staticMeshStruct->File = meshFileName;
+	staticMeshStruct->Name = meshName;
 
 	foundTile->StaticMeshes.push_back(std::shared_ptr<StaticMeshStruct>(staticMeshStruct));
 
@@ -105,49 +96,16 @@ bool World::AddTileContent(json tileNode, std::string tileName, std::filesystem:
 
 bool World::AddStaticMesh(json staticMeshNode, TileStruct* tileStruct, std::filesystem::path rootDir)
 {
-	if (!staticMeshNode.contains("Name") || !staticMeshNode.contains("MeshAsset"))
+	if (!staticMeshNode.contains("Name") || !staticMeshNode.contains("File"))
 	{
 		return false;
 	}
 
 	StaticMeshStruct* staticMeshStruct = new StaticMeshStruct();
 
-	// Get mesh info
-	staticMeshStruct->MeshName = staticMeshNode["Name"];
-	std::string meshAsset = staticMeshNode["MeshAsset"];
-	std::filesystem::path meshAssetPath = rootDir;
-	meshAssetPath.append(meshAsset);
-	staticMeshStruct->AssetPath = meshAssetPath;
-
-	std::filesystem::path normalOverrideTexture;
-	std::filesystem::path metallicOverrideTexture;
-	std::filesystem::path roughnessOverrideTexture;
-	std::filesystem::path baseColorOverrideTexture;
-
-	if (staticMeshNode.contains("TextureOverride"))
-	{
-		auto overrideTextures = staticMeshNode["TextureOverride"];
-		if (overrideTextures.contains("Normal"))
-		{
-			staticMeshStruct->OverrideNormalTexture = rootDir;
-			staticMeshStruct->OverrideNormalTexture.append(overrideTextures["Normal"].get<std::string>());
-		}
-		if (overrideTextures.contains("Metallic"))
-		{
-			staticMeshStruct->OverrideMetallicTexture = rootDir;
-			staticMeshStruct->OverrideMetallicTexture.append(overrideTextures["Metallic"].get<std::string>());
-		}
-		if (overrideTextures.contains("Roughness"))
-		{
-			staticMeshStruct->OverrideRoughnessTexture = rootDir;
-			staticMeshStruct->OverrideRoughnessTexture .append(overrideTextures["Roughness"].get<std::string>());
-		}
-		if (overrideTextures.contains("BaseColor"))
-		{
-			staticMeshStruct->OverrideBaseColorTexture = rootDir;
-			staticMeshStruct->OverrideBaseColorTexture.append(overrideTextures["BaseColor"].get<std::string>());
-		}
-	}
+	// Get mesh info	
+	staticMeshStruct->File = staticMeshNode["File"];
+	staticMeshStruct->Name = staticMeshNode["Name"];
 
 	tileStruct->StaticMeshes.push_back(std::shared_ptr<StaticMeshStruct>(staticMeshStruct));
 	if (staticMeshNode.contains("Instances") && staticMeshNode["Instances"].is_array())
@@ -241,22 +199,20 @@ bool World::PackToBinary(std::filesystem::path rootFilePath)
 
 		std::byte headerBytes[1024] = { };
 		// Write binary header
-		TileHeader tileHeader = {};
-		tileHeader.MagicNum = 0x12345678;   // 0x12345678 - Magic number  (4 bytes)
-		tileHeader.Version = 0x00000001;	// 0x00000001 - Version       (4 bytes)
-		memcpy(tileHeader.TileName, tile->Name.c_str(), tile->Name.size());
-		tileHeader.BboxMinX = tile->BboxMin[0];	// BboxMin 8 bytes
-		tileHeader.BboxMinY = tile->BboxMin[1];
-		tileHeader.BboxMaxX = tile->BboxMax[0];	// Bboxmax 8 bytes
-		tileHeader.BboxMaxY = tile->BboxMax[1];
+		BinaryHeader binaryHeader = {};
+		binaryHeader.BinaryType = BinaryType::BINARY_TYPE_TILE;
+		binaryHeader.MagicNum = 0x12345678;   // 0x12345678 - Magic number  (4 bytes)
+		binaryHeader.Version = 0x00000001;	// 0x00000001 - Version       (4 bytes)
+		memcpy(binaryHeader.TileName, tile->Name.c_str(), tile->Name.size());
+		binaryHeader.BboxMinX = tile->BboxMin[0];	// BboxMin 8 bytes
+		binaryHeader.BboxMinY = tile->BboxMin[1];
+		binaryHeader.BboxMaxX = tile->BboxMax[0];	// Bboxmax 8 bytes
+		binaryHeader.BboxMaxY = tile->BboxMax[1];
 
 		// Write static mesh headers
 		std::vector<StaticMeshHeader> staticMeshHeaders;
 		std::vector<StaticMeshInstanceHeader> staticMeshInstanceHeaders;
 		std::vector<LightExtensionHeader> lightExtensionHeaders;
-		uint32_t stringItr = 0;
-
-		stringItr += ((uint32_t)tile->Name.size() + 1);
 
 		uint32_t lightExtensionIndex = 0;
 		uint32_t staticMeshInstanceIndex = 0;
@@ -302,11 +258,14 @@ bool World::PackToBinary(std::filesystem::path rootFilePath)
 			}
 
 			StaticMeshHeader staticMeshHeader = {};
-			memcpy(staticMeshHeader.MeshName, staticMesh->MeshName.data(), staticMesh->MeshName.size());
+			memcpy(staticMeshHeader.MeshName, staticMesh->Name.data(), staticMesh->Name.size());
+			memcpy(staticMeshHeader.FileName, staticMesh->File.data(), staticMesh->File.size());
 			staticMeshHeader.InstanceCount = (uint32_t)staticMesh->Instances.size();
-			staticMeshHeader.InstanceIndex = staticMeshInstanceIndex; // Place holder
+			staticMeshHeader.InstanceIndex = staticMeshInstanceIndex;
+
 			staticMeshHeaders.push_back(staticMeshHeader);
-			stringItr += (uint32_t)(staticMesh->MeshName.size() + 1);
+
+			staticMeshInstanceIndex += (uint32_t)staticMesh->Instances.size();
 		}
 
 		uint32_t meshHeadersOffset = 1024;
@@ -314,59 +273,20 @@ bool World::PackToBinary(std::filesystem::path rootFilePath)
 		uint32_t lightExtensionsOffset = staticMeshInstancesOffset + (uint32_t)staticMeshInstanceHeaders.size() * sizeof(StaticMeshInstanceHeader);
 		uint32_t stringsOffset = lightExtensionsOffset + (uint32_t)lightExtensionHeaders.size() * sizeof(LightExtensionHeader);
 		
-		tileHeader.MeshHeadersOffset = meshHeadersOffset;
-		tileHeader.StaticMeshInstancesOffset = staticMeshInstancesOffset;
-		tileHeader.LightExtensionsOffset = lightExtensionsOffset;
+		binaryHeader.MeshHeadersOffset = meshHeadersOffset;
+		binaryHeader.StaticMeshInstancesOffset = staticMeshInstancesOffset;
+		binaryHeader.LightExtensionsOffset = lightExtensionsOffset;
 
-		tileHeader.NumLightExtensions = (uint32_t)lightExtensionHeaders.size();
-		tileHeader.NumStaticMeshes = (uint32_t)staticMeshHeaders.size();
-		tileHeader.NumStaticMeshInstances = (uint32_t)staticMeshInstanceHeaders.size();
+		binaryHeader.NumLightExtensions = (uint32_t)lightExtensionHeaders.size();
+		binaryHeader.NumStaticMeshes = (uint32_t)staticMeshHeaders.size();
+		binaryHeader.NumStaticMeshInstances = (uint32_t)staticMeshInstanceHeaders.size();
 
-		// Get mesh part headers
-		int totalNumMeshParts = 0;
-		std::vector<std::unique_ptr<FbxLoader>> fbxLoaders;
-		for (size_t i = 0; i < tile->StaticMeshes.size(); i++)
-		{
-			StaticMeshStruct* staticMesh = tile->StaticMeshes[i].get();
-			FbxLoader *loader = new FbxLoader(staticMesh);
-			loader->Load(true, nullptr, nullptr);
-			totalNumMeshParts += (int)loader->GetMeshPartHeaders().size();
-			fbxLoaders.push_back(std::unique_ptr<FbxLoader>(loader));
-		}
-
-		uint32_t meshPartHeadersOffset = 1024 + (uint32_t)staticMeshHeaders.size() * sizeof(StaticMeshHeader) 
-							+ (uint32_t)staticMeshInstanceHeaders.size() * sizeof(StaticMeshInstanceHeader)
-							+ (uint32_t)lightExtensionHeaders.size() * sizeof(LightExtensionHeader);
-		tileHeader.MeshPartsOffset = meshPartHeadersOffset;
-		tileHeader.NumMeshParts = totalNumMeshParts;
-
-		uint32_t currentMeshOffset = meshPartHeadersOffset + totalNumMeshParts * sizeof(MeshPartHeader);
-
-
-		std::vector<MeshPartHeader> allMeshPartHeaders;
-		uint32_t currentMeshPartHeaderIdx = 0;
-		for (size_t i = 0; i < fbxLoaders.size(); i++)
-		{
-			FbxLoader* loader = fbxLoaders[i].get();
-			loader->Load(false, &currentMeshOffset, &file);
-			for (auto& meshPartHeader : loader->GetMeshPartHeaders())
-			{
-				currentMeshOffset += meshPartHeader.MeshDataSize;
-				allMeshPartHeaders.push_back(meshPartHeader);
-			}
-
-			staticMeshHeaders[i].MeshPartIndex = currentMeshPartHeaderIdx;
-			staticMeshHeaders[i].MeshPartCount = (uint32_t)loader->GetMeshPartHeaders().size();
-			currentMeshPartHeaderIdx += staticMeshHeaders[i].MeshPartCount;
-		}
-
-		memcpy(headerBytes, &tileHeader, sizeof(TileHeader));
+		memcpy(headerBytes, &binaryHeader, sizeof(BinaryHeader));
 		file.seekp(0);
 		file.write((char*)headerBytes, 1024);
 		file.write((char*)staticMeshHeaders.data(), staticMeshHeaders.size() * sizeof(StaticMeshHeader));
 		file.write((char*)staticMeshInstanceHeaders.data(), staticMeshInstanceHeaders.size() * sizeof(StaticMeshInstanceHeader));
 		file.write((char*)lightExtensionHeaders.data(), lightExtensionHeaders.size() * sizeof(LightExtensionHeader));
-		file.write((char*)allMeshPartHeaders.data(), allMeshPartHeaders.size() * sizeof(MeshPartHeader));
 
 		file.close();
 	}

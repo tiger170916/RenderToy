@@ -5,6 +5,8 @@
 #include <set>
 #include <filesystem>
 #include "World.h"
+#include "Meshes.h"
+#include "Textures.h"
 
 using json = nlohmann::json;
 
@@ -18,5 +20,11 @@ public:
 	bool CompileRoot(const char* rootFile);
 
 private:
-	bool ParseTileList(json obj, World* world);
+	bool ParseFile(std::ifstream* file, std::filesystem::path filePath);
+
+	bool ParseWorldRoot(const json& data, std::filesystem::path filePath);
+
+	bool ParseMeshes(const json& data, std::filesystem::path filePath);
+
+	bool ParseTextures(const json& data, std::filesystem::path filePath);
 };

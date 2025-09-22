@@ -19,8 +19,15 @@ private:
 
 	std::vector<MeshPartHeader> m_meshPartHeaders;
 
+	int m_overrideMaterialIdx = -1;
+
+	std::filesystem::path m_filePath;
+
+
 public:
 	FbxLoader(StaticMeshStruct* staticMeshStruct);
+
+	FbxLoader(std::filesystem::path path, int overrideMaterialIdx);
 
 	bool Load(bool loadHeaders, uint32_t* meshOffset, std::ofstream* file);
 

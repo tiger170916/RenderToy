@@ -9,7 +9,7 @@ bool CompileResource(const char* rootFile)
 	return resourceCompiler->CompileRoot(rootFile);
 }
 
-bool ReadHeader(std::fstream* file, ResourceCompilerModule::TileHeader& header)
+bool ReadHeader(std::fstream* file, ResourceCompilerModule::BinaryHeader& header)
 {
 	BinaryFileLoader loader;
 	return loader.ReadHeader(file, header);
@@ -17,7 +17,7 @@ bool ReadHeader(std::fstream* file, ResourceCompilerModule::TileHeader& header)
 
 bool GetStaticMeshes(
 	std::fstream* file,
-	const ResourceCompilerModule::TileHeader& header,
+	const ResourceCompilerModule::BinaryHeader& header,
 	ResourceCompilerModule::StaticMeshHeader** ppStaticMeshHeaders,
 	uint32_t& outNumMeshes)
 {
@@ -27,7 +27,7 @@ bool GetStaticMeshes(
 
 bool GetStaticMeshInstances(
 	std::fstream* file,
-	const ResourceCompilerModule::TileHeader& header,
+	const ResourceCompilerModule::BinaryHeader& header,
 	ResourceCompilerModule::StaticMeshInstanceHeader** ppStaticMeshInstanceHeaders,
 	uint32_t& outNumInstances)
 {
@@ -37,7 +37,7 @@ bool GetStaticMeshInstances(
 
 bool GetLightExtensions(
 	std::fstream* file,
-	const ResourceCompilerModule::TileHeader& header,
+	const ResourceCompilerModule::BinaryHeader& header,
 	ResourceCompilerModule::LightExtensionHeader** ppLightExtensionHeaders,
 	uint32_t& outNumLights)
 {
@@ -45,12 +45,42 @@ bool GetLightExtensions(
 	return loader.GetLightExtensions(file, header, ppLightExtensionHeaders, outNumLights);
 }
 
-bool GetMeshParts(
+bool GetStaticMeshDefinitions(
 	std::fstream* file,
-	const ResourceCompilerModule::TileHeader& header,
-	ResourceCompilerModule::MeshPartHeader** ppMeshPartHeaders,
-	uint32_t& outMeshParts)
+	const ResourceCompilerModule::BinaryHeader& header,
+	ResourceCompilerModule::StaticMeshDefinitionHeader** ppStaticMeshDefinitionHeaders,
+	uint32_t& outNumStaticMeshDefinitions)
 {
 	BinaryFileLoader loader;
-	return loader.GetMeshParts(file, header, ppMeshPartHeaders, outMeshParts);
+	return loader.GetStaticMeshDefinitions(file, header, ppStaticMeshDefinitionHeaders, outNumStaticMeshDefinitions);
+}
+
+bool GetMeshPartHeaders(
+	std::fstream* file,
+	const ResourceCompilerModule::BinaryHeader& header,
+	ResourceCompilerModule::MeshPartHeader** ppMeshPartHeaders,
+	uint32_t& outNumMeshPartHeaders)
+{
+	BinaryFileLoader loader;
+	return loader.GetMeshPartHeaders(file, header, ppMeshPartHeaders, outNumMeshPartHeaders);
+}
+
+bool GetMaterialHeaders(
+	std::fstream* file,
+	const ResourceCompilerModule::BinaryHeader& header,
+	ResourceCompilerModule::MaterialHeader** ppMaterialHeaders,
+	uint32_t& outNumMaterialHeaders)
+{
+	BinaryFileLoader loader;
+	return loader.GetMaterialHeaders(file, header, ppMaterialHeaders, outNumMaterialHeaders);
+}
+
+bool GetTextureHeaders(
+	std::fstream* file,
+	const ResourceCompilerModule::BinaryHeader& header,
+	ResourceCompilerModule::TextureHeader** ppTextureHeaders,
+	uint32_t& outNumTextureHeaders)
+{
+	BinaryFileLoader loader;
+	return loader.GetTextureHeaders(file, header, ppTextureHeaders, outNumTextureHeaders);
 }

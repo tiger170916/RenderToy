@@ -20,12 +20,8 @@ public:
 
 	bool AddStaticMeshAsset(
 		std::string tileName,
-		std::string meshName, 
-		std::filesystem::path assetPath,
-		std::filesystem::path overrideNormalTexture,
-		std::filesystem::path overrideMetallicTexture, 
-		std::filesystem::path overrideRoughnessTexture, 
-		std::filesystem::path overrideBaseColorTexture);
+		std::string meshFileName,
+		std::string meshName);
 
 	bool AddStaticMeshInstance(std::string tileName, std::string meshName, const float position[3], const float rotation[3], const float scale[3]);
 

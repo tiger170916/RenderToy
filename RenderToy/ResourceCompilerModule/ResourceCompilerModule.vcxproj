@@ -110,9 +110,11 @@ copy /Y "$(SolutionDir)FbxSdk\lib\x64\release\libfbxsdk.dll" "$(SolutionDir)bin\
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="FbxLoader.cpp" />
     <ClCompile Include="GuidComparator.cpp" />
+    <ClCompile Include="Meshes.cpp" />
     <ClCompile Include="ResourceCompiler.cpp" />
     <ClCompile Include="ResourceCompilerModuleApi.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
+    <ClCompile Include="Textures.cpp" />
     <ClCompile Include="Utils.cpp" />
     <ClCompile Include="World.cpp" />
   </ItemGroup>
@@ -121,11 +123,13 @@ copy /Y "$(SolutionDir)FbxSdk\lib\x64\release\libfbxsdk.dll" "$(SolutionDir)bin\
     <ClInclude Include="BinaryFileLoader.h" />
     <ClInclude Include="FbxLoader.h" />
     <ClInclude Include="GuidComparator.h" />
+    <ClInclude Include="Meshes.h" />
     <ClInclude Include="ResourceCompiler.h" />
     <ClInclude Include="ResourceCompilerModuleApi.h" />
     <ClInclude Include="ResourceStructs.h" />
     <ClInclude Include="Structs.h" />
     <ClInclude Include="TextureLoader.h" />
+    <ClInclude Include="Textures.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>
