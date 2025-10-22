@@ -5,6 +5,9 @@
 #include "Pipeline.h"
 #include "GraphicsContext.h"
 #include "ShaderManager.h"
+#include "MaterialManager.h"
+#include "TextureManager2.h"
+#include "World2.h"
 
 class RenderGraph
 {
@@ -59,11 +62,15 @@ public:
 
 	bool PopulateCommandLists(World* world, GraphicsContext* graphicsContext);
 
+	bool PopulateCommandLists(World2* world, MaterialManager* materialManager, TextureManager2* textureManager, GraphicsContext* graphicsContext);
+
 	bool ExecuteCommands();
 
 	bool UpdateBuffers(World* world);
 
 	ID3D12Resource* GetFinalRenderOutputResource();
+
+	bool TransitFinalRenderOutputResource(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES afterState);
 
 	void WaitForRenderFinalOutputDone();
 

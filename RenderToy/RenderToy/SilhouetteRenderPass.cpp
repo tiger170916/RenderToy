@@ -237,3 +237,19 @@ bool SilhouetteRenderPass::PopulateCommands(World* world, GraphicsContext* graph
 	commandList->Close();
 	return true;
 }
+
+
+bool SilhouetteRenderPass::PopulateCommands(World2* world, MaterialManager* materialManager, TextureManager2* textureManager, GraphicsContext* graphicsContext)
+{
+	if (world == nullptr || graphicsContext == nullptr)
+	{
+		return false;
+	}
+
+	PassBase::PopulateCommands(world, materialManager, textureManager, graphicsContext);
+
+	ID3D12GraphicsCommandList* commandList = m_commandBuilder->GetCommandList();
+
+	m_commandBuilder->Close();
+	return true;
+}

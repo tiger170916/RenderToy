@@ -88,17 +88,19 @@ bool Swapchain::CopyToBackbuffer(GraphicsContext* graphicsContext, ID3D12Resourc
     D3D12_CPU_DESCRIPTOR_HANDLE rtv;
     descHeapMgr->GetRenderTargetViewCpuHandle(m_rtvIds[m_currentBackbuffer], rtv);
 
-    m_swapchainCommandBuilder->Reset();
+    m_swapchainCommandBuilder->TryReset();
 
     ID3D12GraphicsCommandList* commandList = m_swapchainCommandBuilder->GetCommandList();
 
+    GraphicsUtils::ResourceBarrierTransition(resource, m_swapchainCommandBuilder->GetCommandList(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_SOURCE);
     GraphicsUtils::ResourceBarrierTransition(m_swapchainBuffers[m_currentBackbuffer].Get(), commandList, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
     commandList->ClearRenderTargetView(rtv, m_rtClearColor, 0, NULL);
+
 
     GraphicsUtils::ResourceBarrierTransition(m_swapchainBuffers[m_currentBackbuffer].Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST);
     commandList->CopyResource(m_swapchainBuffers[m_currentBackbuffer].Get(), resource);
     GraphicsUtils::ResourceBarrierTransition(m_swapchainBuffers[m_currentBackbuffer].Get(), commandList, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PRESENT);
-
+    GraphicsUtils::ResourceBarrierTransition(resource, m_swapchainCommandBuilder->GetCommandList(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON);
 
     m_swapchainCommandBuilder->Close();
     m_swapchainCommandQueue->DispatchCommands(m_swapchainCommandBuilder.get());

@@ -24,6 +24,12 @@
     <Filter Include="Lights">
       <UniqueIdentifier>{89d686de-ee0b-40f0-8a23-96827c9fe80d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Extensions">
+      <UniqueIdentifier>{f96b0f69-4816-4ca6-89fd-d419a9c78e3e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World">
+      <UniqueIdentifier>{4a11abde-b8c4-4bfe-9a78-63b52c7f4c3f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -116,9 +122,6 @@
     <ClCompile Include="Lights\PointLight.cpp">
       <Filter>Lights</Filter>
     </ClCompile>
-    <ClCompile Include="Lights\LightExtension.cpp">
-      <Filter>Lights</Filter>
-    </ClCompile>
     <ClCompile Include="Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -169,6 +172,39 @@
     </ClCompile>
     <ClCompile Include="WndProc.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StreamingEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Lights\LightExtension.cpp">
+      <Filter>Extensions</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectExtension.cpp">
+      <Filter>Extensions</Filter>
+    </ClCompile>
+    <ClCompile Include="World2.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="Tile.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="StaticMesh2.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture2.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureManager2.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="Material2.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="MaterialManager.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="ExtensionFactory.cpp">
+      <Filter>Extensions</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -289,9 +325,6 @@
     <ClInclude Include="Lights\PointLight.h">
       <Filter>Lights</Filter>
     </ClInclude>
-    <ClInclude Include="Lights\LightExtension.h">
-      <Filter>Lights</Filter>
-    </ClInclude>
     <ClInclude Include="Texture.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -357,6 +390,42 @@
     </ClInclude>
     <ClInclude Include="..\Includes\ResourceStructs.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StreamingEngine.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectExtension.h">
+      <Filter>Extensions</Filter>
+    </ClInclude>
+    <ClInclude Include="Lights\LightExtension.h">
+      <Filter>Extensions</Filter>
+    </ClInclude>
+    <ClInclude Include="IStreamable.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="World2.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="Tile.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="StaticMesh2.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureManager2.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture2.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="MaterialManager.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="Material2.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="ExtensionFactory.h">
+      <Filter>Extensions</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

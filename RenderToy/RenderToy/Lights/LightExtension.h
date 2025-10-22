@@ -1,53 +1,57 @@
 #pragma once
-
+#include "../ObjectExtension.h"
 #include "../Includes.h"
 #include "../Vectors.h"
 #include "../GraphicsContext.h"
 #include "../D3DResource.h"
+#include "../LightStructs.h"
 
 enum class LightType
 {
 	LightType_Point = 0,
 	LightType_Spot = 1,
+	LightType_Area = 2,
 };
 
-class LightExtension
+class LightExtension : public ObjectExtension
 {
-protected:
-	LightType m_lightType;
+friend class ExtensionFactory;
+
+private:
+	LightType m_lightType = LightType::LightType_Spot;
 
 	// Local position
-	FVector3 m_position;
-
-	float m_effectiveRange = 0;
+	FVector3 m_offset;
+	FVector3 m_rotation;
+	FVector3 m_color;
+	float m_intensity;
+	float m_attenuationRadius;
+	float m_aspectRatio;
+	float m_fov;
 
 	float m_nearPlane = 0.3f;
 
-	uint32_t m_uid = 0;
+	XMMATRIX m_projectionMatrix;
+	XMMATRIX m_viewMatrix;
+	XMMATRIX m_worldMatrix;
+	XMMATRIX m_transformMatrix;
 
-	FVector3 m_intensity;
+protected:
 
-public:
-
-	LightExtension(float effectiveRange, FVector3 position, FVector3 intensity, uint32_t uid);
-
-	virtual ~LightExtension() = 0;
-
-	inline LightType GetLightType() const { return m_lightType; }
-
-	inline FVector3 GetPosition() const { return m_position; }
-
-	inline FVector3 GetIntensity() const { return m_intensity; }
-
-	inline uint32_t GetUid() const { return m_uid; }
-
-	inline float GetEffectiveRange () const { return m_effectiveRange; }
-
-	inline float GetNearPlane() const { return m_nearPlane; }
+	LightExtension(
+		uint32_t uid,
+		float offset[3],
+		float rotation[3],
+		float color[3],
+		float intensity,
+		float atteunationRadius,
+		float aspectRatio,
+		float fov);
 
 public:
-	// Interfaces
-	virtual bool Initialize(GraphicsContext* graphicsContext) = 0;
+	FVector3 GetOffset() const { return m_offset; }
 
-	virtual void DrawEffectiveFrustum(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, FVector3 parentTransform) = 0;
+	FVector3 GetIntensity() const { return m_color * m_intensity; }
+
+	void UpdateLightConstants(LightConstants& lightConsts, const FVector3& parentPos);
 };

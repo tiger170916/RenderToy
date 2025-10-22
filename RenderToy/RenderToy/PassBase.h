@@ -7,8 +7,10 @@
 #include "World.h"
 #include "GraphicsContext.h"
 #include "ShaderManager.h"
+#include "TextureManager2.h"
 #include "GuidComparator.h"
 #include "PassType.h"
+#include "World2.h"
 
 
 class PassBase
@@ -48,10 +50,14 @@ public:
 
 	virtual bool PopulateCommands(World* world, GraphicsContext* graphicsContext);
 
+	virtual bool PopulateCommands(World2* world, MaterialManager* materialManager, TextureManager2* textureManager, GraphicsContext* graphicsContext);
+
 	virtual bool UpdateBuffers(World* world);
 
 	// A pass that can be used as final stage of render pass has to override this function, and return the corresponding buffer.
 	virtual ID3D12Resource* GetFinalRenderPassOutputResource() const;
+
+	virtual bool TransitFinalRenderPassOutputResource(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter);
 
 	// Add a dependency to this pass
 	void AddDependency(PassBase* dependencyPass);

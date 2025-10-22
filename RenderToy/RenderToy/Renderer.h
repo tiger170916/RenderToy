@@ -9,10 +9,15 @@
 #include "TextureManager.h"
 #include "Swapchain.h"
 #include "World.h"
+#include "World2.h"
 #include "ShaderManager.h"
 #include "RenderGraph.h"
 #include "WndProc.h"
 #include "InputManager.h"
+#include "StreamingEngine.h"
+#include "TextureManager2.h"
+#include "MaterialManager.h"
+#include "D3DFence.h"
 
 /// <summary>
 /// Renderer singleton class
@@ -21,6 +26,12 @@ class Renderer
 {
 private:
 	std::unique_ptr<GraphicsContext> m_graphicsContext = nullptr;
+
+	std::unique_ptr<StreamingEngine> m_streamingEngine = nullptr;
+
+	std::unique_ptr<MaterialManager> m_materialManager = nullptr;
+
+	std::unique_ptr<TextureManager2> m_textureManager2 = nullptr;
 
 	bool m_initialized = false;
 
@@ -39,7 +50,7 @@ private:
 	uint64_t m_lastStateUpdateTime = 0;
 
 private:
-	std::shared_ptr<World> m_activeWorld = nullptr;	// TODO: switch between different scenes
+	std::shared_ptr<World2> m_activeWorld = nullptr;	// TODO: switch between different scenes
 
 	std::unique_ptr<ShaderManager> m_shaderManager = nullptr;
 
@@ -52,6 +63,8 @@ private:
 	std::unique_ptr<TextureManager> m_textureManager = nullptr;
 
 	std::unique_ptr<InputManager> m_inputManager = nullptr;
+
+	std::unique_ptr<D3DFence> m_mainRenderGraphFence = nullptr;
 
 public:
 	~Renderer();

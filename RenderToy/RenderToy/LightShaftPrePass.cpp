@@ -144,7 +144,7 @@ bool LightShaftPrePass::PopulateCommands(World* world, GraphicsContext* graphics
 
 	DescriptorHeapManager* descHeapManager = graphicsContext->GetDescriptorHeapManager();
 	ID3D12DescriptorHeap* descHeap = descHeapManager->GetCbvSrvUavShaderVisibleRingBufferHeap();
-
+	/*
 	// Set pso
 	commandList->SetPipelineState(m_graphicsPipelineState->GetPipelineState());
 	commandList->SetGraphicsRootSignature(m_graphicsPipelineState->GetRootSignature());
@@ -206,8 +206,24 @@ bool LightShaftPrePass::PopulateCommands(World* world, GraphicsContext* graphics
 			}
 		}
 	}
-
+	*/
 	m_commandBuilder->Close();
 
+	return true;
+}
+
+
+bool LightShaftPrePass::PopulateCommands(World2* world, MaterialManager* materialManager, TextureManager2* textureManager, GraphicsContext* graphicsContext)
+{
+	if (world == nullptr || graphicsContext == nullptr)
+	{
+		return false;
+	}
+
+	PassBase::PopulateCommands(world, materialManager, textureManager, graphicsContext);
+
+	ID3D12GraphicsCommandList* commandList = m_commandBuilder->GetCommandList();
+
+	m_commandBuilder->Close();
 	return true;
 }

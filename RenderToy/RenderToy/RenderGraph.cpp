@@ -196,6 +196,24 @@ void RenderGraph::FlattenRenderGraph(PassBase* randomPass)
 	}
 }
 
+bool RenderGraph::PopulateCommandLists(World2* world, MaterialManager* materialManager, TextureManager2* textureManager, GraphicsContext* graphicsContext)
+{
+	if (!world || !graphicsContext)
+	{
+		return false;
+	}
+
+	for (int i = 0; i < m_flattenedPassGraph.size(); i++)
+	{
+		if (!m_flattenedPassGraph[i].Pass->PopulateCommands(world, materialManager, textureManager, graphicsContext))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 bool RenderGraph::PopulateCommandLists(World* world, GraphicsContext* graphicsContext)
 {
 	if (!world || !graphicsContext)
@@ -222,6 +240,16 @@ ID3D12Resource* RenderGraph::GetFinalRenderOutputResource()
 	}
 
 	return nullptr;
+}
+
+bool RenderGraph::TransitFinalRenderOutputResource(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES afterState)
+{
+	if (m_finalRenderOutputPass)
+	{
+		return m_finalRenderOutputPass->TransitFinalRenderPassOutputResource(commandList, afterState);
+	}
+
+	return false;
 }
 
 Pipeline* RenderGraph::GetParentPipeline(PassBase* pass)

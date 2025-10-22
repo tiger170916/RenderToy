@@ -57,7 +57,7 @@ bool D3DResource::Initialize(GraphicsContext* graphicsContext, D3D12_RESOURCE_DE
 		&uploadHeapProperties, // upload heap
 		D3D12_HEAP_FLAG_NONE, // no flags
 		pResourceDesc, // resource description for a buffer
-		D3D12_RESOURCE_STATE_GENERIC_READ, // GPU will read from this buffer and copy its contents to the default heap
+		D3D12_RESOURCE_STATE_COMMON, // GPU will read from this buffer and copy its contents to the default heap
 		nullptr,
 		IID_PPV_ARGS(m_uploadHeapResource.GetAddressOf()))))
 	{
@@ -75,7 +75,7 @@ bool D3DResource::Initialize(GraphicsContext* graphicsContext, D3D12_RESOURCE_DE
 		pResourceDesc->Layout = layout;
 	}
 
-	m_uploadBufferCurrentState = D3D12_RESOURCE_STATE_GENERIC_READ;
+	m_uploadBufferCurrentState = D3D12_RESOURCE_STATE_COMMON;
 
 	if (!UpdateUploadBuffer(data, dataSize))
 	{
@@ -147,9 +147,6 @@ bool D3DResource::CopyToDefaultHeap(ID3D12GraphicsCommandList* commandList)
 		return false;
 	}
 
-	GraphicsUtils::ResourceBarrierTransition(m_uploadHeapResource.Get(), commandList, m_uploadBufferCurrentState, D3D12_RESOURCE_STATE_COPY_SOURCE);
-	GraphicsUtils::ResourceBarrierTransition(m_defaultHeapResource.Get(), commandList, m_defaultBufferCurrentState, D3D12_RESOURCE_STATE_COPY_DEST);
-
 	D3D12_BOX textureBox
 	{
 		.left = 0,
@@ -183,10 +180,20 @@ bool D3DResource::CopyToDefaultHeap(ID3D12GraphicsCommandList* commandList)
 		commandList->CopyResource(m_defaultHeapResource.Get(), m_uploadHeapResource.Get());
 	}
 
-	GraphicsUtils::ResourceBarrierTransition(m_uploadHeapResource.Get(), commandList, D3D12_RESOURCE_STATE_COPY_SOURCE, m_uploadBufferCurrentState);
-	GraphicsUtils::ResourceBarrierTransition(m_defaultHeapResource.Get(), commandList, D3D12_RESOURCE_STATE_COPY_DEST, m_defaultBufferCurrentState);
-
 	m_copiedToDefaultHeap = true;
+
+	return true;
+}
+
+bool D3DResource::CleanUploadResource()
+{
+	// Do not clean the upload heap if there is not a default heap
+	if (!m_needCopyToDefaultHeap)
+	{
+		return false;
+	}
+
+	m_uploadHeapResource.Reset();
 
 	return true;
 }

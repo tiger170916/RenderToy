@@ -1,12 +1,43 @@
 #include "LightExtension.h"
 
-LightExtension::LightExtension(float effectiveRange, FVector3 position, FVector3 intensity, uint32_t uid)
-	: m_effectiveRange(effectiveRange), m_position(position), m_intensity(intensity), m_uid(uid)
+LightExtension::LightExtension(
+	uint32_t uid,
+	float offset[3],
+	float rotation[3],
+	float color[3],
+	float intensity,
+	float atteunationRadius,
+	float aspectRatio,
+	float fov) 
+	: ObjectExtension(uid),
+	m_offset(FVector3(offset[0], offset[1], offset[2])),
+	m_rotation(FVector3(rotation[0], rotation[1], rotation[2])),
+	m_color(FVector3(color[0], color[1], color[2])),
+	m_intensity(intensity),
+	m_attenuationRadius(atteunationRadius),
+	m_aspectRatio(aspectRatio),
+	m_fov(fov)
 {
-
+	m_projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(fov * DirectX::XM_PI, aspectRatio, m_nearPlane, m_attenuationRadius);
 }
 
-LightExtension::~LightExtension()
+void LightExtension::UpdateLightConstants(LightConstants& lightConsts, const FVector3& parentPos)
 {
-
+	lightConsts.LightUid = m_uid;
+	lightConsts.LightType = static_cast<UINT>(m_lightType);
+	lightConsts.FarPlane = m_attenuationRadius;
+	lightConsts.NearPlane = m_nearPlane;
+	lightConsts.Intensity[0] = m_color.X * m_intensity;
+	lightConsts.Intensity[1] = m_color.Y * m_intensity;
+	lightConsts.Intensity[2] = m_color.Z * m_intensity;
+	lightConsts.Position[0] = parentPos.X + m_offset.X;
+	lightConsts.Position[1] = parentPos.Y + m_offset.Y;
+	lightConsts.Position[2] = parentPos.Z + m_offset.Z;
+	lightConsts.Position[3] = 1.0f;
+	
+	XMMATRIX rotation = XMMatrixRotationRollPitchYaw(m_rotation.X, m_rotation.Y, m_rotation.Z);
+	XMMATRIX translation = XMMatrixTranslation(lightConsts.Position[0], lightConsts.Position[1], lightConsts.Position[2]);
+	XMMATRIX transformMatrix = rotation * translation;
+	DirectX::XMStoreFloat4x4(&lightConsts.Transform, DirectX::XMMatrixTranspose(m_projectionMatrix * transformMatrix));
+	DirectX::XMStoreFloat4x4(&lightConsts.ViewMatrix, DirectX::XMMatrixTranspose(transformMatrix));
 }

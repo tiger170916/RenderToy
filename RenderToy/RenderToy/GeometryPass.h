@@ -71,6 +71,8 @@ public:
 
 	virtual bool PopulateCommands(World* world, GraphicsContext* graphicsContext) override;
 
+	virtual bool PopulateCommands(World2* world, MaterialManager* materialManager, TextureManager2* textureManager, GraphicsContext* graphicsContext) override;
+
 public:
 	// public resoure getter
 	inline bool DiffuseBufferBarrierTransition(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter) { return ResourceBarrierTransition(m_diffuseBuffer.Get(), commandList, stateAfter); }

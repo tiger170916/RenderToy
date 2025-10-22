@@ -21,4 +21,6 @@ public:
 
 	virtual bool PopulateCommands(World* world, GraphicsContext* graphicsContext) override;
 
+	virtual bool PopulateCommands(World2* world, MaterialManager* materialManager, TextureManager2* textureManager, GraphicsContext* graphicsContext) override;
+
 };

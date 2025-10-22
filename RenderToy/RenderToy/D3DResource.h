@@ -48,5 +48,7 @@ public:
 
 	bool CopyToDefaultHeap(ID3D12GraphicsCommandList* commandList);
 
+	bool CleanUploadResource();
+
 	~D3DResource();
 };

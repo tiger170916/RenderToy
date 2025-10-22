@@ -45,13 +45,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)bin\</OutDir>
-    <IncludePath>$(ProjectDir)Shaders;$(SolutionDir)FbxSdk\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)FbxSdk\lib\x64\debug\;$(SolutionDir)FbxSdk\include;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <IncludePath>$(ProjectDir)Shaders;$(SolutionDir)FbxSdk\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)include;$(SolutionDir)includes</IncludePath>
+    <LibraryPath>$(SolutionDir)FbxSdk\lib\x64\debug\;$(SolutionDir)FbxSdk\include;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(SolutionDir)libs\</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)bin\</OutDir>
-    <IncludePath>$(ProjectDir)Shaders;$(SolutionDir)FbxSdk\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)FbxSdk\lib\x64\release\;$(SolutionDir)FbxSdk\include;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <IncludePath>$(ProjectDir)Shaders;$(SolutionDir)FbxSdk\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)include</IncludePath>
+    <LibraryPath>$(SolutionDir)FbxSdk\lib\x64\release\;$(SolutionDir)FbxSdk\include;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(SolutionDir)libs\</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -67,7 +67,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>Rpcrt4.lib;libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Rpcrt4.lib;libfbxsdk.lib;ResourceCompilerModule.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(ProjectDir)RenderToyApi.h" "$(SolutionDir)Includes\RenderToyApi.h";
@@ -118,6 +118,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="CriticalSection.cpp" />
     <ClCompile Include="D3DFence.cpp" />
     <ClCompile Include="D3DResource.cpp" />
+    <ClCompile Include="ExtensionFactory.cpp" />
     <ClCompile Include="FullscreenQuad.cpp" />
     <ClCompile Include="GeometryPass.cpp" />
     <ClCompile Include="DescriptorHeapManager.cpp" />
@@ -138,7 +139,9 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="Lights\PointLight.cpp" />
     <ClCompile Include="Lights\SpotLight.cpp" />
     <ClCompile Include="Material.cpp" />
+    <ClCompile Include="MaterialManager.cpp" />
     <ClCompile Include="MeshFactory.cpp" />
+    <ClCompile Include="ObjectExtension.cpp" />
     <ClCompile Include="PassBase.cpp" />
     <ClCompile Include="PassFactory.cpp" />
     <ClCompile Include="Pipeline.cpp" />
@@ -151,15 +154,22 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="ShaderType.cpp" />
     <ClCompile Include="ShadowPass.cpp" />
     <ClCompile Include="SilhouetteRenderPass.cpp" />
+    <ClCompile Include="Material2.cpp" />
     <ClCompile Include="StaticMesh.cpp" />
+    <ClCompile Include="StaticMesh2.cpp" />
+    <ClCompile Include="StreamingEngine.cpp" />
     <ClCompile Include="Swapchain.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="Texture2.cpp" />
     <ClCompile Include="TextureAtlas.cpp" />
     <ClCompile Include="TextureManager.cpp" />
+    <ClCompile Include="TextureManager2.cpp" />
+    <ClCompile Include="Tile.cpp" />
     <ClCompile Include="UidGenerator.cpp" />
     <ClCompile Include="Utils.cpp" />
     <ClCompile Include="WndProc.cpp" />
     <ClCompile Include="World.cpp" />
+    <ClCompile Include="World2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Includes\ResourceCompilerModuleApi.h" />
@@ -173,6 +183,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="D3DFence.h" />
     <ClInclude Include="D3DResource.h" />
     <ClInclude Include="d3dx12.h" />
+    <ClInclude Include="ExtensionFactory.h" />
     <ClInclude Include="FullscreenQuad.h" />
     <ClInclude Include="GeometryPass.h" />
     <ClInclude Include="DescriptorHeapManager.h" />
@@ -183,9 +194,11 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="GraphicsPipelineState.h" />
     <ClInclude Include="GraphicsUtils.h" />
     <ClInclude Include="GuidComparator.h" />
+    <ClInclude Include="Material2.h" />
     <ClInclude Include="IControllable.h" />
     <ClInclude Include="Includes.h" />
     <ClInclude Include="InputManager.h" />
+    <ClInclude Include="IStreamable.h" />
     <ClInclude Include="LightFrustumDebugPass.h" />
     <ClInclude Include="LightingPass.h" />
     <ClInclude Include="LightShaftPass.h" />
@@ -197,7 +210,9 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="Lights\SpotLight.h" />
     <ClInclude Include="Macros.h" />
     <ClInclude Include="Material.h" />
+    <ClInclude Include="MaterialManager.h" />
     <ClInclude Include="MeshFactory.h" />
+    <ClInclude Include="ObjectExtension.h" />
     <ClInclude Include="MeshStructs.h" />
     <ClInclude Include="PassBase.h" />
     <ClInclude Include="PassDefines.h" />
@@ -214,16 +229,22 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="ShadowPass.h" />
     <ClInclude Include="SilhouetteRenderPass.h" />
     <ClInclude Include="StaticMesh.h" />
+    <ClInclude Include="StaticMesh2.h" />
+    <ClInclude Include="StreamingEngine.h" />
     <ClInclude Include="StreamInterface.h" />
     <ClInclude Include="Swapchain.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="Texture2.h" />
     <ClInclude Include="TextureAtlas.h" />
     <ClInclude Include="TextureManager.h" />
+    <ClInclude Include="TextureManager2.h" />
+    <ClInclude Include="Tile.h" />
     <ClInclude Include="UidGenerator.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="Vectors.h" />
     <ClInclude Include="WndProc.h" />
     <ClInclude Include="World.h" />
+    <ClInclude Include="World2.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\EarlyZPass.hlsl">

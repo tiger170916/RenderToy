@@ -5,9 +5,10 @@
 #include "../LightStructs.h"
 #include "LightExtension.h"
 
-class SpotLight : public LightExtension
+class SpotLight //: public LightExtension
 {
 friend class LightFactory;
+friend class MeshFactory;
 
 private:
 	FRotator m_rotator;
@@ -34,7 +35,7 @@ public:
 
 	const FRotator GetRotator() const { return m_rotator; }
 
-	virtual bool Initialize(GraphicsContext* graphicsContext) override;
+	//virtual bool Initialize(GraphicsContext* graphicsContext) override;
 
 	void DrawEffectiveFrustum(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, FVector3 parentTransform);
 };

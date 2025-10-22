@@ -34,13 +34,21 @@ bool CommandBuilder::Initialize(ID3D12Device* pDevice)
 	return true;
 }
 
-void CommandBuilder::Reset()
+void CommandBuilder::TryReset()
 {
 	if (m_commandAllocator == nullptr ||
 		m_commandList == nullptr)
 	{
 		return;
 	}
+
+	if (m_recording)
+	{
+		return;
+	}
+
+	m_recording = true;
+	m_hasRecordedCommand = true;
 
 	m_commandAllocator->Reset();
 	m_commandList->Reset(m_commandAllocator.Get(), nullptr);
@@ -53,7 +61,11 @@ void CommandBuilder::Close()
 		return;
 	}
 
-	m_commandList->Close();
+	if (m_recording)
+	{
+		m_commandList->Close();
+		m_recording = false;
+	}
 }
 
 CommandBuilder::~CommandBuilder()

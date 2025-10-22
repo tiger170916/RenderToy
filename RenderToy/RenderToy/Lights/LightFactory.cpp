@@ -30,13 +30,14 @@ void LightFactory::SpawnPointLight(GraphicsContext* graphicsContext, StaticMesh*
 	{
 		return;
 	}
-
+	/*
 	PointLight* light = new PointLight(effectiveRange, position, intensity, UidGenerator::Get()->GenerateUid());
-	parent->AttachLightExtension(light, parentInstanceIdx);
+	parent->AttachLightExtension(light, parentInstanceIdx);*/
 }
 
 void LightFactory::SpawnSpotLight(GraphicsContext* graphicsContext, StaticMesh* parent, const uint32_t& parentInstanceIdx, float effectiveRange, FVector3 position, FVector3 intensity, FRotator rotator, float aspectRatio, float fov)
 {
+	/*
 	if (!parent)
 	{
 		return;
@@ -44,5 +45,5 @@ void LightFactory::SpawnSpotLight(GraphicsContext* graphicsContext, StaticMesh* 
 
 	SpotLight* light = new SpotLight(effectiveRange, position, intensity, UidGenerator::Get()->GenerateUid(), rotator, aspectRatio, fov);
 	light->Initialize(graphicsContext);
-	parent->AttachLightExtension(light, parentInstanceIdx);
+	parent->AttachLightExtension(light, parentInstanceIdx);*/
 }

@@ -33,7 +33,11 @@ public:
 
 	virtual bool PopulateCommands(World* world, GraphicsContext* graphicsContext) override;
 
+	virtual bool PopulateCommands(World2* world, MaterialManager* materialManager, TextureManager2* textureManager, GraphicsContext* graphicsContext) override;
+
 	virtual ID3D12Resource* GetFinalRenderPassOutputResource() const override;
+
+	virtual bool TransitFinalRenderPassOutputResource(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter);
 
 public:
 	// public resource getter

@@ -4,7 +4,7 @@
 #include "LightExtension.h"
 #include "../Vectors.h"
 
-class PointLight : public LightExtension
+class PointLight //: public LightExtension
 {
 friend class LightFactory;
 
@@ -16,7 +16,7 @@ protected:
 public:
 	~PointLight();
 
-	virtual bool Initialize(GraphicsContext* graphicsContext) override;
+	//virtual bool Initialize(GraphicsContext* graphicsContext) override;
 
-	virtual void DrawEffectiveFrustum(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, FVector3 parentTransform) override;
+	//virtual void DrawEffectiveFrustum(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, FVector3 parentTransform) override;
 };

@@ -137,7 +137,7 @@ void ResourceStreamer::StreamInInternal(const UINT& priority, const UINT& maxBat
 
 	if (!toCopy.empty())
 	{
-		m_commandBuilders[priority]->Reset();
+		m_commandBuilders[priority]->TryReset();
 		ID3D12GraphicsCommandList* commandList = m_commandBuilders[priority]->GetCommandList();
 
 		for (auto& streamingInObj : toCopy)

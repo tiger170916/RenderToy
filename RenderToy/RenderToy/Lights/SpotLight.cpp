@@ -2,20 +2,20 @@
 #include "../MeshStructs.h"
 
 SpotLight::SpotLight(float effectiveRange, FVector3 position, FVector3 intensity, uint32_t uid, FRotator rotator, float aspectRatio, float fov)
-	:LightExtension(effectiveRange, position, intensity, uid), m_rotator(rotator), m_aspectRatio(aspectRatio), m_fov(fov)
+	//:LightExtension(uid, position.Array, rotator.Array, intensity.Array, intensity.Array, effectiveRange, aspectRatio, fov)
 {
-	m_lightType = LightType::LightType_Spot;
+	//m_lightType = LightType::LightType_Spot;
 
-	m_projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(fov * DirectX::XM_PI, aspectRatio, m_nearPlane, effectiveRange);
+	//m_projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(fov * DirectX::XM_PI, aspectRatio, m_nearPlane, effectiveRange);
 }
-
+/*
 bool SpotLight::Initialize(GraphicsContext* graphicsContext)
 {
 	if (!graphicsContext)
 	{
 		return false;
 	}
-
+	
 	float nearPlaneHalfHeight = m_nearPlane * tan(m_fov * DirectX::XM_PI / 2.0f);
 	float nearPlaneHalfWidth = nearPlaneHalfHeight * m_aspectRatio;
 	float farPlaneHalfHeight = m_effectiveRange * tan(m_fov * DirectX::XM_PI / 2.0f);
@@ -70,17 +70,17 @@ bool SpotLight::Initialize(GraphicsContext* graphicsContext)
 	{
 		return false;
 	}
-
+	
 	return true;
-}
-
+}*/
+/*
 void SpotLight::DrawEffectiveFrustum(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, FVector3 parentTransform)
 {
 	if (!cmdList)
 	{
 		return;
 	}
-
+	/*
 	FVector3 lightPosition = parentTransform + m_position;
 	XMMATRIX rotation = XMMatrixRotationRollPitchYaw(m_rotator.Pitch, m_rotator.Yaw, m_rotator.Roll);
 	XMMATRIX translation = XMMatrixTranslation(lightPosition.X, lightPosition.Y, lightPosition.Z);
@@ -100,6 +100,6 @@ void SpotLight::DrawEffectiveFrustum(GraphicsContext* graphicsContext, ID3D12Gra
 	cmdList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
 	cmdList->SetGraphicsRootDescriptorTable(1, cbGpuHandle);
 	cmdList->DrawInstanced(24, 1, 0, 0);
-}
+}*/
 
 SpotLight::~SpotLight() {}

@@ -2,15 +2,22 @@
 
 int main(int argc, char* argv[])
 {
-	if (argc <= 1 || argv[1] == nullptr)
+	if (argc <= 1)
 	{
 		return false;
 	}
 
-	if (!CompileResource(argv[1]))
+	for (int i = 1; i < argc; i++)
 	{
-		OutputDebugStringA("Failed to compile resource.");
-		return 1;
+		if (argv[i] == nullptr)
+		{
+			continue;
+		}
+
+		if (!CompileResource(argv[i]))
+		{
+			OutputDebugStringA("Failed to compile resource.");
+		}
 	}
 
 	OutputDebugStringA("resource compiled successfully.");

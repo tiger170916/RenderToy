@@ -52,14 +52,16 @@ bool Renderer::Initialize(HWND hwnd)
 	}
 
 	m_shaderManager = std::make_unique<ShaderManager>();
+	m_materialManager = std::make_unique<MaterialManager>();
 
 	m_textureManager = std::unique_ptr<TextureManager>(new TextureManager());
+	m_textureManager2 = std::unique_ptr<TextureManager2>(new TextureManager2());
 
-	m_resourceStreamer = std::unique_ptr<ResourceStreamer>(new ResourceStreamer());
-	if (!m_resourceStreamer->StartStreaming(m_graphicsContext.get()))
-	{
-		return false;
-	}
+	//m_resourceStreamer = std::unique_ptr<ResourceStreamer>(new ResourceStreamer());
+	//if (!m_resourceStreamer->StartStreaming(m_graphicsContext.get()))
+	//{
+	//	return false;
+	//}
 
 	m_swapchain = std::unique_ptr<Swapchain>(new Swapchain());
 	if (!m_swapchain->Initialize(m_graphicsContext.get())) 
@@ -81,65 +83,38 @@ bool Renderer::Initialize(HWND hwnd)
 		return false;
 	}
 
-
-	m_activeWorld = std::shared_ptr<World>(new World());
-	m_activeWorld->SetActiveCamera(m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight(), FVector3(0, 6.0, -16), FRotator::Zero());
-	m_activeWorld->Initialize(m_graphicsContext.get());
-
-	// Test world
-	std::vector<std::shared_ptr<StaticMesh>> meshes;
-	std::vector<std::shared_ptr<StaticMesh>> lightBulbMesh;
-
-	//FbxLoader* fbxLoader = new FbxLoader("C:\\Users\\erlie\\Desktop\\Assets\\abandoned-house\\source\\abandonhouse.fbx");
-	FbxLoader* fbxLoader = new FbxLoader("C:\\Users\\erlie\\Desktop\\Assets\\village-house\\source\\House_Low.fbx");
-	FbxLoader* lightBulbLoader = new FbxLoader("C:\\Users\\erlie\\Desktop\\Assets\\cc0-light-bulb\\source\\LightBulb.fbx", 5);
-	fbxLoader->Load(meshes);
-	lightBulbLoader->Load(lightBulbMesh);
-	for (auto& mesh : meshes)
+	m_streamingEngine = std::unique_ptr<StreamingEngine>(new StreamingEngine());
+	if (!m_streamingEngine->Initialize(m_graphicsContext.get(), m_textureManager2.get()))
 	{
-		Transform transform = Transform::Identity();
-		transform.Rotation.Pitch = -DirectX::XM_PI * 0.5f;
-		mesh->SetSelected(true);
-		MeshFactory::Get()->StaticMeshAddInstance(mesh.get(), transform);
-		mesh->EnablePass(PassType::EARLY_Z_PASS);
-		mesh->EnablePass(PassType::GEOMETRY_PASS);
-		mesh->EnablePass(PassType::SHADOW_PASS);
-
-
-		mesh->BuildResource(m_graphicsContext.get(), m_textureManager.get());
-		mesh->QueueStreamingTasks(m_resourceStreamer.get(), 0);
+		return false;
 	}
 
-
-	for (int i = 0; i < lightBulbMesh.size(); i++)
+	// Load initial world
+	std::filesystem::path initialWorldBinaryPath = Utils::GetWorkingDirectory();
+	initialWorldBinaryPath.append("InitialWorld");
+	m_activeWorld = std::make_shared<World2>(m_materialManager.get(), m_textureManager2.get());
+	
+	if (!m_activeWorld->Initialize(m_graphicsContext.get()))
 	{
-		Transform lightBulbTransform1 = Transform::Identity();
-		lightBulbTransform1.Translation = FVector3(3.0f, 1.0f, -8.5f);
-		lightBulbTransform1.Rotation.Pitch = DirectX::XM_PI * 0.5f;
-		lightBulbMesh[i]->SetSelected(true);
-		Transform lightBulbTransform2 = Transform::Identity();
-		lightBulbTransform2.Translation = FVector3(3.0f, 1.0f, 12.5f);
-		lightBulbTransform2.Rotation.Pitch = DirectX::XM_PI * 0.5f;
-
-		MeshFactory::Get()->StaticMeshAddInstance(lightBulbMesh[i].get(), lightBulbTransform1);
-		MeshFactory::Get()->StaticMeshAddInstance(lightBulbMesh[i].get(), lightBulbTransform2);
-
-		lightBulbMesh[i]->EnablePass(PassType::EARLY_Z_PASS);
-		lightBulbMesh[i]->EnablePass(PassType::GEOMETRY_PASS);
-		lightBulbMesh[i]->EnablePass(PassType::SHADOW_PASS);
-
-		// Create a light extension, and attach to the light bulb model
-		LightFactory::Get()->SpawnSpotLight(m_graphicsContext.get(), lightBulbMesh[i].get(), 0, 30.0, FVector3(0.0f, 0.0f, 0.0f), FVector3(30.0f, 30.0f, 30.0f), FRotator(0.0f, 0.0f, 0.0f), 1.0f, 0.2f);
-		//LightFactory::Get()->SpawnSpotLight(m_graphicsContext.get(), lightBulbMesh[i].get(), 1, 30.0, FVector3(0.0f, 0.0f, 0.0f), FVector3(30.0f, 30.0f, 30.0f), FRotator(0.0f, 1.0f * DirectX::XM_PI, 0.0f), 1.0f, 0.2f);
-
-		lightBulbMesh[i]->BuildResource(m_graphicsContext.get(), m_textureManager.get());
-		lightBulbMesh[i]->QueueStreamingTasks(m_resourceStreamer.get(), 0);
+		return false;
 	}
 
-	m_activeWorld->SpawnStaticMeshes(meshes);
-	m_activeWorld->SpawnStaticMeshes(lightBulbMesh);
+	if (!m_activeWorld->LoadFromBinary(initialWorldBinaryPath))
+	{
+		return false;
+	}
 
-	m_inputManager->SetControlObject(m_activeWorld->GetActiveCamera());
+	m_mainRenderGraphFence = std::make_unique<D3DFence>();
+	if (!m_mainRenderGraphFence->Initialize(m_graphicsContext->GetDevice()))
+	{
+		return false;
+	}
+
+	FRotator initRotation = {};
+	//initRotation.Yaw = 3.14;
+	m_activeWorld->CreateCamera(m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight(), FVector3(0, 0.0, -25.0), initRotation);
+
+	m_streamingEngine->StartStreaming(m_activeWorld.get());
 
 	m_initialized = true;
 	return true;
@@ -204,11 +179,12 @@ DWORD WINAPI Renderer::RenderThreadRoutine(LPVOID lpParameter)
 	{
 		renderer->Frame();
 
-		//Sleep(10);
+		Sleep(10);
 	}
 
 	return true;
 }
+
 
 void Renderer::Frame()
 {
@@ -223,7 +199,7 @@ void Renderer::Frame()
 
 	FrameBegin(delta);
 
-	m_mainRenderGraph->PopulateCommandLists(m_activeWorld.get(), m_graphicsContext.get());
+	m_mainRenderGraph->PopulateCommandLists(m_activeWorld.get(), m_materialManager.get(), m_textureManager2.get(), m_graphicsContext.get());
 
 	FrameEnd();
 
@@ -234,11 +210,12 @@ void Renderer::FrameBegin(float delta)
 {
 	m_stateUpdateCriticalSection->EnterCriticalSection();
 
-	m_mainRenderGraph->UpdateBuffers(m_activeWorld.get());
+	//m_mainRenderGraph->UpdateBuffers(m_activeWorld.get());
+	m_activeWorld->UpdateBuffersForFrame();
 
 	m_stateUpdateCriticalSection->ExitCriticalSection();
 
-	m_activeWorld->FrameBegin(delta);
+	m_activeWorld->UpdateBuffersForFrame();
 }
 
 void Renderer::FrameEnd()
@@ -247,6 +224,7 @@ void Renderer::FrameEnd()
 
 	// Wait for all gpu work done...
 	m_mainRenderGraph->WaitForRenderFinalOutputDone();
+
 	m_swapchain->CopyToBackbuffer(m_graphicsContext.get(), m_mainRenderGraph->GetFinalRenderOutputResource());
 	m_swapchain->Present();
 }

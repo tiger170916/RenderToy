@@ -47,6 +47,7 @@ bool Textures::PackToBinary(std::filesystem::path rootFilePath)
 		uint32_t numChannels;
 		uint32_t offset = dataOffset;
 		TextureLoader textureLoader;
+		file.seekp(offset);
 		if (textureLoader.LoadTexture(
 			assetFilePath,
 			&file,

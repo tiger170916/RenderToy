@@ -1,7 +1,7 @@
 #include "CommandQueue.h"
 
 CommandQueue::CommandQueue(D3D12_COMMAND_QUEUE_FLAGS flags, D3D12_COMMAND_LIST_TYPE commandListType, int priority, int nodeMask)
-	: m_flags(flags), m_commandListType(m_commandListType), m_priority(priority), m_nodeMask(nodeMask)
+	: m_flags(flags), m_commandListType(commandListType), m_priority(priority), m_nodeMask(nodeMask)
 {
 }
 
@@ -47,6 +47,11 @@ bool CommandQueue::DispatchCommands(CommandBuilder* cmdBuilder)
 		return false;
 	}
 
+	if (!cmdBuilder->HasRecordedCommands())
+	{
+		return false;
+	}
+
 	ID3D12GraphicsCommandList* cmdList = cmdBuilder->GetCommandList();
 	if (!cmdList)
 	{
@@ -55,6 +60,8 @@ bool CommandQueue::DispatchCommands(CommandBuilder* cmdBuilder)
 
 	ID3D12CommandList* cmdLists[] = { cmdList };
 	m_commandQueue->ExecuteCommandLists(1, cmdLists);
+
+	cmdBuilder->ClearRecordedCommand();
 
 	return true;
 }

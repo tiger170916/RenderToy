@@ -7,6 +7,7 @@
 /// </summary>
 class CommandBuilder
 {
+friend class CommandQueue;
 private:
 
 	ComPtr<ID3D12CommandAllocator> m_commandAllocator = nullptr;
@@ -17,21 +18,30 @@ private:
 
 	bool m_initialized = false;
 
+	bool m_hasRecordedCommand = false;
+
+	bool m_recording = false;
+
+protected:
+	inline void ClearRecordedCommand() { m_hasRecordedCommand = false; }
+
 public:
 	CommandBuilder(D3D12_COMMAND_LIST_TYPE cmdListType);
 
 	bool Initialize(ID3D12Device* pDevice);
 
 	/// <summary>
-	/// Reset the cmd builder to recording state0.
+	/// Try reset command allocator and command list, if not in recording state
 	/// </summary>
-	void Reset();
+	void TryReset();
 
 	void Close();
 
 	inline ID3D12GraphicsCommandList* GetCommandList() { return m_commandList.Get(); }
 
 	inline const D3D12_COMMAND_LIST_TYPE& GetCommandListType() const { return m_commandListType; }
+
+	inline const bool HasRecordedCommands() const { return m_hasRecordedCommand; };
 
 	~CommandBuilder();
 };

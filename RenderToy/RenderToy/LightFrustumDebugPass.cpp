@@ -127,7 +127,7 @@ bool LightFrustumDebugPass::PopulateCommands(World* world, GraphicsContext* grap
 	PassBase::PopulateCommands(world, graphicsContext);
 
 	ID3D12GraphicsCommandList* commandList = m_commandBuilder->GetCommandList();
-
+	/*
 	DescriptorHeapManager* descHeapManager = graphicsContext->GetDescriptorHeapManager();
 	ID3D12DescriptorHeap* descHeap = descHeapManager->GetCbvSrvUavShaderVisibleRingBufferHeap();
 
@@ -199,8 +199,23 @@ bool LightFrustumDebugPass::PopulateCommands(World* world, GraphicsContext* grap
 	}
 
 	// Transit the render target buffer to copy src state, since this might be copied out as final render result.
-	dependencyLightingPass->RenderTargetBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);
+	dependencyLightingPass->RenderTargetBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);*/
 	m_commandBuilder->Close();
 
+	return true;
+}
+
+bool LightFrustumDebugPass::PopulateCommands(World2* world, MaterialManager* materialManager, TextureManager2* textureManager, GraphicsContext* graphicsContext)
+{
+	if (world == nullptr || graphicsContext == nullptr)
+	{
+		return false;
+	}
+
+	PassBase::PopulateCommands(world, materialManager, textureManager, graphicsContext);
+
+	ID3D12GraphicsCommandList* commandList = m_commandBuilder->GetCommandList();
+
+	m_commandBuilder->Close();
 	return true;
 }

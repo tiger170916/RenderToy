@@ -194,6 +194,51 @@ bool EarlyZPass::PopulateCommands(World* world, GraphicsContext* graphicsContext
 	return true;
 }
 
+bool EarlyZPass::PopulateCommands(World2* world, MaterialManager* materialManager, TextureManager2* textureManager, GraphicsContext* graphicsContext)
+{
+	if (world == nullptr || graphicsContext == nullptr)
+	{
+		return false;
+	}
+
+	PassBase::PopulateCommands(world, materialManager, textureManager, graphicsContext);
+
+	ID3D12GraphicsCommandList* commandList = m_commandBuilder->GetCommandList();
+
+	DescriptorHeapManager* descHeapManager = graphicsContext->GetDescriptorHeapManager();
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
+	descHeapManager->GetDepthStencilViewCpuHandle(m_dsvId, dsvHandle);
+
+	// Set pso
+	commandList->SetPipelineState(m_graphicsPipelineState->GetPipelineState());
+	commandList->SetGraphicsRootSignature(m_graphicsPipelineState->GetRootSignature());
+
+	ResourceBarrierTransition(m_depthStencilBuffer.Get(), commandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	commandList->OMSetRenderTargets(0, nullptr, false, &dsvHandle);
+	commandList->RSSetViewports(1, &m_viewport);
+	commandList->RSSetScissorRects(1, &m_scissorRect);
+
+	// Bind uniform frame constant buffer
+	D3D12_GPU_DESCRIPTOR_HANDLE uniformFrameGpuHandle;
+
+	world->GetUniformFrameConstantBuffer()->BindConstantBufferViewToPipeline(graphicsContext, uniformFrameGpuHandle);
+	commandList->SetGraphicsRootDescriptorTable(0, uniformFrameGpuHandle);
+
+	std::vector<StaticMesh2*> staticMeshes;
+	world->GetActiveStaticMeshes(staticMeshes);
+	for (auto& staticMesh : staticMeshes)
+	{
+		staticMesh->Draw(graphicsContext, materialManager, textureManager, commandList, m_passType, false, false);
+	}
+
+	m_commandBuilder->Close();
+
+	return true;
+}
+
 EarlyZPass::~EarlyZPass()
 {
 	if (m_depthStencilBuffer)

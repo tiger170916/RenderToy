@@ -1,0 +1,94 @@
+{
+    "Type" : "World",
+    "WorldRoot": {
+        "Tiles": [
+            {
+                "Name": "Tile_0_0",
+                "BboxMin": [ -150.0, 50.0 ],
+                "BboxMax": [ -50.0, 150.0 ]
+            },
+            {
+                "Name": "Tile_0_1",
+                "BboxMin": [ -50.0, 50.0 ],
+                "BboxMax": [ 50.0, 150.0 ]
+            },
+            {
+                "Name": "Tile_0_2",
+                "BboxMin": [ 50.0, 50.0 ],
+                "BboxMax": [ 150.0, 150.0 ]
+            },
+            {
+                "Name": "Tile_1_0",
+                "BboxMin": [ -150.0, -50.0 ],
+                "BboxMax": [ -50.0, 50.0 ]
+            },
+            {
+                "Name": "Tile_1_1",
+                "BboxMin": [ -50.0, -50.0 ],
+                "BboxMax": [ 50.0, 50.0 ]
+            },
+            {
+                "Name": "Tile_1_2",
+                "BboxMin": [ 50.0, -50.0 ],
+                "BboxMax": [ 150.0, 50.0 ]
+            },
+            {
+                "Name": "Tile_2_0",
+                "BboxMin": [ -150.0, -150.0 ],
+                "BboxMax": [ -50.0, -50.0 ]
+            },
+            {
+                "Name": "Tile_2_1",
+                "BboxMin": [ -50.0, -150.0 ],
+                "BboxMax": [ 50.0, -50.0 ]
+            },
+            {
+                "Name": "Tile_2_2",
+                "BboxMin": [ 50.0, -150.0 ],
+                "BboxMax": [ 150.0, -50.0 ]
+            }
+        ],
+        "Tile_1_1": {
+            "StaticMeshes": [
+                {
+                    "File": "Meshes.bin",
+                    "Name": "House",
+                    "Instances": [
+                        {
+                            "Position": [ 0.0, 0.0, 0.0 ],
+                            "Rotation": [ -1.7, 0.0, 0.0 ],
+                            "Scale": [ 1.0, 1.0, 1.0 ]
+                        }
+                    ]
+                },
+                {
+                    "File": "Meshes.bin",
+                    "Name": "LightBulb",
+                    "Instances": [
+                        {
+                            "Position": [ 3.0, 1.0, -10.0 ],
+                            "Rotation": [ -1.7, 0.0, 0.0 ],
+                            "Scale": [ 0.1, 0.1, 0.1 ],
+                            "LightExtension": {
+                                "LightType": "Spot",
+                                "Offset": [ 0.0, 0.0, 0.0 ],
+                                "Color": [ 1.0, 0.956, 0.839 ],
+                                "Intensity": 500.0,
+                                "AttenuationRadius": 30.0,
+                                "Rotation": [ 0.0, 0.0, 0.0 ],
+                                "AspectRatio": 1.0,
+                                "Fov": 0.2
+                            }
+                        },
+                        {
+                            "Position": [ 3.0, 1.0, 18.0 ],
+                            "Rotation": [ -1.7, 0.0, 0.0 ],
+                            "Scale": [ 0.1, 0.0, 0.1 ]
+                        }
+                    ]
+
+                }
+            ]
+        }
+    }
+}

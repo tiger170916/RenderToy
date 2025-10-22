@@ -99,23 +99,31 @@ bool Meshes::PackToBinary(std::filesystem::path rootFilePath)
 		meshDefHeaders.push_back(meshDefHeader);
 	}
 
-	std::vector<MeshPartHeader> allMeshPartHeaders;
+	//std::vector<MeshPartHeader> allMeshPartHeaders;
+	uint32_t numParts = 0;
 	for (auto& meshLoader : fbxLoaders)
 	{
-		allMeshPartHeaders.insert(allMeshPartHeaders.end(), meshLoader->GetMeshPartHeaders().begin(), meshLoader->GetMeshPartHeaders().end());
+		//allMeshPartHeaders.insert(allMeshPartHeaders.end(), meshLoader->GetMeshPartHeaders().begin(), meshLoader->GetMeshPartHeaders().end());
+		numParts += meshLoader->GetMeshPartHeaders().size();
 	}
 
 	binaryHeader.NumMeshDefinitions = (uint32_t)meshDefHeaders.size();
-	binaryHeader.NumMeshParts = (uint32_t)allMeshPartHeaders.size();
+	binaryHeader.NumMeshParts = numParts;
 	binaryHeader.NumMaterials = (uint32_t)m_materialHeaders.size();
 	binaryHeader.MeshDefinitionsOffset = 1024;
 	binaryHeader.MeshPartsOffset = binaryHeader.MeshDefinitionsOffset + (uint32_t)meshDefHeaders.size() * sizeof(StaticMeshDefinitionHeader);
-	binaryHeader.MaterialsOffset = binaryHeader.MeshPartsOffset + (uint32_t)allMeshPartHeaders.size() * sizeof(MeshPartHeader);
+	binaryHeader.MaterialsOffset = binaryHeader.MeshPartsOffset + numParts * sizeof(MeshPartHeader);
 
 	uint32_t meshOffset = binaryHeader.MaterialsOffset + (uint32_t)m_materialHeaders.size() * sizeof(MaterialHeader);
 	for (auto& meshLoader : fbxLoaders)
 	{
 		meshLoader->Load(false, &meshOffset, &file);
+	}
+
+	std::vector<MeshPartHeader> allMeshPartHeaders;
+	for (auto& meshLoader : fbxLoaders)
+	{
+		allMeshPartHeaders.insert(allMeshPartHeaders.end(), meshLoader->GetMeshPartHeaders().begin(), meshLoader->GetMeshPartHeaders().end());
 	}
 
 	memcpy(headerBytes, &binaryHeader, sizeof(BinaryHeader));

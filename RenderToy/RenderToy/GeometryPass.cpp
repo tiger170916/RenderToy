@@ -352,3 +352,75 @@ bool GeometryPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 
 	return true;
 }
+
+bool GeometryPass::PopulateCommands(World2* world, MaterialManager* materialManager, TextureManager2* textureManager, GraphicsContext* graphicsContext)
+{
+	if (world == nullptr || graphicsContext == nullptr)
+	{
+		return false;
+	}
+
+
+	PassBase::PopulateCommands(world, materialManager, textureManager, graphicsContext);
+
+	ID3D12GraphicsCommandList* commandList = m_commandBuilder->GetCommandList();
+
+	DescriptorHeapManager* descHeapManager = graphicsContext->GetDescriptorHeapManager();
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
+	descHeapManager->GetDepthStencilViewCpuHandle(m_dsvId, dsvHandle);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvs[5];
+	descHeapManager->GetRenderTargetViewCpuHandle(m_diffuseRtvId, rtvs[0]);
+	descHeapManager->GetRenderTargetViewCpuHandle(m_metallicRoughnessRtvId, rtvs[1]);
+	descHeapManager->GetRenderTargetViewCpuHandle(m_normalRtvId, rtvs[2]);
+	descHeapManager->GetRenderTargetViewCpuHandle(m_worldPosRtvId, rtvs[3]);
+	descHeapManager->GetRenderTargetViewCpuHandle(m_emissionRtvId, rtvs[4]);
+
+	ResourceBarrierTransition(m_diffuseBuffer.Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	ResourceBarrierTransition(m_metallicRoughnessBuffer.Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	ResourceBarrierTransition(m_normalBuffer.Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	ResourceBarrierTransition(m_worldPosBuffer.Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	ResourceBarrierTransition(m_emissionBuffer.Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+
+	// Set pso
+	commandList->SetPipelineState(m_graphicsPipelineState->GetPipelineState());
+	commandList->SetGraphicsRootSignature(m_graphicsPipelineState->GetRootSignature());
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	commandList->ClearRenderTargetView(rtvs[0], m_bufferClearValue, 0, NULL);
+	commandList->ClearRenderTargetView(rtvs[1], m_bufferClearValue, 0, NULL);
+	commandList->ClearRenderTargetView(rtvs[2], m_bufferClearValue, 0, NULL);
+	commandList->ClearRenderTargetView(rtvs[3], m_bufferClearValue, 0, NULL);
+	commandList->ClearRenderTargetView(rtvs[4], m_bufferClearValue, 0, NULL);
+	commandList->OMSetRenderTargets(5, rtvs, false, &dsvHandle);
+	commandList->RSSetViewports(1, &m_viewport);
+	commandList->RSSetScissorRects(1, &m_scissorRect);
+
+	// Bind uniform frame constant buffer
+	D3D12_GPU_DESCRIPTOR_HANDLE uniformFrameGpuHandle;
+
+	world->GetUniformFrameConstantBuffer()->BindConstantBufferViewToPipeline(graphicsContext, uniformFrameGpuHandle);
+	commandList->SetGraphicsRootDescriptorTable(0, uniformFrameGpuHandle);
+
+	// Set depth buffer in earlyZBuffer dependency pass srv
+	EarlyZPass* dependencyEarlyZPass = (EarlyZPass*)GetDependencyPassOfType(PassType::EARLY_Z_PASS);
+	if (dependencyEarlyZPass)
+	{
+		dependencyEarlyZPass->DepthBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COMMON);
+
+		D3D12_GPU_DESCRIPTOR_HANDLE earlyZPassBufferHandle;
+		descHeapManager->BindCbvSrvUavToPipeline(dependencyEarlyZPass->GetDepthBufferSrvId(), earlyZPassBufferHandle);
+		commandList->SetGraphicsRootDescriptorTable(2, earlyZPassBufferHandle);
+	}
+
+	std::vector<StaticMesh2*> meshes;
+	world->GetActiveStaticMeshes(meshes);
+	for (auto& staticMesh : meshes)
+	{
+		staticMesh->Draw(graphicsContext, materialManager, textureManager, commandList, m_passType, false, true);
+	}
+
+	m_commandBuilder->Close();
+
+	return true;
+}

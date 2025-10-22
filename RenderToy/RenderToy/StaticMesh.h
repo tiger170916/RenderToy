@@ -9,13 +9,76 @@
 #include "Material.h"
 #include "UidGenerator.h"
 #include "TextureManager.h"
-#include "StreamInterface.h"
+#include "IStreamable.h"
 #include "ResourceStreamer.h"
 #include "Lights/PointLight.h"
 
-class StaticMesh : public StreamInterface
+/// <summary>
+/// Static mesh class
+/// </summary>
+class StaticMesh : public IStreamable
 {
 friend class MeshFactory;
+
+private:
+	struct MeshInstanceStruct
+	{
+		Transform transform;
+		uint32_t uid;
+		std::vector<std::unique_ptr<ObjectExtension>> extensions;
+	};
+
+	struct MeshPartStruct
+	{
+		uint32_t verticesOffset;
+
+		uint32_t vertexCount;
+
+		uint32_t bufferSize;
+
+		std::unique_ptr<D3DResource> pResource;
+
+		D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
+	};
+
+private:
+	std::string m_name;
+
+	uint32_t m_uid = UINT_MAX;
+
+	// MeshParts
+	std::vector<std::unique_ptr<MeshPartStruct>> m_meshParts;
+
+	// Instances
+	std::vector<std::unique_ptr<MeshInstanceStruct>> m_instances;
+
+public:
+
+	inline const std::string& GetName() const { return m_name; }
+
+	inline void SetName(const std::string& name) { m_name = name; }
+
+	inline uint32_t GetNumInstances() { return (uint32_t)m_instances.size(); }
+
+protected:
+	StaticMesh(uint32_t uid);
+
+	void AddMeshPart(uint32_t vertexOffset, uint32_t vertexCount, uint32_t bufferSize);
+
+	void AddInstance(const Transform& transform, uint32_t uid);
+
+	bool StaticMeshAddLightExtension(
+		uint32_t instanceIdx,
+		LightExtension* lightExtension,
+		uint32_t uid);
+
+public:
+	// IStreamable Interface implementation
+	virtual bool StreamInBinary(GraphicsContext* graphicsContext, CommandBuilder* cmdBuilder) override;
+
+	virtual bool StreamOut() override;
+
+	virtual bool CleanUpAfterStreamIn() override;
 
 public:
 	struct MeshVertex
@@ -26,26 +89,13 @@ public:
 	};
 
 private:
-	struct MeshInstanceStruct
-	{
-		Transform transform;
-		uint32_t uid;
-		std::unique_ptr<LightExtension> lightExtension;
-	};
-
-private:
-	uint32_t m_meshUid = UINT32_MAX;
-
 	static std::map<PassType, std::map<UINT, UINT>> _passMeshArgumentsMap;
 
-	std::map<int, std::vector<StaticMesh::MeshVertex>> m_meshParts; // material id : mesh
+	//std::map<int, std::vector<StaticMesh::MeshVertex>> m_meshParts; // material id : mesh
 
 	std::vector<std::unique_ptr<Material>> m_materials;
 
 	int m_numUvs = 0;
-
-	// Instances
-	std::vector<std::unique_ptr<MeshInstanceStruct>> m_instances;
 
 	std::set<PassType> m_enabledPasses;
 
@@ -69,19 +119,6 @@ private:
 	// The mesh marked for destory should not be used anymore.
 	bool m_markedForDestroy = false;
 
-
-public:
-	// Stream Interface implementation
-	virtual bool StreamIn(GraphicsContext* graphicsContext) override;
-
-	virtual bool StreamOut() override;
-
-	virtual bool ScheduleForCopyToDefaultHeap(ID3D12GraphicsCommandList* cmdList) override;
-
-protected:
-	StaticMesh(uint32_t meshUid);
-
-	void AddInstance(const Transform& transform, uint32_t uid);
 
 public:
 	~StaticMesh();

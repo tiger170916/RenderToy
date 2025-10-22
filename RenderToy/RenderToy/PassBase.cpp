@@ -111,7 +111,23 @@ bool PassBase::PopulateCommands(World* world, GraphicsContext* graphicsContext)
 		return false;
 	}
 
-	m_commandBuilder->Reset();
+	m_commandBuilder->TryReset();
+	ID3D12DescriptorHeap* cbvSrvUavDescriptorHeap = graphicsContext->GetDescriptorHeapManager()->GetCbvSrvUavShaderVisibleRingBufferHeap();
+
+	ID3D12GraphicsCommandList* commandList = m_commandBuilder->GetCommandList();
+	commandList->SetDescriptorHeaps(1, &cbvSrvUavDescriptorHeap);
+
+	return true;
+}
+
+bool PassBase::PopulateCommands(World2* world, MaterialManager* materialManager, TextureManager2* textureManager, GraphicsContext* graphicsContext)
+{
+	if (!graphicsContext)
+	{
+		return false;
+	}
+
+	m_commandBuilder->TryReset();
 	ID3D12DescriptorHeap* cbvSrvUavDescriptorHeap = graphicsContext->GetDescriptorHeapManager()->GetCbvSrvUavShaderVisibleRingBufferHeap();
 
 	ID3D12GraphicsCommandList* commandList = m_commandBuilder->GetCommandList();
@@ -128,4 +144,9 @@ bool PassBase::UpdateBuffers(World* world)
 ID3D12Resource* PassBase::GetFinalRenderPassOutputResource() const
 {
 	return nullptr;
+}
+
+bool PassBase::TransitFinalRenderPassOutputResource(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter)
+{
+	return false;
 }

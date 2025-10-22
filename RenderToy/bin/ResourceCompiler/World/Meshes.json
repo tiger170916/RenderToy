@@ -1,0 +1,56 @@
+{
+    "Type" :  "Meshes",
+    "Meshes": [
+        {
+            "Name": "House",
+            "MeshAsset": "Assets/Meshes/House/House_Low.fbx",
+            "MaterialOverride": "HouseMaterial"
+
+        },
+        {
+            "Name": "LightBulb",
+            "MeshAsset": "Assets/Meshes/LightBulb/LightBulb.fbx",
+            "MaterialOverride": "LightBulbMaterial"
+        }
+    ],
+    "Materials": [
+        {
+            "Name": "HouseMaterial",
+            "BaseColorTexture": {
+                "File": "Textures.bin",
+                "Name": "House_Base_Color_Texture"
+            },
+            "MetallicTexture": {
+                "File": "Textures.bin",
+                "Name": "House_Metallic_Texture"
+            },
+            "RoughnessTexture": {
+                "File": "Textures.bin",
+                "Name": "House_Roughness_Texture"
+            },
+            "NormalTexture": {
+                "File": "Textures.bin",
+                "Name": "House_Normal_Texture"
+            }
+        },
+        {
+            "Name": "LightBulbMaterial",
+            "BaseColorTexture": {
+                "File": "Textures.bin",
+                "Name": "LightBulb_Base_Color_Texture"
+            },
+            "MetallicTexture": {   
+                "File": "Textures.bin",
+                "Name": "LightBulb_Metallic_Texture"
+            },
+            "RoughnessTexture": {
+                "File": "Textures.bin",
+                "Name": "LightBulb_Roughness_Texture"
+            },
+            "NormalTexture": {
+                "File": "Textures.bin",
+                "Name": "LightBulb_Normal_Texture"
+            }
+        }
+    ]
+}

@@ -6,6 +6,7 @@
 #include "LightStructs.h"
 #include "ConstantBuffer.h"
 #include "DescriptorHeapManager.h"
+#include "Tile.h"
 
 class World
 {
@@ -18,12 +19,19 @@ private:
 
 	std::unique_ptr<ConstantBuffer<LightConstantsDx>> m_lightConstants = nullptr;
 
+	std::vector<std::unique_ptr<Tile>> m_tiles;
+
 	bool m_initialized = false;
 
 public:
 	World();
 
 	bool Initialize(GraphicsContext* graphicsContext);
+
+	/// <summary>
+	/// Initialize a world from binary files (each file represents a tile, which is the smallest unit of scene streaming)
+	/// </summary>
+	bool InitializeFromBinary(GraphicsContext* graphicsContext, std::filesystem::path binaryDir);
 
 	~World();
 
@@ -44,4 +52,9 @@ public:
 	bool UpdateBuffers();
 
 	bool FrameBegin(float delta);
+
+	bool GetAdjacentTilesAroundActiveCamera(std::vector<Tile*>& outAdjacentTiles, std::vector<Tile*> outOtherTiles);
+
+private:
+	bool LoadTileBinaryFile(std::filesystem::path tileFilePath);
 };

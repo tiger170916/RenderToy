@@ -251,7 +251,116 @@ bool LightingPass::PopulateCommands(World* world, GraphicsContext* graphicsConte
 	return true;
 }
 
+
+bool LightingPass::PopulateCommands(World2* world, MaterialManager* materialManager, TextureManager2* textureManager, GraphicsContext* graphicsContext)
+{
+	if (world == nullptr || graphicsContext == nullptr)
+	{
+		return false;
+	}
+
+	PassBase::PopulateCommands(world, materialManager, textureManager, graphicsContext);
+
+	ID3D12GraphicsCommandList* commandList = m_commandBuilder->GetCommandList();
+
+	DescriptorHeapManager* descHeapManager = graphicsContext->GetDescriptorHeapManager();
+	D3D12_CPU_DESCRIPTOR_HANDLE rtv;
+	descHeapManager->GetRenderTargetViewCpuHandle(m_rtvId, rtv);
+
+	ResourceBarrierTransition(m_renderTarget.Get(), commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	// Set pso
+	commandList->SetPipelineState(m_graphicsPipelineState->GetPipelineState());
+	commandList->SetGraphicsRootSignature(m_graphicsPipelineState->GetRootSignature());
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	commandList->ClearRenderTargetView(rtv, m_renderTargetClearValue, 0, NULL);
+	commandList->OMSetRenderTargets(1, &rtv, false, nullptr);
+	commandList->RSSetViewports(1, &m_viewport);
+	commandList->RSSetScissorRects(1, &m_scissorRect);
+
+
+	ResourceBarrierTransition(m_pTestResource.Get(), commandList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	D3D12_GPU_DESCRIPTOR_HANDLE testGpuHandle;
+	D3D12_CPU_DESCRIPTOR_HANDLE testCpuHandle;
+	descHeapManager->BindCbvSrvUavToPipeline(m_testResourceUavId, testGpuHandle);
+	descHeapManager->GetCbvSrvUavNonShaderVisibleView(m_testResourceUavId, testCpuHandle);
+	commandList->SetGraphicsRootDescriptorTable(9, testGpuHandle);
+	float clearVal[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	commandList->ClearUnorderedAccessViewFloat(testGpuHandle, testCpuHandle, m_pTestResource.Get(), clearVal, 0, nullptr);
+
+
+	// Bind uniform frame constant buffer
+	D3D12_GPU_DESCRIPTOR_HANDLE uniformFrameGpuHandle;
+
+	world->GetUniformFrameConstantBuffer()->BindConstantBufferViewToPipeline(graphicsContext, uniformFrameGpuHandle);
+	commandList->SetGraphicsRootDescriptorTable(0, uniformFrameGpuHandle);
+
+	GeometryPass* dependencyGeometryPass = (GeometryPass*)GetDependencyPassOfType(PassType::GEOMETRY_PASS);
+	ShadowPass* dependencyShadowPass = (ShadowPass*)GetDependencyPassOfType(PassType::SHADOW_PASS);
+
+	if (dependencyGeometryPass)
+	{
+		dependencyGeometryPass->DiffuseBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COMMON);
+		dependencyGeometryPass->MetallicRoughnessBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COMMON);
+		dependencyGeometryPass->NormalBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COMMON);
+		dependencyGeometryPass->WorldPosBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COMMON);
+		dependencyGeometryPass->WorldEmissionBufferBarrierTransition(commandList, D3D12_RESOURCE_STATE_COMMON);
+
+		D3D12_GPU_DESCRIPTOR_HANDLE geometryPassDiffuseBufferHandle, geometryPassMetallicRoughnessBufferHandle, geometryPassNormalBufferHandle, geometryPassWorldPosBufferHandle, geometryPassEmissionBufferHandle;
+		descHeapManager->BindCbvSrvUavToPipeline(dependencyGeometryPass->GetDiffuseBufferSrvId(), geometryPassDiffuseBufferHandle);
+		descHeapManager->BindCbvSrvUavToPipeline(dependencyGeometryPass->GetMetallicRoughnessBufferSrvId(), geometryPassMetallicRoughnessBufferHandle);
+		descHeapManager->BindCbvSrvUavToPipeline(dependencyGeometryPass->GetNormalBufferSrvId(), geometryPassNormalBufferHandle);
+		descHeapManager->BindCbvSrvUavToPipeline(dependencyGeometryPass->GetWorldPosBufferSrvId(), geometryPassWorldPosBufferHandle);
+		descHeapManager->BindCbvSrvUavToPipeline(dependencyGeometryPass->GetEmissionBufferSrvId(), geometryPassEmissionBufferHandle);
+
+		commandList->SetGraphicsRootDescriptorTable(3, geometryPassDiffuseBufferHandle);
+		commandList->SetGraphicsRootDescriptorTable(4, geometryPassMetallicRoughnessBufferHandle);
+		commandList->SetGraphicsRootDescriptorTable(5, geometryPassNormalBufferHandle);
+		commandList->SetGraphicsRootDescriptorTable(6, geometryPassWorldPosBufferHandle);
+		commandList->SetGraphicsRootDescriptorTable(7, geometryPassEmissionBufferHandle);
+	}
+
+	if (dependencyShadowPass)
+	{
+		dependencyShadowPass->DepthAtlasBarrierTransition(commandList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
+		D3D12_GPU_DESCRIPTOR_HANDLE shadowMapAltasGpuHandle;
+		descHeapManager->BindCbvSrvUavToPipeline(dependencyShadowPass->GetDepthAtlasUavId(), shadowMapAltasGpuHandle);
+
+		commandList->SetGraphicsRootDescriptorTable(8, shadowMapAltasGpuHandle);
+	}
+
+	ConstantBuffer<LightConstantsDx>* lightsCb = world->GetLightConstantBuffer();
+	if (lightsCb)
+	{
+		D3D12_GPU_DESCRIPTOR_HANDLE lightsCbGpuHandle;
+		lightsCb->BindConstantBufferViewToPipeline(graphicsContext, lightsCbGpuHandle);
+
+		commandList->SetGraphicsRootDescriptorTable(2, lightsCbGpuHandle);
+	}
+
+	// Draw fullscreen rectangle
+	//m_rectangleMesh->Draw(graphicsContext, commandList, m_passType, false, false);
+	FullScreenQuad* fullscreenQuad = FullScreenQuad::Get();
+	fullscreenQuad->Draw(commandList);
+
+	// Transit the render target buffer to common state, since this might be copied out as final render result.
+	ResourceBarrierTransition(m_renderTarget.Get(), commandList, D3D12_RESOURCE_STATE_COMMON);
+
+	m_commandBuilder->Close();
+	return true;
+}
+
 ID3D12Resource* LightingPass::GetFinalRenderPassOutputResource() const
 {
 	return m_renderTarget.Get();
+}
+
+bool LightingPass::TransitFinalRenderPassOutputResource(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter)
+{
+	if (!commandList)
+	{
+		return false;
+	}
+
+	return ResourceBarrierTransition(m_renderTarget.Get(), commandList, stateAfter);
 }

@@ -115,6 +115,8 @@ public:
 		return m_resource->UpdateUploadBuffer(m_buffer.data(), m_numInstances * sizeof(T));
 	}
 
+	inline const bool IsInitialized() const { return m_initialized; }
+
 	~ConstantBuffer()
 	{
 		

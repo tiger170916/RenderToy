@@ -127,7 +127,7 @@ bool ShadowPass::UpdateBuffers(World* world)
 	}
 
 	ConstantBuffer<LightConstantsDx>* lightCb = world->GetLightConstantBuffer();
-
+	/*
 	m_atlas->ClearNodes();
 	std::vector<TextureAtlas::Node> nodes;
 
@@ -200,7 +200,7 @@ bool ShadowPass::UpdateBuffers(World* world)
 
 	(*lightCb)[0].NumLights[0] = lightItr;
 	lightCb->UpdateToGPU();
-
+	*/
 	return true;
 }
 
@@ -253,5 +253,54 @@ bool ShadowPass::PopulateCommands(World* world, GraphicsContext* graphicsContext
 
 	m_commandBuilder->Close();
 
+	return true;
+}
+
+
+bool ShadowPass::PopulateCommands(World2* world, MaterialManager* materialManager, TextureManager2* textureManager, GraphicsContext* graphicsContext)
+{
+	if (world == nullptr || graphicsContext == nullptr)
+	{
+		return false;
+	}
+
+	DescriptorHeapManager* descriptorHeapManager = graphicsContext->GetDescriptorHeapManager();
+	ConstantBuffer<LightConstantsDx>* lightCb = world->GetLightConstantBuffer();
+
+	PassBase::PopulateCommands(world, materialManager, textureManager, graphicsContext);
+
+	ID3D12GraphicsCommandList* commandList = m_commandBuilder->GetCommandList();
+
+	float clearValue[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	D3D12_GPU_DESCRIPTOR_HANDLE atlasGpuHandle;
+	descriptorHeapManager->BindCbvSrvUavToPipeline(m_depthAtlasUavId, atlasGpuHandle);
+	D3D12_CPU_DESCRIPTOR_HANDLE atlasNonShaderVisibleCpuHandle;
+	descriptorHeapManager->GetCbvSrvUavNonShaderVisibleView(m_depthAtlasUavId, atlasNonShaderVisibleCpuHandle);
+
+	D3D12_GPU_DESCRIPTOR_HANDLE lightConstantsGpuDescHandle;
+	commandList->SetPipelineState(m_graphicsPipelineState->GetPipelineState());
+	commandList->SetGraphicsRootSignature(m_graphicsPipelineState->GetRootSignature());
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	commandList->OMSetRenderTargets(0, nullptr, false, nullptr);
+
+	ResourceBarrierTransition(m_atlas->GetResource(), commandList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	commandList->ClearUnorderedAccessViewFloat(atlasGpuHandle, atlasNonShaderVisibleCpuHandle, m_atlas->GetResource(), clearValue, 0, nullptr);
+
+	lightCb->BindConstantBufferViewToPipeline(graphicsContext, lightConstantsGpuDescHandle);
+	commandList->SetGraphicsRootDescriptorTable(1, lightConstantsGpuDescHandle);
+	commandList->RSSetViewports(1, m_viewports);
+	commandList->RSSetScissorRects(1, m_scissorRects);
+
+	commandList->SetGraphicsRootDescriptorTable(2, atlasGpuHandle);
+
+	std::vector<StaticMesh2*> staticMeshes;
+	world->GetActiveStaticMeshes(staticMeshes);
+	for (auto& staticMesh : staticMeshes)
+	{
+		staticMesh->Draw(graphicsContext, materialManager, textureManager, commandList, m_passType, false, false);
+	}
+
+	m_commandBuilder->Close();
 	return true;
 }

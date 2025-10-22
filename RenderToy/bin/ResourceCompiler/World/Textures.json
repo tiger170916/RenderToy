@@ -1,0 +1,41 @@
+{
+    "Type": "Textures",
+    "Textures": [
+        {
+            "Name": "House_Base_Color_Texture",
+            "Path": "Assets/Meshes/House/BaseColor.png"
+        },
+        {
+            "Name": "House_Metallic_Texture",
+            "Path": "Assets/Meshes/House/Metallic.png"
+        },
+        {
+            "Name": "House_Roughness_Texture",
+            "Path": "Assets/Meshes/House/Roughness.png"
+        },
+        {
+            "Name": "House_Normal_Texture",
+            "Path": "Assets/Meshes/House/Normal.png"
+        },
+        {
+            "Name": "LightBulb_Base_Color_Texture",
+            "Path": "Assets/Meshes/LightBulb/BaseColor.png"
+        },
+        {
+            "Name": "LightBulb_Metallic_Texture",
+            "Path": "Assets/Meshes/LightBulb/Metallic.png"
+        },
+        {
+            "Name": "LightBulb_Roughness_Texture",
+            "Path": "Assets/Meshes/LightBulb/Roughness.png"
+        },
+        {
+            "Name": "LightBulb_Normal_Texture",
+            "Path": "Assets/Meshes/LightBulb/Normal.png"
+        }
+    ]
+}
+
+
+
+           

@@ -119,6 +119,12 @@ bool TextureLoader::LoadTexture(
 		return false;
 	}
 
+	std::vector<char> vec;
+	for (int i = 0; i < dataSize; i++)
+	{
+		vec.push_back(data[i]);
+	}
+
 	// There is no dxgi format with 3 channels. so have to create new buffer which contains 4 channels
 	if (
 		numChannels == 3)
@@ -146,6 +152,7 @@ bool TextureLoader::LoadTexture(
 		dataSize = stride * height;
 		numChannels = 4;
 	}
+
 
 	file->write((char*)data, dataSize);
 	*textureOffset += dataSize;

@@ -1,5 +1,6 @@
 #include "World.h"
 #include "Macros.h"
+#include "ResourceCompilerModuleApi.h"
 
 World::World() {}
 
@@ -32,6 +33,40 @@ bool World::Initialize(GraphicsContext* graphicsContext)
 
 
 	m_initialized = true;
+	return true;
+}
+
+bool World::InitializeFromBinary(GraphicsContext* graphicsContext, std::filesystem::path binaryPath)
+{
+	if (m_initialized)
+	{
+		return true;
+	}
+
+	if (!std::filesystem::exists(binaryPath))
+	{
+		return false;
+	}
+
+	try {
+		// Iterate over the entries in world directory
+		for (const auto& entry : std::filesystem::directory_iterator(binaryPath)) {
+			if (entry.path().extension().string() != ".bin")
+			{
+				continue;
+			}
+
+			LoadTileBinaryFile(entry);
+		}
+	}
+	catch (const std::filesystem::filesystem_error) {
+		return false;
+
+	}
+
+
+	m_initialized = true;
+
 	return true;
 }
 
@@ -108,6 +143,35 @@ bool World::UpdateBuffers()
 	(*m_uniformFrameConstantBuffer)[0] = uniformFrameConstants;
 	bool succ = m_uniformFrameConstantBuffer->UpdateToGPU();
 
+	// Update light constants
+	LightConstantsDx lightConstantsDx = {};
+	uint32_t lightIdx = 0;
+	for (auto& staticMesh : m_staticMeshes)
+	{
+		for (uint32_t i = 0; i < staticMesh->GetNumInstances(); i++)
+		{
+			if (lightIdx >= 50)
+			{
+				break;
+			}
+
+			if (staticMesh->HasLightExtension(i))
+			{
+				LightExtension* lightExt = staticMesh->GetLightExtension(i);
+				if (lightExt)
+				{
+					Transform instanceTransform = {};
+					staticMesh->GetInstanceTransform(i, instanceTransform);
+					lightExt->UpdateLightConstants(lightConstantsDx.Lights[lightIdx], instanceTransform.Translation);
+					lightIdx += 1;
+				}
+			}
+		}
+	}
+
+	(*m_lightConstants)[0] = lightConstantsDx;
+	m_lightConstants->UpdateToGPU();
+
 	for (auto& staticMesh : m_staticMeshes)
 	{
 		succ &= staticMesh->UpdateBuffers();
@@ -120,5 +184,64 @@ bool World::UpdateBuffers()
 bool World::FrameBegin(float delta)
 {
 	
+	return true;
+}
+
+bool World::LoadTileBinaryFile(std::filesystem::path tileFilePath)
+{
+	/*
+	std::fstream file(tileFilePath, std::ios::in | std::ios::binary);
+
+	ResourceCompilerModule::TileHeader tileHeader = {};
+	if (!ReadHeader(&file, tileHeader))
+	{
+		file.close();
+		return false;
+	}
+
+	Tile* newTile = new Tile(tileFilePath, tileHeader.TileName, tileHeader.BboxMinX, tileHeader.BboxMinY, tileHeader.BboxMaxX, tileHeader.BboxMaxY);
+	m_tiles.push_back(std::unique_ptr<Tile>(newTile));
+
+	newTile->LoadTileContentsFromFile();
+
+	file.close();*/
+
+	return true;
+}
+
+bool World::GetAdjacentTilesAroundActiveCamera(std::vector<Tile*>& outAdjacentTiles, std::vector<Tile*> outOtherTiles)
+{
+	if (!m_activeCamera)
+	{
+		return false;
+	}
+
+	outAdjacentTiles.clear();
+	outOtherTiles.clear();
+
+	std::vector<FVector3> points;
+	const FVector3& cameraPos = m_activeCamera->GetPosition();
+	points.push_back(cameraPos);
+	points.push_back(cameraPos + FVector3(50.0f, 50.0f, 0));
+	points.push_back(cameraPos + FVector3(-50.0f, 50.0f, 0));
+	points.push_back(cameraPos + FVector3(50.0f, -50.0f, 0));
+	points.push_back(cameraPos + FVector3(-50.0f, -50.0f, 0));
+
+
+	for (auto& tile : m_tiles)
+	{
+		for (auto& point : points)
+		{
+			if (tile->IsPointInTile(point.X, point.Y))
+			{
+				outAdjacentTiles.push_back(tile.get());
+			}
+			else
+			{
+				outOtherTiles.push_back(tile.get());
+			}
+		}
+	}
+
 	return true;
 }

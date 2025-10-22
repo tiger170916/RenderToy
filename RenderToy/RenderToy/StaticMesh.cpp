@@ -3,14 +3,50 @@
 
 std::map<PassType, std::map<UINT, UINT>> StaticMesh::_passMeshArgumentsMap = PASS_MESH_ARGUMENTS_MAP_DEFINE;
 
-StaticMesh::StaticMesh(uint32_t meshUid)
-	:m_meshUid(meshUid)
+StaticMesh::StaticMesh(uint32_t uid)
+	: m_uid(uid)
 {
 }
 
 StaticMesh::~StaticMesh()
 {
+	m_meshParts.clear();
+	m_instances.clear();
 }
+
+void StaticMesh::AddMeshPart(uint32_t vertexOffset, uint32_t vertexCount, uint32_t bufferSize)
+{
+	MeshPartStruct* meshPart = new MeshPartStruct();
+	meshPart->vertexCount = vertexCount;
+	meshPart->verticesOffset = vertexOffset;
+	meshPart->bufferSize = bufferSize;
+
+	m_meshParts.push_back(std::unique_ptr<MeshPartStruct>(meshPart));
+}
+
+void StaticMesh::AddInstance(const Transform& transform, uint32_t uid)
+{
+	MeshInstanceStruct* instanceStruct = new MeshInstanceStruct();
+	instanceStruct->transform = transform;
+	instanceStruct->uid = uid;
+
+	m_instances.push_back(std::unique_ptr<MeshInstanceStruct>(instanceStruct));
+}
+
+bool StaticMesh::StaticMeshAddLightExtension(
+	uint32_t instanceIdx,
+	LightExtension* lightExtension,
+	uint32_t uid)
+{
+	if (instanceIdx >= m_instances.size())
+	{
+		return false;
+	}
+
+	m_instances[instanceIdx]->extensions.push_back(std::unique_ptr<ObjectExtension>(lightExtension));
+	return true;
+}
+
 
 void StaticMesh::AddMaterial(Material* material)
 {
@@ -19,6 +55,7 @@ void StaticMesh::AddMaterial(Material* material)
 
 void StaticMesh::AddTriangle(const int& part, const MeshVertex& v1, const MeshVertex& v2, const MeshVertex& v3)
 {
+	/*
 	if (!m_meshParts.contains(part))
 	{
 		m_meshParts[part] = std::vector<MeshVertex>();
@@ -26,27 +63,18 @@ void StaticMesh::AddTriangle(const int& part, const MeshVertex& v1, const MeshVe
 
 	m_meshParts[part].push_back(v1);
 	m_meshParts[part].push_back(v2);
-	m_meshParts[part].push_back(v3);
-}
-
-void StaticMesh::AddInstance(const Transform& transform, uint32_t uid)
-{
-	MeshInstanceStruct *instanceStruct = new MeshInstanceStruct();
-	instanceStruct->transform = transform;
-	instanceStruct->uid = uid;
-	instanceStruct->lightExtension = nullptr;
-
-	m_instances.push_back(std::unique_ptr<MeshInstanceStruct>(instanceStruct));
+	m_meshParts[part].push_back(v3);*/
 }
 
 bool StaticMesh::GetInstanceTransform(uint32_t instanceIdx, Transform& outTransform)
 {
+	/*
 	if (instanceIdx >= m_instances.size())
 	{
 		return false;
 	}
 
-	outTransform = m_instances[instanceIdx]->transform;
+	outTransform = m_instances[instanceIdx]->transform;*/
 	return true;
 }
 
@@ -63,35 +91,40 @@ bool StaticMesh::GetInstanceUid(uint32_t instanceIdx, uint32_t& outUid)
 
 bool StaticMesh::HasLightExtensions() const
 {
+	/*
 	for (const auto& instance : m_instances)
 	{
 		if (instance->lightExtension != nullptr)
 		{
 			return true;
 		}
-	}
+	}*/
 
 	return false;
 }
 
 const bool StaticMesh::HasLightExtension(const uint32_t& instanceIdx)
 {
+	/*
 	if (instanceIdx >= m_instances.size())
 	{
 		return false;
 	}
 
-	return m_instances[instanceIdx]->lightExtension != nullptr;
+	return m_instances[instanceIdx]->lightExtension != nullptr;*/
+	return false;
 }
 
 LightExtension* StaticMesh::GetLightExtension(const uint32_t& instanceIdx)
 {
+	/*
 	if (instanceIdx >= m_instances.size())
 	{
 		return nullptr;
 	}
 
-	return m_instances[instanceIdx]->lightExtension.get();
+	return m_instances[instanceIdx]->lightExtension.get();*/
+	return nullptr;
 }
 
 void StaticMesh::EnablePass(const PassType& renderPass)
@@ -106,6 +139,7 @@ bool StaticMesh::PassEnabled(const PassType& renderPass)
 
 bool StaticMesh::BuildResource(GraphicsContext* graphicsContext, TextureManager* textureManager)
 {
+	/*
 	if (!graphicsContext)
 	{
 		return false;
@@ -203,12 +237,13 @@ bool StaticMesh::BuildResource(GraphicsContext* graphicsContext, TextureManager*
 			material->Initialize(graphicsContext, textureManager);
 		}
 	}
-
+	*/
 	return true;
 }
 
 bool StaticMesh::UpdateBuffers()
 {
+	/*
 	for (int i = 0; i < m_instances.size(); i++)
 	{
 		MeshInstanceConstants updateCb = {};
@@ -244,13 +279,14 @@ bool StaticMesh::UpdateBuffers()
 	if (!m_instanceConstants->UpdateToGPU())
 	{
 		return false;
-	}
+	}*/
 
 	return true;
 }
 
 void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandList* cmdList, PassType passType, bool useSimpleVertex, bool setTextures)
 {
+	/*
 	if (!graphicsContext || !cmdList)
 	{
 		return;
@@ -322,11 +358,12 @@ void StaticMesh::Draw(GraphicsContext* graphicsContext, ID3D12GraphicsCommandLis
 		}
 		cmdList->IASetVertexBuffers(0, 1, &pVbViews);
 		cmdList->DrawInstanced(m_vertexCounts[i], (UINT)m_instances.size(), 0, 0);
-	}
+	}*/
 }
 
 void StaticMesh::AttachLightExtension(LightExtension* light, const uint32_t& instanceIdx)
 {
+	/*
 	if (light == nullptr)
 	{
 		return;
@@ -337,28 +374,69 @@ void StaticMesh::AttachLightExtension(LightExtension* light, const uint32_t& ins
 		return;
 	}
 
-	m_instances[instanceIdx]->lightExtension = std::unique_ptr<LightExtension>(light);
+	m_instances[instanceIdx]->lightExtension = std::unique_ptr<LightExtension>(light);*/
 }
 
-bool StaticMesh::StreamIn(GraphicsContext* graphicsContext)
+bool StaticMesh::StreamInBinary(GraphicsContext* graphicsContext, CommandBuilder* cmdBuilder)
 {
-	/*
-	for (auto& material : m_materials)
+	// The object has been streamed in. early out!
+	if (m_streamedIn)
 	{
-		if (!material)
+		return true;
+	}
+
+	/*
+	// Build resource for vertex buffers
+	for (size_t i = 0; i < m_meshParts.size(); i++)
+	{
+		MeshPartStruct* meshPartStruct = m_meshParts[i].get();
+		auto vbDesc = CD3DX12_RESOURCE_DESC::Buffer(meshPartStruct->bufferSize);
+
+		file->seekg(meshPartStruct->verticesOffset);
+		char* meshPartData = (char*)malloc(meshPartStruct->bufferSize);
+		file->read(meshPartData, meshPartStruct->vertexCount);
+
+		meshPartStruct->pResource = std::unique_ptr<D3DResource>(new D3DResource(true));
+		if (!meshPartStruct->pResource->Initialize(graphicsContext, &vbDesc, meshPartData, meshPartStruct->bufferSize, 0))
 		{
-			continue;
+			return false;
 		}
 
-		std::shared_ptr<Texture> colorTexture = material->GetBaseColorTexture();
-		if (colorTexture != nullptr && !colorTexture->HasCopiedToDefaultHeap())
-		{
-			colorTexture->StreamIn(graphicsContext);
-		}
-	}*/
+		// Copy to default heap
+		meshPartStruct->pResource->CopyToDefaultHeap(cmdList);
+
+		meshPartStruct->vertexBufferView.BufferLocation = meshPartStruct->pResource->GetDefaultResource()->GetGPUVirtualAddress();
+		meshPartStruct->vertexBufferView.StrideInBytes = sizeof(MeshVertexDx);
+		meshPartStruct->vertexBufferView.SizeInBytes = meshPartStruct->bufferSize;
+
+		free(meshPartData);
+	}
+	*/
+	m_streamedIn = true;
 
 	return true;
 }
+
+bool StaticMesh::CleanUpAfterStreamIn()
+{
+	for (size_t i = 0; i < m_meshParts.size(); i++)
+	{
+		// Clean up upload heap resource of mesh parts.
+		MeshPartStruct* meshPartStruct = m_meshParts[i].get();
+		if (meshPartStruct->pResource)
+		{
+			meshPartStruct->pResource->CleanUploadResource();
+		}
+	}
+
+	return true;
+}
+
+bool StaticMesh::StreamOut()
+{
+	return false;
+}
+
 
 void StaticMesh::QueueStreamingTasks(ResourceStreamer* streamer, UINT priority)
 {
@@ -400,12 +478,3 @@ void StaticMesh::QueueStreamingTasks(ResourceStreamer* streamer, UINT priority)
 	}
 }
 
-bool StaticMesh::StreamOut()
-{
-	return false;
-}
-
-bool StaticMesh::ScheduleForCopyToDefaultHeap(ID3D12GraphicsCommandList* cmdList)
-{
-	return true;
-}
