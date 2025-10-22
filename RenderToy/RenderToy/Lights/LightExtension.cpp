@@ -1,4 +1,5 @@
 #include "LightExtension.h"
+#include "../GraphicsUtils.h"
 
 LightExtension::LightExtension(
 	uint32_t uid,
@@ -35,9 +36,9 @@ void LightExtension::UpdateLightConstants(LightConstants& lightConsts, const FVe
 	lightConsts.Position[2] = parentPos.Z + m_offset.Z;
 	lightConsts.Position[3] = 1.0f;
 	
-	XMMATRIX rotation = XMMatrixRotationRollPitchYaw(m_rotation.X, m_rotation.Y, m_rotation.Z);
-	XMMATRIX translation = XMMatrixTranslation(lightConsts.Position[0], lightConsts.Position[1], lightConsts.Position[2]);
-	XMMATRIX transformMatrix = rotation * translation;
-	DirectX::XMStoreFloat4x4(&lightConsts.Transform, DirectX::XMMatrixTranspose(m_projectionMatrix * transformMatrix));
-	DirectX::XMStoreFloat4x4(&lightConsts.ViewMatrix, DirectX::XMMatrixTranspose(transformMatrix));
+	FVector3 forwardDir;
+	XMMATRIX viewMatrix = GraphicsUtils::ViewMatrixFromPositionRotation(FVector3(lightConsts.Position[0], lightConsts.Position[1], lightConsts.Position[2]), FRotator(m_rotation.X, m_rotation.Y, m_rotation.Z), forwardDir);
+
+	DirectX::XMStoreFloat4x4(&lightConsts.Transform, DirectX::XMMatrixTranspose(m_projectionMatrix) * DirectX::XMMatrixTranspose(viewMatrix));
+	DirectX::XMStoreFloat4x4(&lightConsts.ViewMatrix, DirectX::XMMatrixTranspose(viewMatrix));
 }
