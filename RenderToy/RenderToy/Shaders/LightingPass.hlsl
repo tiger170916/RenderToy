@@ -146,8 +146,6 @@ float4 PixelShaderMain(MeshPsInSimple input) : SV_Target0
     float2 metallicRoughness = metallicRoughnessBuffer.SampleLevel(pointSampler, uv, 0).xy;
     float metallic = metallicRoughness.x;
     float roughness = metallicRoughness.y;
-    
-    //return float4(baseColor, 1.0f);
 
     float3 normal = normalBuffer.SampleLevel(pointSampler, uv, 0).xyz;
     float3 worldPos = worldPosBuffer.SampleLevel(pointSampler, uv, 0).xyz;
@@ -165,17 +163,17 @@ float4 PixelShaderMain(MeshPsInSimple input) : SV_Target0
         float4 shadowNcdPos = mul(float4(worldPos, 1.0f), lightTransform);
         shadowNcdPos /= shadowNcdPos.w;
         
-        //if (pow(shadowNcdPos.x, 2.0f) + pow(shadowNcdPos.y, 2.0f) > 1.0f)
-        //{
-         //   continue;
-        //}
+        if (pow(shadowNcdPos.x, 2.0f) + pow(shadowNcdPos.y, 2.0f) > 1.0f)
+        {
+            continue;
+        }
         
-        /*if (shadowNcdPos.x < -1.0f || shadowNcdPos.x > 1.0f ||
+        if (shadowNcdPos.x < -1.0f || shadowNcdPos.x > 1.0f ||
         shadowNcdPos.y < -1.0f || shadowNcdPos.y > 1.0f ||
         shadowNcdPos.z < 0.0f || shadowNcdPos.z > 1.0f)
         {
             continue;
-        }*/
+        }
         
         
         // Transform to texture space.
@@ -203,10 +201,10 @@ float4 PixelShaderMain(MeshPsInSimple input) : SV_Target0
 
         float4 shadowViewPosition = mul(float4(worldPos, 1.0f), lightViewMatrix);
         float shadowZ = shadowViewPosition.z /= shadowViewPosition.w;
-        /*if (shadowZ > lightFarPlane || shadowZ < lightNearPlane)
+        if (shadowZ > lightFarPlane || shadowZ < lightNearPlane)
         {
             continue;
-        }*/
+        }
         
         float bias = max(lerp(0.0f, 0.02f, (shadowZ - lightNearPlane) / (lightFarPlane - lightNearPlane)) * 0.05f * (1.0f - d), 0.003f);
         
@@ -244,10 +242,10 @@ float4 PixelShaderMain(MeshPsInSimple input) : SV_Target0
         
         shadow = shadow / 9.0f;
         
-        /*if (shadow >= 1.0f)
+        if (shadow >= 1.0f)
         {
             continue;
-        }*/
+        }
         
         float3 h = normalize(v + l);
         
@@ -272,7 +270,7 @@ float4 PixelShaderMain(MeshPsInSimple input) : SV_Target0
     }
    
         
-    float3 color = LoTotal /*+ baseColor * 0.0025f*/ + emission;
+    float3 color = LoTotal + baseColor * 0.0025f + emission;
     float toneMap = 1.0f / 2.2f;
     color = color / (color + float3(1.0f, 1.0f, 1.0f));
     color = pow(color, float3(toneMap, toneMap, toneMap));
