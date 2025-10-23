@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Includes.h"
+#include "IControllable.h"
 #include "GraphicsContext.h"
 #include "D3DResource.h"
 #include "CommandBuilder.h"
@@ -13,7 +14,7 @@
 #include "lights/LightExtension.h"
 #include <fstream>
 
-class StaticMesh2
+class StaticMesh2 : public IControllable
 {
 private:
 	// Internal struct for static mesh part
@@ -90,4 +91,7 @@ public:
 	bool GetInstanceTransform(const uint32_t& idx, Transform& transform) const;
 
 	LightExtension* GetLightExtension(const uint32_t& idx);
+
+	// IControllable interface implementation
+	virtual void ProcessInput(DirectX::Mouse::State, DirectX::Keyboard::State, float deltaTime) override;
 };

@@ -27,6 +27,8 @@ private:
 
 	std::vector<StaticMesh2*> m_activeMeshes;
 
+	std::vector<StaticMesh2*> m_allMeshes;
+
 public:
 	World2(MaterialManager* materialManager, TextureManager2* texManager);
 
@@ -56,5 +58,5 @@ public:
 
 	const std::vector<StaticMesh2*>& GetActiveStaticMeshes() const { return m_activeMeshes; }
 
-
+	const std::vector<StaticMesh2*>& GetAllMeshes() const { return m_allMeshes; }
 };

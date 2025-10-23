@@ -198,6 +198,11 @@ bool World2::LoadFromBinary(std::filesystem::path rootDirectory)
 		}
 
 
+		for (auto& tile : m_tiles)
+		{
+			tile->GetAllStaticMeshes(m_allMeshes);
+		}
+
 		return true;
 	}
 

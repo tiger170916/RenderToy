@@ -119,6 +119,12 @@ bool Renderer::Initialize(HWND hwnd)
 		m_inputManager->SetControlObject(activeCamera);
 	}
 
+	const std::vector<StaticMesh2*> allMeshes = m_activeWorld->GetAllMeshes();
+	if (!allMeshes.empty())
+	{
+		m_inputManager->SetControlObject(allMeshes[1]);
+	}
+
 	m_streamingEngine->StartStreaming(m_activeWorld.get());
 
 	m_initialized = true;

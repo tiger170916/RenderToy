@@ -90,6 +90,7 @@ bool ShadowPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 
 	D3D12_DEPTH_STENCIL_DESC depthStencilDesc = {
 	TRUE,
+
 	D3D12_DEPTH_WRITE_MASK_ALL,
 	D3D12_COMPARISON_FUNC_LESS_EQUAL,
 	FALSE
@@ -121,6 +122,7 @@ bool ShadowPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 
 bool ShadowPass::UpdateBuffers(World2* world)
 {
+
 	if (!world)
 	{
 		return false;
