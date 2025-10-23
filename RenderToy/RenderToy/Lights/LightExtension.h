@@ -53,5 +53,10 @@ public:
 
 	FVector3 GetIntensity() const { return m_color * m_intensity; }
 
-	void UpdateLightConstants(LightConstants& lightConsts, const FVector3& parentPos);
+	void UpdateLightConstants(
+		LightConstants& lightConsts,
+		const FVector3& parentPos,
+		const UINT& lightAtlasOffsetX, 
+		const UINT& lightAtlasOffsetY, 
+		const UINT& lightMapSize);
 };

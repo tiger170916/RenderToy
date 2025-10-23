@@ -141,6 +141,11 @@ bool PassBase::UpdateBuffers(World* world)
 	return true;
 }
 
+bool PassBase::UpdateBuffers(World2* world)
+{
+	return true;
+}
+
 ID3D12Resource* PassBase::GetFinalRenderPassOutputResource() const
 {
 	return nullptr;

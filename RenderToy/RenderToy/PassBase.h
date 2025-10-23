@@ -54,6 +54,8 @@ public:
 
 	virtual bool UpdateBuffers(World* world);
 
+	virtual bool UpdateBuffers(World2* world);
+
 	// A pass that can be used as final stage of render pass has to override this function, and return the corresponding buffer.
 	virtual ID3D12Resource* GetFinalRenderPassOutputResource() const;
 

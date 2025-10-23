@@ -162,7 +162,7 @@ bool World::UpdateBuffers()
 				{
 					Transform instanceTransform = {};
 					staticMesh->GetInstanceTransform(i, instanceTransform);
-					lightExt->UpdateLightConstants(lightConstantsDx.Lights[lightIdx], instanceTransform.Translation);
+					//lightExt->UpdateLightConstants(lightConstantsDx.Lights[lightIdx], instanceTransform.Translation);
 					lightIdx += 1;
 				}
 			}

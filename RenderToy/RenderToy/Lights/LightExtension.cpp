@@ -22,7 +22,12 @@ LightExtension::LightExtension(
 	m_projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(fov * DirectX::XM_PI, aspectRatio, m_nearPlane, m_attenuationRadius);
 }
 
-void LightExtension::UpdateLightConstants(LightConstants& lightConsts, const FVector3& parentPos)
+void LightExtension::UpdateLightConstants(
+	LightConstants& lightConsts, 
+	const FVector3& parentPos, 
+	const UINT& lightAtlasOffsetX, 
+	const UINT& lightAtlasOffsetY, 
+	const UINT& lightMapSize)
 {
 	lightConsts.LightUid = m_uid;
 	lightConsts.LightType = static_cast<UINT>(m_lightType);
@@ -35,6 +40,9 @@ void LightExtension::UpdateLightConstants(LightConstants& lightConsts, const FVe
 	lightConsts.Position[1] = parentPos.Y + m_offset.Y;
 	lightConsts.Position[2] = parentPos.Z + m_offset.Z;
 	lightConsts.Position[3] = 1.0f;
+	lightConsts.ShadowBufferOffsetX = lightAtlasOffsetX;
+	lightConsts.ShadowBufferOffsetY = lightAtlasOffsetY;
+	lightConsts.ShadowBufferSize = lightMapSize;
 	
 	FVector3 forwardDir;
 	XMMATRIX viewMatrix = GraphicsUtils::ViewMatrixFromPositionRotation(FVector3(lightConsts.Position[0], lightConsts.Position[1], lightConsts.Position[2]), FRotator(m_rotation.X, m_rotation.Y, m_rotation.Z), forwardDir);

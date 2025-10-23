@@ -119,6 +119,48 @@ bool ShadowPass::Initialize(GraphicsContext* graphicsContext, ShaderManager* sha
 	return true;
 }
 
+bool ShadowPass::UpdateBuffers(World2* world)
+{
+	if (!world)
+	{
+		return false;
+	}
+
+	ConstantBuffer<LightConstantsDx>* lightCb = world->GetLightConstantBuffer();
+
+
+	LightConstantsDx lightConstantsDx = {};
+
+	const std::vector<StaticMesh2*> activeMeshes = world->GetActiveStaticMeshes();
+
+	m_atlas->ClearNodes();
+
+	UINT lightItr = 0;
+	for (auto& staticMesh : activeMeshes)
+	{
+		for (uint32_t instanceIdx = 0; instanceIdx < staticMesh->GetNumInstances(); instanceIdx++)
+		{
+			LightExtension* lightExt = staticMesh->GetLightExtension(instanceIdx);
+			if (lightExt)
+			{
+				TextureAtlas::Node node;
+				m_atlas->RequestNode(1, nullptr, node);
+
+				Transform transform = {};
+				staticMesh->GetInstanceTransform(instanceIdx, transform);
+				lightExt->UpdateLightConstants(lightConstantsDx.Lights[lightItr], transform.Translation, node.OffsetX, node.OffsetY, m_l1ShadowMapSize);
+				lightItr++;
+			}
+		}
+	}
+
+	lightConstantsDx.NumLights[0] = lightItr;
+
+	(*lightCb)[0] = lightConstantsDx;
+
+	return true;
+}
+
 bool ShadowPass::UpdateBuffers(World* world)
 {
 	if (!PassBase::UpdateBuffers(world))
@@ -127,6 +169,7 @@ bool ShadowPass::UpdateBuffers(World* world)
 	}
 
 	ConstantBuffer<LightConstantsDx>* lightCb = world->GetLightConstantBuffer();
+
 	/*
 	m_atlas->ClearNodes();
 	std::vector<TextureAtlas::Node> nodes;

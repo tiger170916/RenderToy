@@ -74,6 +74,8 @@ public:
 
 	void WaitForRenderFinalOutputDone();
 
+	bool UpdateConstants(World2* world);
+
 private:
 	bool Validate();
 

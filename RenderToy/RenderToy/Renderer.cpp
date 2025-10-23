@@ -111,8 +111,13 @@ bool Renderer::Initialize(HWND hwnd)
 	}
 
 	FRotator initRotation = {};
-	//initRotation.Yaw = 3.14;
+
 	m_activeWorld->CreateCamera(m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight(), FVector3(0, 0.0, -25.0), initRotation);
+	Camera* activeCamera = m_activeWorld->GetActiveCamera();
+	if (activeCamera != nullptr)
+	{
+		m_inputManager->SetControlObject(activeCamera);
+	}
 
 	m_streamingEngine->StartStreaming(m_activeWorld.get());
 
@@ -210,7 +215,7 @@ void Renderer::FrameBegin(float delta)
 {
 	m_stateUpdateCriticalSection->EnterCriticalSection();
 
-	//m_mainRenderGraph->UpdateBuffers(m_activeWorld.get());
+	m_mainRenderGraph->UpdateConstants(m_activeWorld.get());
 	m_activeWorld->UpdateBuffersForFrame();
 
 	m_stateUpdateCriticalSection->ExitCriticalSection();

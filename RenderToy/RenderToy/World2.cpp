@@ -207,6 +207,7 @@ bool World2::LoadFromBinary(std::filesystem::path rootDirectory)
 bool World2::StreamInAroundActiveCameraRange(GraphicsContext* graphicsContext, CommandBuilder* cmdBuilder, float radius)
 {
 	FVector3 camPos = m_activeCamera->GetPosition();
+	bool updated = false;
 	for (auto& tile : m_tiles)
 	{
 		float xmin = 0.0f, xmax = 0.0f, ymin = 0.0f, ymax = 0.0f;
@@ -220,7 +221,11 @@ bool World2::StreamInAroundActiveCameraRange(GraphicsContext* graphicsContext, C
 
 		if (withInRange)
 		{
-			tile->StreamInBinary(graphicsContext, cmdBuilder);
+			if (!tile->IsStreamedIn())
+			{
+				updated = true;
+				tile->StreamInBinary(graphicsContext, cmdBuilder);
+			}
 		}
 		else
 		{
@@ -228,6 +233,14 @@ bool World2::StreamInAroundActiveCameraRange(GraphicsContext* graphicsContext, C
 		}
 	}
 
+	if (updated)
+	{
+		// Update tile states.
+		for (auto& tile : m_tiles)
+		{
+			tile->GetAllStaticMeshes(m_activeMeshes);
+		}
+	}
 
 	return false;
 }
@@ -295,7 +308,6 @@ bool World2::UpdateBuffersForFrame()
 	(*m_uniformFrameConstantBuffer)[0] = uniformFrameConstants;
 	bool succ = m_uniformFrameConstantBuffer->UpdateToGPU();
 
-	std::vector<StaticMesh2*> allStaticMeshes;
 	// Update tile states.
 	for (auto& tile : m_tiles)
 	{
@@ -305,31 +317,10 @@ bool World2::UpdateBuffersForFrame()
 		}
 
 		tile->UpdateBuffersForFrame();
-		tile->GetAllStaticMeshes(allStaticMeshes);
 	}
 
+	
 
-	LightConstantsDx lightConstantsDx = {};
-	uint32_t lightIdx = 0;
-	// Update light constants
-	for (auto& staticMesh : allStaticMeshes)
-	{
-		for (uint32_t instanceIdx = 0; instanceIdx < staticMesh->GetNumInstances(); instanceIdx++)
-		{
-			LightExtension* lightExt = staticMesh->GetLightExtension(instanceIdx);
-			if (lightExt)
-			{
-				Transform transform = {};
-				staticMesh->GetInstanceTransform(instanceIdx, transform);
-				lightExt->UpdateLightConstants(lightConstantsDx.Lights[lightIdx], transform.Translation);
-				lightIdx++;
-			}
-		}
-		
-	}
-
-	lightConstantsDx.NumLights[0] = lightIdx;
-	(*m_lightConstantBuffer)[0] = lightConstantsDx;
 	m_lightConstantBuffer->UpdateToGPU();
 
 	return succ;

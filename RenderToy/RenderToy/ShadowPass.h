@@ -53,6 +53,8 @@ public:
 
 	virtual bool UpdateBuffers(World* world) override;
 
+	virtual bool UpdateBuffers(World2* world) override;
+
 	// 
 	inline bool DepthAtlasBarrierTransition(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES stateAfter) { return ResourceBarrierTransition(m_atlas->GetResource(), commandList, stateAfter); }
 

@@ -561,3 +561,14 @@ bool RenderGraph::ParseFile(std::vector<RenderGraph::PipelineStruct>& outPipelin
 
 	return succ;
 }
+
+bool RenderGraph::UpdateConstants(World2* world)
+{
+	bool succ = true;
+	for (auto& renderPass : m_allPasses)
+	{
+		succ &= renderPass->UpdateBuffers(world);
+	}
+
+	return succ;
+}

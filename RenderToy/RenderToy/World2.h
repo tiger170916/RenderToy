@@ -25,6 +25,8 @@ private:
 
 	TextureManager2* m_textureManager = nullptr;
 
+	std::vector<StaticMesh2*> m_activeMeshes;
+
 public:
 	World2(MaterialManager* materialManager, TextureManager2* texManager);
 
@@ -49,6 +51,10 @@ public:
 	void GetActiveStaticMeshes(std::vector<StaticMesh2*>& outMeshes);
 
 	bool UpdateBuffersForFrame();
+
+	Camera* GetActiveCamera() { return m_activeCamera.get(); }
+
+	const std::vector<StaticMesh2*>& GetActiveStaticMeshes() const { return m_activeMeshes; }
 
 
 };
