@@ -71,9 +71,6 @@
     <ClCompile Include="ShaderType.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="World.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -206,6 +203,21 @@
     <ClCompile Include="ExtensionFactory.cpp">
       <Filter>Extensions</Filter>
     </ClCompile>
+    <ClCompile Include="SceneObject.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneObjectComponent.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="InstancedStaticMesh.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="IMesh.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -252,9 +264,6 @@
     </ClInclude>
     <ClInclude Include="d3dx12.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="World.h">
       <Filter>Source Files</Filter>
@@ -426,6 +435,24 @@
     </ClInclude>
     <ClInclude Include="ExtensionFactory.h">
       <Filter>Extensions</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneObject.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="IDrawable.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneObjectComponent.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="InstancedStaticMesh.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="IMesh.h">
+      <Filter>World</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

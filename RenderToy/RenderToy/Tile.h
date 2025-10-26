@@ -1,8 +1,9 @@
 #pragma once
 #include "Includes.h"
 #include "ResourceCompilerModuleApi.h"
-#include "StaticMesh.h"
 #include "StaticMesh2.h"
+#include "SceneObject.h"
+#include "InstancedStaticMesh.h"
 #include "IStreamable.h"
 #include "Vectors.h"
 #include "MaterialManager.h"
@@ -14,20 +15,6 @@
 class Tile : public IStreamable
 {
 private:
-	// anokliii internal class for a static mesh loaded from binary
-	struct StaticMeshWrapper
-	{
-		std::unique_ptr<StaticMesh2> pStaticMesh;
-
-		// Whether the mesh is from file.
-		bool isFromeFile;
-		// The file path (if from file)
-		std::filesystem::path filePath;
-		std::vector<uint32_t> meshPartOffsets;
-		std::vector<uint32_t> meshPartSizes;
-		std::vector<std::string> materialNames;
-	};
-
 	std::filesystem::path m_binaryPath;
 
 private:
@@ -38,9 +25,11 @@ private:
 	float m_bboxMaxY = 0.0f;
 
 	std::string m_tileName;
+	
+	// All scene objects
+	std::vector<std::unique_ptr<SceneObject>> m_sceneObjects;
 
-	// Static meshes that loaded from file
-	std::vector<std::unique_ptr<StaticMeshWrapper>> m_staticMeshes;
+	std::vector<IMesh*> m_activeMeshes;
 
 	MaterialManager* m_materialManager = nullptr;
 	TextureManager2* m_textureManager = nullptr;
@@ -74,7 +63,7 @@ public:
 
 	void GetBBox(float& outXMin, float& outXMax, float& outYMin, float& outYMax);
 
-	void GetAllStaticMeshes(std::vector<StaticMesh2*>& outStaticMeshes);
+	inline const std::vector<IMesh*>& GetAllMeshes() { return m_activeMeshes; }
 
 	bool UpdateBuffersForFrame();
 };

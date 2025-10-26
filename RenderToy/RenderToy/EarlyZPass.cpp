@@ -227,11 +227,15 @@ bool EarlyZPass::PopulateCommands(World2* world, MaterialManager* materialManage
 	world->GetUniformFrameConstantBuffer()->BindConstantBufferViewToPipeline(graphicsContext, uniformFrameGpuHandle);
 	commandList->SetGraphicsRootDescriptorTable(0, uniformFrameGpuHandle);
 
-	std::vector<StaticMesh2*> staticMeshes;
-	world->GetActiveStaticMeshes(staticMeshes);
-	for (auto& staticMesh : staticMeshes)
+	std::vector<Tile*> activeTiles;
+	world->GetActiveTiles(activeTiles);
+	for (auto& tile : activeTiles)
 	{
-		staticMesh->Draw(graphicsContext, materialManager, textureManager, commandList, m_passType, false, false);
+		std::vector<IMesh*> meshes = tile->GetAllMeshes();
+		for (auto& mesh : meshes)
+		{
+			mesh->Draw(graphicsContext, materialManager, textureManager, commandList, m_passType);
+		}
 	}
 
 	m_commandBuilder->Close();

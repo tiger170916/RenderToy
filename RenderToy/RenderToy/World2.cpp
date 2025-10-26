@@ -41,7 +41,7 @@ void World2::CreateCamera(UINT width, UINT height, FVector3 position, FRotator r
 		m_activeCamera.reset();
 	}
 
-	m_activeCamera = std::unique_ptr<Camera>(new Camera(width, height, position, rotator));
+	m_activeCamera = std::make_unique<Camera>(width, height, position, rotator);
 }
 
 bool World2::LoadFromBinary(std::filesystem::path rootDirectory)
@@ -197,12 +197,6 @@ bool World2::LoadFromBinary(std::filesystem::path rootDirectory)
 			}
 		}
 
-
-		for (auto& tile : m_tiles)
-		{
-			tile->GetAllStaticMeshes(m_allMeshes);
-		}
-
 		return true;
 	}
 
@@ -238,29 +232,7 @@ bool World2::StreamInAroundActiveCameraRange(GraphicsContext* graphicsContext, C
 		}
 	}
 
-	if (updated)
-	{
-		// Update tile states.
-		for (auto& tile : m_tiles)
-		{
-			tile->GetAllStaticMeshes(m_activeMeshes);
-		}
-	}
-
 	return false;
-}
-
-void World2::GetActiveStaticMeshes(std::vector<StaticMesh2*>& outMeshes)
-{
-	outMeshes.clear();
-
-	for (auto& tile : m_tiles)
-	{
-		if (tile->IsStreamedIn())
-		{
-			tile->GetAllStaticMeshes(outMeshes);
-		}
-	}
 }
 
 bool World2::UpdateBuffersForFrame()
@@ -329,4 +301,15 @@ bool World2::UpdateBuffersForFrame()
 	m_lightConstantBuffer->UpdateToGPU();
 
 	return succ;
+}
+void World2::GetActiveTiles(std::vector<Tile*>& outTiles)
+{
+	outTiles.clear();
+	for (auto& tile : m_tiles)
+	{
+		if (tile->IsStreamedIn())
+		{
+			outTiles.push_back(tile.get());
+		}
+	}
 }

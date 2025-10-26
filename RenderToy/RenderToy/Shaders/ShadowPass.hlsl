@@ -48,10 +48,10 @@ void GeometryShaderMain(triangle MeshGsInShadow input[3], inout TriangleStream<M
 {
     for (uint i = 0; i < Lights.NumLights[0]; i++)
     {
-        //if (Lights.LightInstances[i].LightParentInstanceUid == MeshInstances[input[0].Instance].Uid[0])
-        //{
-        //   return;
-        //}
+        if (Lights.LightInstances[i].LightParentInstanceUid == MeshInstances[input[0].Instance].Uid[0])
+        {
+           return;
+        }
         
         MeshPsInShadow output0;
         MeshPsInShadow output1;

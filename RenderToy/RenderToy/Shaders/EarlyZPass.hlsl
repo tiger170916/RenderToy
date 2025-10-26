@@ -17,6 +17,7 @@ cbuffer cbUniformFrameConstants : register(b0)
     UniformFrameConstants gUniformFrameConstants;
 };
 
+
 cbuffer cbMeshInstances : register(b1)
 {
     MeshInstanceConstants MeshInstances[MAX_MESH_INSTANCE_NUM];
@@ -26,6 +27,7 @@ cbuffer cbMeshInstances : register(b1)
 MeshPsIn VertexShaderMain(MeshVsIn input, uint instanceID : SV_InstanceID)
 {
     MeshPsIn output;
+    
     
     // Transform point to homogeneous space.
     

@@ -7,9 +7,7 @@
 class ExtensionFactory
 {
 public:
-	static bool SpawnLightExtension(
-		StaticMesh2* staticMesh, 
-		uint32_t instanceId, 
+	static std::unique_ptr<LightExtension> SpawnLightExtension(
 		float offset[3], 
 		float rotation[3], 
 		float color[3], 

@@ -23,11 +23,12 @@ LightExtension::LightExtension(
 }
 
 void LightExtension::UpdateLightConstants(
-	LightConstants& lightConsts, 
-	const FVector3& parentPos, 
-	const UINT& lightAtlasOffsetX, 
+	LightConstants& lightConsts,
+	const FVector3& parentPos,
+	const UINT& lightAtlasOffsetX,
 	const UINT& lightAtlasOffsetY, 
-	const UINT& lightMapSize)
+	const UINT& lightMapSize,
+	const UINT& parentUid)
 {
 	lightConsts.LightUid = m_uid;
 	lightConsts.LightType = static_cast<UINT>(m_lightType);
@@ -43,6 +44,7 @@ void LightExtension::UpdateLightConstants(
 	lightConsts.ShadowBufferOffsetX = lightAtlasOffsetX;
 	lightConsts.ShadowBufferOffsetY = lightAtlasOffsetY;
 	lightConsts.ShadowBufferSize = lightMapSize;
+	lightConsts.LightParentUid = parentUid;
 	
 	FVector3 forwardDir;
 	XMMATRIX viewMatrix = GraphicsUtils::ViewMatrixFromPositionRotation(FVector3(lightConsts.Position[0], lightConsts.Position[1], lightConsts.Position[2]), FRotator(m_rotation.X, m_rotation.Y, m_rotation.Z), forwardDir);

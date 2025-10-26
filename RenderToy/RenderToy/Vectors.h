@@ -116,6 +116,37 @@ struct FRotator
 	{
 		return FRotator(0.0f, 0.0f, 0.0f);
 	}
+
+	FRotator& operator+=(const FRotator& rhs) {
+		this->Pitch += rhs.Pitch;
+		this->Yaw += rhs.Yaw;
+		this->Roll += rhs.Roll;
+
+		return *this;
+	}
+
+	FRotator operator+(const FRotator& rhs) const {
+		FRotator temp = *this;
+		temp += rhs;
+		return temp;
+	}
+
+	FRotator& operator-=(const FRotator& rhs)
+	{
+		this->Pitch -= rhs.Pitch;
+		this->Yaw -= rhs.Yaw;
+		this->Roll -= rhs.Roll;
+
+		return *this;
+	}
+
+	FRotator operator-(const FRotator& rhs) const
+	{
+		FRotator temp = *this;
+		temp -= rhs;
+		return temp;
+	}
+
 };
 
 

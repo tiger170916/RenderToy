@@ -31,6 +31,7 @@ Renderer* Renderer::Get()
 
 bool Renderer::Initialize(HWND hwnd)
 {
+	
 	if (m_initialized)
 	{
 		return true;
@@ -57,12 +58,12 @@ bool Renderer::Initialize(HWND hwnd)
 	m_textureManager = std::unique_ptr<TextureManager>(new TextureManager());
 	m_textureManager2 = std::unique_ptr<TextureManager2>(new TextureManager2());
 
-	//m_resourceStreamer = std::unique_ptr<ResourceStreamer>(new ResourceStreamer());
-	//if (!m_resourceStreamer->StartStreaming(m_graphicsContext.get()))
-	//{
-	//	return false;
-	//}
-
+	m_resourceStreamer = std::unique_ptr<ResourceStreamer>(new ResourceStreamer());
+	if (!m_resourceStreamer->StartStreaming(m_graphicsContext.get()))
+	{
+		return false;
+	}
+	
 	m_swapchain = std::unique_ptr<Swapchain>(new Swapchain());
 	if (!m_swapchain->Initialize(m_graphicsContext.get())) 
 	{
@@ -82,13 +83,13 @@ bool Renderer::Initialize(HWND hwnd)
 	{
 		return false;
 	}
-
+	
 	m_streamingEngine = std::unique_ptr<StreamingEngine>(new StreamingEngine());
 	if (!m_streamingEngine->Initialize(m_graphicsContext.get(), m_textureManager2.get()))
 	{
 		return false;
 	}
-
+	
 	// Load initial world
 	std::filesystem::path initialWorldBinaryPath = Utils::GetWorkingDirectory();
 	initialWorldBinaryPath.append("InitialWorld");
@@ -98,7 +99,7 @@ bool Renderer::Initialize(HWND hwnd)
 	{
 		return false;
 	}
-
+	
 	if (!m_activeWorld->LoadFromBinary(initialWorldBinaryPath))
 	{
 		return false;
@@ -109,24 +110,19 @@ bool Renderer::Initialize(HWND hwnd)
 	{
 		return false;
 	}
-
+	
 	FRotator initRotation = {};
 
 	m_activeWorld->CreateCamera(m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight(), FVector3(0, 0.0, -25.0), initRotation);
 	Camera* activeCamera = m_activeWorld->GetActiveCamera();
+	
 	if (activeCamera != nullptr)
 	{
 		m_inputManager->SetControlObject(activeCamera);
 	}
 
-	const std::vector<StaticMesh2*> allMeshes = m_activeWorld->GetAllMeshes();
-	if (!allMeshes.empty())
-	{
-		m_inputManager->SetControlObject(allMeshes[1]);
-	}
-
 	m_streamingEngine->StartStreaming(m_activeWorld.get());
-
+	
 	m_initialized = true;
 	return true;
 }

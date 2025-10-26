@@ -130,6 +130,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="GraphicsUtils.cpp" />
     <ClCompile Include="GuidComparator.cpp" />
     <ClCompile Include="InputManager.cpp" />
+    <ClCompile Include="InstancedStaticMesh.cpp" />
     <ClCompile Include="LightFrustumDebugPass.cpp" />
     <ClCompile Include="LightingPass.cpp" />
     <ClCompile Include="LightShaftPass.cpp" />
@@ -140,6 +141,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="Lights\SpotLight.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MaterialManager.cpp" />
+    <ClCompile Include="IMesh.cpp" />
     <ClCompile Include="MeshFactory.cpp" />
     <ClCompile Include="ObjectExtension.cpp" />
     <ClCompile Include="PassBase.cpp" />
@@ -150,6 +152,8 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="RenderPassBase.cpp" />
     <ClCompile Include="RenderToyApi.cpp" />
     <ClCompile Include="ResourceStreamer.cpp" />
+    <ClCompile Include="SceneObject.cpp" />
+    <ClCompile Include="SceneObjectComponent.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="ShaderType.cpp" />
     <ClCompile Include="ShadowPass.cpp" />
@@ -183,6 +187,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="D3DFence.h" />
     <ClInclude Include="D3DResource.h" />
     <ClInclude Include="d3dx12.h" />
+    <ClInclude Include="IDrawable.h" />
     <ClInclude Include="ExtensionFactory.h" />
     <ClInclude Include="FullscreenQuad.h" />
     <ClInclude Include="GeometryPass.h" />
@@ -194,6 +199,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="GraphicsPipelineState.h" />
     <ClInclude Include="GraphicsUtils.h" />
     <ClInclude Include="GuidComparator.h" />
+    <ClInclude Include="InstancedStaticMesh.h" />
     <ClInclude Include="Material2.h" />
     <ClInclude Include="IControllable.h" />
     <ClInclude Include="Includes.h" />
@@ -211,6 +217,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="Macros.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MaterialManager.h" />
+    <ClInclude Include="IMesh.h" />
     <ClInclude Include="MeshFactory.h" />
     <ClInclude Include="ObjectExtension.h" />
     <ClInclude Include="MeshStructs.h" />
@@ -224,6 +231,8 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="RenderPassBase.h" />
     <ClInclude Include="RenderToyApi.h" />
     <ClInclude Include="ResourceStreamer.h" />
+    <ClInclude Include="SceneObject.h" />
+    <ClInclude Include="SceneObjectComponent.h" />
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="ShaderType.h" />
     <ClInclude Include="ShadowPass.h" />

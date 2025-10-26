@@ -3,8 +3,9 @@
 #include "Includes.h"
 #include "Vectors.h"
 #include "IControllable.h"
+#include "SceneObjectComponent.h"
 
-class Camera : public IControllable
+class Camera : public IControllable, public SceneObjectComponent
 {
 private:
 	FVector3 m_position = FVector3::Zero();

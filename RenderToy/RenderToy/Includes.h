@@ -3,7 +3,9 @@
 #include <windows.h>
 #include <chrono>
 #include <memory>
+#include <type_traits>
 #include <vector>
+#include <queue>
 #include <set>
 #include <map>
 #include <queue>

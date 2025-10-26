@@ -37,28 +37,27 @@ bool Tile::LoadTileContentsFromFile(std::filesystem::path filePath)
 				for (uint32_t i = 0; i < numStaticMeshes; i++)
 				{
 					ResourceCompilerModule::StaticMeshHeader& staticMeshHeader = staticMeshHeaders[i];
-					std::unique_ptr<StaticMeshWrapper> staticMeshWrapper = std::make_unique<StaticMeshWrapper>();
-					staticMeshWrapper->isFromeFile = true;
-					staticMeshWrapper->filePath = rootDir / staticMeshHeader.FileName;
-					staticMeshWrapper->pStaticMesh = std::make_unique<StaticMesh2>(staticMeshHeader.MeshName);
-
-					// Get instances of this mesh
-					for (uint32_t instanceIdx = 0; instanceIdx < staticMeshHeader.InstanceCount; instanceIdx++)
+					const uint32_t instanceCount = staticMeshHeader.InstanceCount;
+					std::unique_ptr<IMesh> mesh = nullptr;
+					if (instanceCount == 1)
 					{
-						ResourceCompilerModule::StaticMeshInstanceHeader& instanceHeader = instanceHeaders[instanceIdx + staticMeshHeader.InstanceIndex];
+						mesh = std::make_unique<StaticMesh2>(staticMeshHeader.MeshName);
+						StaticMesh2* staticMesh = (StaticMesh2*)mesh.get();
 
+						ResourceCompilerModule::StaticMeshInstanceHeader& instanceHeader = instanceHeaders[staticMeshHeader.InstanceIndex];
+
+						// Read transfrom 
 						Transform transform = {};
 						memcpy(&transform.Rotation, instanceHeader.Rotation, sizeof(FRotator));
 						memcpy(&transform.Translation, instanceHeader.Position, sizeof(FTranslation));
 						memcpy(&transform.Scale, instanceHeader.Scale, sizeof(FScale));
-						staticMeshWrapper->pStaticMesh->AddInstance(transform);
+						staticMesh->SetTransform(transform);
+
 						// Create light extension if it has
 						if (instanceHeader.HasLightExtension)
 						{
 							ResourceCompilerModule::LightExtensionHeader& lightExtHeader = lightExtensionHeaders[instanceHeader.LightExtensionIndex];
-							ExtensionFactory::SpawnLightExtension(
-								staticMeshWrapper->pStaticMesh.get(), 
-								instanceIdx,
+							std::unique_ptr<LightExtension> lightExt = ExtensionFactory::SpawnLightExtension(
 								lightExtHeader.Offset,
 								lightExtHeader.Rotation,
 								lightExtHeader.Color,
@@ -66,11 +65,49 @@ bool Tile::LoadTileContentsFromFile(std::filesystem::path filePath)
 								lightExtHeader.AttenuationRadius,
 								lightExtHeader.AspectRatio,
 								lightExtHeader.Fov);
+
+							staticMesh->AttachLightExtension(std::move(lightExt));
 						}
-						
+					}
+					else 
+					{
+						mesh = std::make_unique<InstancedStaticMesh>(staticMeshHeader.MeshName);
+						InstancedStaticMesh* instancedStaticMesh = (InstancedStaticMesh*)mesh.get();
+						// Get instances of this mesh
+						for (uint32_t instanceIdx = 0; instanceIdx < staticMeshHeader.InstanceCount; instanceIdx++)
+						{
+							ResourceCompilerModule::StaticMeshInstanceHeader& instanceHeader = instanceHeaders[instanceIdx + staticMeshHeader.InstanceIndex];
+
+							Transform transform = {};
+							memcpy(&transform.Rotation, instanceHeader.Rotation, sizeof(FRotator));
+							memcpy(&transform.Translation, instanceHeader.Position, sizeof(FTranslation));
+							memcpy(&transform.Scale, instanceHeader.Scale, sizeof(FScale));
+							instancedStaticMesh->AddInstance(transform);
+
+							// Create light extension if it has
+							if (instanceHeader.HasLightExtension)
+							{
+								ResourceCompilerModule::LightExtensionHeader& lightExtHeader = lightExtensionHeaders[instanceHeader.LightExtensionIndex];
+								std::unique_ptr<LightExtension> lightExt = ExtensionFactory::SpawnLightExtension(
+									lightExtHeader.Offset,
+									lightExtHeader.Rotation,
+									lightExtHeader.Color,
+									lightExtHeader.Intensity,
+									lightExtHeader.AttenuationRadius,
+									lightExtHeader.AspectRatio,
+									lightExtHeader.Fov);
+								instancedStaticMesh->AttachLightExtension(instanceIdx, std::move(lightExt));
+							}
+						}
 					}
 
-					m_staticMeshes.push_back(std::move(staticMeshWrapper));
+					mesh->SetIsFromFile(rootDir / staticMeshHeader.FileName);
+	
+					std::unique_ptr<SceneObject> sceneObject = std::make_unique<SceneObject>();
+					std::unique_ptr<SceneObjectComponent> sceneObjectComp = std::move(mesh);
+					sceneObject->SetRootComponent(std::move(sceneObjectComp));
+
+					m_sceneObjects.push_back(std::move(sceneObject));
 				}
 			}
 
@@ -102,40 +139,51 @@ void Tile::LoadMeshFromFile(
 	uint32_t numMeshParts,
 	uint32_t numMaterials)
 {
-	for (auto& staticMeshWrapper : m_staticMeshes)
+	for (auto& itr : m_sceneObjects)
 	{
-		if (!staticMeshWrapper->isFromeFile)
+		SceneObject* sceneObject = itr.get();
+		if (sceneObject == nullptr)
 		{
 			continue;
 		}
 
-		try {
-			if (std::filesystem::equivalent(staticMeshWrapper->filePath, filePath))
-			{
-				// Try to find the parts in the file
-				for (uint32_t meshDefIdx = 0; meshDefIdx < numStaticMeshDefinitions; meshDefIdx++)
-				{
-					ResourceCompilerModule::StaticMeshDefinitionHeader& meshDefHeader = staticMeshDefinitionHeaders[meshDefIdx];
-					if (meshDefHeader.MeshName == staticMeshWrapper->pStaticMesh->GetName())
-					{
-						// found the mesh definition.
-						for (uint32_t meshPartIdx = meshDefHeader.PartsIdx; meshPartIdx < meshDefHeader.PartsIdx + meshDefHeader.NumParts; meshPartIdx++)
-						{
-							ResourceCompilerModule::MeshPartHeader& meshPartHeader = meshPartHeaders[meshPartIdx];
-							staticMeshWrapper->meshPartOffsets.push_back(meshPartHeader.MeshDataOffset);
-							staticMeshWrapper->meshPartSizes.push_back(meshPartHeader.MeshDataSize);
-							staticMeshWrapper->materialNames.push_back(materialHeaders[meshPartHeader.MaterialIdx].MaterialName);
-						}
+		SceneObjectComponent* rootComponent = sceneObject->GetRootComponent();
+		SceneObjectComponent::Iterator itr(rootComponent);
+		while (itr.Next())
+		{
+			SceneObjectComponent* sceneObjComponent = itr.GetCurrent();
+			IMesh* mesh = dynamic_cast<IMesh*>(sceneObjComponent);
 
-						break;
+			if (mesh)
+			{
+				try {
+					if (std::filesystem::equivalent(mesh->GetFilePath(), filePath))
+					{
+						// Try to find the parts in the file
+						for (uint32_t meshDefIdx = 0; meshDefIdx < numStaticMeshDefinitions; meshDefIdx++)
+						{
+							ResourceCompilerModule::StaticMeshDefinitionHeader& meshDefHeader = staticMeshDefinitionHeaders[meshDefIdx];
+							if (meshDefHeader.MeshName == mesh->GetName())
+							{
+								// found the mesh definition.
+								for (uint32_t meshPartIdx = meshDefHeader.PartsIdx; meshPartIdx < meshDefHeader.PartsIdx + meshDefHeader.NumParts; meshPartIdx++)
+								{
+									ResourceCompilerModule::MeshPartHeader& meshPartHeader = meshPartHeaders[meshPartIdx];
+									mesh->AddFileMetadataPart(meshPartHeader.MeshDataOffset, meshPartHeader.MeshDataSize, materialHeaders[meshPartHeader.MaterialIdx].MaterialName);
+								}
+
+								break;
+							}
+						}
 					}
+				}
+				catch (std::exception)
+				{
+					continue;
 				}
 			}
 		}
-		catch (std::exception)
-		{
-			continue;
-		}
+		
 	}
 }
 
@@ -151,14 +199,34 @@ bool Tile::StreamInBinary(GraphicsContext* graphicsContext, CommandBuilder* cmdB
 		return false;
 	}
 
-	for (auto& mesh : m_staticMeshes)
+	m_activeMeshes.clear();
+
+	for (auto& itr : m_sceneObjects)
 	{
-		std::fstream meshFile(mesh->filePath, std::ios::in | std::ios::binary);
-		if (meshFile.is_open())
+		SceneObject* sceneObject = itr.get();
+		if (sceneObject == nullptr)
 		{
-			mesh->pStaticMesh->LoadFromBinary(graphicsContext, m_materialManager, m_textureManager, cmdBuilder, &meshFile, mesh->meshPartOffsets, mesh->meshPartSizes, mesh->materialNames);
-			meshFile.close();
+			continue;
 		}
+
+		SceneObjectComponent* rootComponent = sceneObject->GetRootComponent();
+		SceneObjectComponent::Iterator itr(rootComponent);
+		while (itr.Next())
+		{
+			SceneObjectComponent* sceneObjComponent = itr.GetCurrent();
+			IMesh* mesh = dynamic_cast<IMesh*>(sceneObjComponent);
+
+			if (!mesh)
+			{
+				continue;
+			}
+			if (mesh->LoadFromBinary(graphicsContext, m_materialManager, m_textureManager, cmdBuilder))
+			{
+				m_activeMeshes.push_back(mesh);
+			}
+
+		}
+
 	}
 
 	m_streamedIn = true;
@@ -195,14 +263,6 @@ void Tile::GetBBox(float& outXMin, float& outXMax, float& outYMin, float& outYMa
 	outYMax = m_bboxMaxY;
 }
 
-void Tile::GetAllStaticMeshes(std::vector<StaticMesh2*>& outStaticMeshes)
-{
-	for (auto& mesh : m_staticMeshes)
-	{
-		outStaticMeshes.push_back(mesh->pStaticMesh.get());
-	}
-}
-
 bool Tile::UpdateBuffersForFrame()
 {
 	if (!m_streamedIn)
@@ -210,9 +270,9 @@ bool Tile::UpdateBuffersForFrame()
 		return false;
 	}
 
-	for (auto& staticMesh : m_staticMeshes)
+	for (auto& mesh : m_activeMeshes)
 	{
-		staticMesh->pStaticMesh->UpdateBuffersForFrame();
+		mesh->UpdateBuffersForFrame();
 	}
 
 	return true;

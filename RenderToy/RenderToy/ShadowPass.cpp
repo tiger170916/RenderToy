@@ -130,28 +130,56 @@ bool ShadowPass::UpdateBuffers(World2* world)
 
 	ConstantBuffer<LightConstantsDx>* lightCb = world->GetLightConstantBuffer();
 
-
 	LightConstantsDx lightConstantsDx = {};
-
-	const std::vector<StaticMesh2*> activeMeshes = world->GetActiveStaticMeshes();
-
 	m_atlas->ClearNodes();
 
 	UINT lightItr = 0;
-	for (auto& staticMesh : activeMeshes)
+	std::vector<Tile*> activeTiles;
+	world->GetActiveTiles(activeTiles);
+	for (auto& tile : activeTiles)
 	{
-		for (uint32_t instanceIdx = 0; instanceIdx < staticMesh->GetNumInstances(); instanceIdx++)
+		std::vector<IMesh*> meshes = tile->GetAllMeshes();
+		for (auto& mesh : meshes)
 		{
-			LightExtension* lightExt = staticMesh->GetLightExtension(instanceIdx);
-			if (lightExt)
+			StaticMesh2* staticMesh = dynamic_cast<StaticMesh2*>(mesh);
+			if (staticMesh)
 			{
-				TextureAtlas::Node node;
-				m_atlas->RequestNode(1, nullptr, node);
+				LightExtension* lightExt = staticMesh->GetLightExtension();
+				if (lightExt)
+				{
+					TextureAtlas::Node node;
+					m_atlas->RequestNode(1, nullptr, node);
 
-				Transform transform = {};
-				staticMesh->GetInstanceTransform(instanceIdx, transform);
-				lightExt->UpdateLightConstants(lightConstantsDx.Lights[lightItr], transform.Translation, node.OffsetX, node.OffsetY, m_l1ShadowMapSize);
-				lightItr++;
+					Transform transform = staticMesh->GetTransform();
+					uint32_t uid = staticMesh->GetUid();
+
+					lightExt->UpdateLightConstants(lightConstantsDx.Lights[lightItr], transform.Translation, node.OffsetX, node.OffsetY, m_l1ShadowMapSize, uid);
+					lightItr++;
+				}
+			}
+			else
+			{
+				InstancedStaticMesh* instancedStaticMesh = dynamic_cast<InstancedStaticMesh*>(mesh);
+				if (instancedStaticMesh)
+				{
+					for (uint32_t instanceIdx = 0; instanceIdx < instancedStaticMesh->GetNumInstances(); instanceIdx++)
+					{
+						LightExtension* lightExt = instancedStaticMesh->GetLightExtension(instanceIdx);
+						if (lightExt)
+						{
+							TextureAtlas::Node node;
+							m_atlas->RequestNode(1, nullptr, node);
+
+							Transform transform = {};
+							uint32_t instanceUid;
+							instancedStaticMesh->GetInstanceTransform(instanceIdx, transform);
+							instancedStaticMesh->GetInstanceUid(instanceIdx, instanceUid);
+
+							lightExt->UpdateLightConstants(lightConstantsDx.Lights[lightItr], transform.Translation, node.OffsetX, node.OffsetY, m_l1ShadowMapSize, instanceUid);
+							lightItr++;
+						}
+					}
+				}
 			}
 		}
 	}
@@ -339,11 +367,15 @@ bool ShadowPass::PopulateCommands(World2* world, MaterialManager* materialManage
 
 	commandList->SetGraphicsRootDescriptorTable(2, atlasGpuHandle);
 
-	std::vector<StaticMesh2*> staticMeshes;
-	world->GetActiveStaticMeshes(staticMeshes);
-	for (auto& staticMesh : staticMeshes)
+	std::vector<Tile*> activeTiles;
+	world->GetActiveTiles(activeTiles);
+	for (auto& tile : activeTiles)
 	{
-		staticMesh->Draw(graphicsContext, materialManager, textureManager, commandList, m_passType, false, false);
+		std::vector<IMesh*> meshes = tile->GetAllMeshes();
+		for (auto& mesh : meshes)
+		{
+			mesh->Draw(graphicsContext, materialManager, textureManager, commandList, m_passType);
+		}
 	}
 
 	m_commandBuilder->Close();

@@ -1,9 +1,7 @@
 #include "ExtensionFactory.h"
 #include "UidGenerator.h"
 
-bool ExtensionFactory::SpawnLightExtension(
-	StaticMesh2* staticMesh,
-	uint32_t instanceId,
+std::unique_ptr<LightExtension> ExtensionFactory::SpawnLightExtension(
 	float offset[3],
 	float rotation[3],
 	float color[3],
@@ -12,11 +10,6 @@ bool ExtensionFactory::SpawnLightExtension(
 	float aspectRatio,
 	float fov)
 {
-	if (!staticMesh)
-	{
-		return false;
-	}
-
 	uint32_t uid = UidGenerator::Get()->GenerateUid();
 	LightExtension* lightExtPtr = new LightExtension(
 		uid,
@@ -30,5 +23,5 @@ bool ExtensionFactory::SpawnLightExtension(
 
 	std::unique_ptr<LightExtension> lightExt = std::unique_ptr<LightExtension>(lightExtPtr);
 
-	return staticMesh->AttachLightExtension(instanceId, lightExt);
+	return lightExt;
 }

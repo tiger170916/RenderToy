@@ -58,5 +58,6 @@ public:
 		const FVector3& parentPos,
 		const UINT& lightAtlasOffsetX, 
 		const UINT& lightAtlasOffsetY, 
-		const UINT& lightMapSize);
+		const UINT& lightMapSize,
+		const UINT& lightUid);
 };

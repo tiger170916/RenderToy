@@ -25,10 +25,6 @@ private:
 
 	TextureManager2* m_textureManager = nullptr;
 
-	std::vector<StaticMesh2*> m_activeMeshes;
-
-	std::vector<StaticMesh2*> m_allMeshes;
-
 public:
 	World2(MaterialManager* materialManager, TextureManager2* texManager);
 
@@ -50,13 +46,9 @@ public:
 
 	inline ConstantBuffer<LightConstantsDx>* GetLightConstantBuffer() { return m_lightConstantBuffer.get(); }
 
-	void GetActiveStaticMeshes(std::vector<StaticMesh2*>& outMeshes);
-
 	bool UpdateBuffersForFrame();
 
 	Camera* GetActiveCamera() { return m_activeCamera.get(); }
 
-	const std::vector<StaticMesh2*>& GetActiveStaticMeshes() const { return m_activeMeshes; }
-
-	const std::vector<StaticMesh2*>& GetAllMeshes() const { return m_allMeshes; }
+	void GetActiveTiles(std::vector<Tile*>& outTiles);
 };

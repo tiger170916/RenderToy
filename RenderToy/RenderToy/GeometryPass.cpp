@@ -413,11 +413,15 @@ bool GeometryPass::PopulateCommands(World2* world, MaterialManager* materialMana
 		commandList->SetGraphicsRootDescriptorTable(2, earlyZPassBufferHandle);
 	}
 
-	std::vector<StaticMesh2*> meshes;
-	world->GetActiveStaticMeshes(meshes);
-	for (auto& staticMesh : meshes)
+	std::vector<Tile*> activeTiles;
+	world->GetActiveTiles(activeTiles);
+	for (auto& tile : activeTiles)
 	{
-		staticMesh->Draw(graphicsContext, materialManager, textureManager, commandList, m_passType, false, true);
+		std::vector<IMesh*> meshes = tile->GetAllMeshes();
+		for (auto& mesh : meshes)
+		{
+			mesh->Draw(graphicsContext, materialManager, textureManager, commandList, m_passType);
+		}
 	}
 
 	m_commandBuilder->Close();
