@@ -36,9 +36,6 @@
     <ClCompile Include="FbxLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BinaryFileLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -87,9 +84,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FbxLoader.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BinaryFileLoader.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Utils.h">

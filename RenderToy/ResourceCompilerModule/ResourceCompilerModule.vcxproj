@@ -112,10 +112,6 @@ copy /Y "$(SolutionDir)FbxSdk\lib\x64\release\libfbxsdk.dll" "$(SolutionDir)bin\
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="BinaryFileLoader.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="FbxLoader.cpp" />
     <ClCompile Include="GuidComparator.cpp" />
@@ -134,10 +130,6 @@ copy /Y "$(SolutionDir)FbxSdk\lib\x64\release\libfbxsdk.dll" "$(SolutionDir)bin\
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\json.hpp" />
-    <ClInclude Include="BinaryFileLoader.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="FbxLoader.h" />
     <ClInclude Include="GuidComparator.h" />
     <ClInclude Include="Meshes.h" />
