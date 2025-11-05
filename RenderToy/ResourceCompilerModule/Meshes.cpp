@@ -7,7 +7,7 @@ void Meshes::AddStaticMesh(
 	std::string meshAssetPath,
 	std::string overrideMaterialName)
 {
-	StaticMeshDefine* staticMeshDefine = new StaticMeshDefine();
+	StaticMeshDefineInternal* staticMeshDefine = new StaticMeshDefineInternal();
 	staticMeshDefine->Name = name;
 	staticMeshDefine->MeshAssetPath = meshAssetPath;
 	staticMeshDefine->HasOverrideMaterial = !overrideMaterialName.empty();
@@ -16,7 +16,7 @@ void Meshes::AddStaticMesh(
 		staticMeshDefine->OverrideMaterialName = overrideMaterialName;
 	}
 
-	m_staticMeshes.push_back(std::shared_ptr<StaticMeshDefine>(staticMeshDefine));
+	m_staticMeshes.push_back(std::shared_ptr<StaticMeshDefineInternal>(staticMeshDefine));
 }
 
 void Meshes::AddMaterial(
@@ -104,7 +104,7 @@ bool Meshes::PackToBinary(std::filesystem::path rootFilePath)
 	for (auto& meshLoader : fbxLoaders)
 	{
 		//allMeshPartHeaders.insert(allMeshPartHeaders.end(), meshLoader->GetMeshPartHeaders().begin(), meshLoader->GetMeshPartHeaders().end());
-		numParts += meshLoader->GetMeshPartHeaders().size();
+		numParts += (uint32_t)meshLoader->GetMeshPartHeaders().size();
 	}
 
 	binaryHeader.NumMeshDefinitions = (uint32_t)meshDefHeaders.size();

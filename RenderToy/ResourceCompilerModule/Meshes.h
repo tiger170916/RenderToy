@@ -4,17 +4,15 @@
 #include <vector>
 #include <filesystem>
 #include "3rdParty/json.hpp"
-#include "Structs.h"
-#include "ResourceStructs.h"
+#include "InternalStructs.h"
+#include "ResourceHeaders.h"
 
 using json = nlohmann::json;
-using namespace ResourceCompilerModule;
-
 
 class Meshes
 {
 private:
-	std::vector<std::shared_ptr<StaticMeshDefine>> m_staticMeshes;
+	std::vector<std::shared_ptr<StaticMeshDefineInternal>> m_staticMeshes;
 
 	//std::vector<MaterialHeader> m_materials; // all materials
 	std::vector<MaterialHeader> m_materialHeaders;

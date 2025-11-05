@@ -120,7 +120,7 @@ bool TextureLoader::LoadTexture(
 	}
 
 	std::vector<char> vec;
-	for (int i = 0; i < dataSize; i++)
+	for (uint32_t i = 0; i < dataSize; i++)
 	{
 		vec.push_back(data[i]);
 	}

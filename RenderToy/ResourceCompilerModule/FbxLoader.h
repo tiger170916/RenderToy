@@ -1,12 +1,10 @@
 #pragma once
 #include "fbxsdk.h"
-#include "Structs.h"
-#include "ResourceStructs.h"
+#include "InternalStructs.h"
+#include "ResourceHeaders.h"
 #include <filesystem>
 #include <vector>
 #include <fstream>
-
-using namespace ResourceCompilerModule;
 
 class FbxLoader
 {
@@ -15,7 +13,7 @@ private:
 
 	FbxManager* m_fbxManager = nullptr;
 
-	StaticMeshStruct* m_staticMeshStruct = nullptr;
+	StaticMeshComponentInternal* m_staticMeshStruct = nullptr;
 
 	std::vector<MeshPartHeader> m_meshPartHeaders;
 
@@ -25,7 +23,7 @@ private:
 
 
 public:
-	FbxLoader(StaticMeshStruct* staticMeshStruct);
+	FbxLoader(StaticMeshComponentInternal* staticMeshStruct);
 
 	FbxLoader(std::filesystem::path path, int overrideMaterialIdx);
 
@@ -36,7 +34,7 @@ public:
 	~FbxLoader();
 
 private:
-	void ProcessNode(FbxNode* pNode, StaticMeshStruct* staticMeshStruct, bool loadHeaders, uint32_t* meshOffset, std::ofstream* file);
+	void ProcessNode(FbxNode* pNode, StaticMeshComponentInternal* staticMeshStruct, bool loadHeaders, uint32_t* meshOffset, std::ofstream* file);
 
-	void ProcessMesh(FbxNode* pNode, FbxMesh* pMesh, StaticMeshStruct* staticMeshStruct, bool loadHeaders, uint32_t* meshOffset, std::ofstream* file);
+	void ProcessMesh(FbxNode* pNode, FbxMesh* pMesh, StaticMeshComponentInternal* staticMeshStruct, bool loadHeaders, uint32_t* meshOffset, std::ofstream* file);
 };

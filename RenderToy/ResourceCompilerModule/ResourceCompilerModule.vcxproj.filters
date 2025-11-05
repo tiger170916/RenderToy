@@ -16,6 +16,9 @@
     <Filter Include="3rdParty">
       <UniqueIdentifier>{5629c161-7273-4633-81c1-480686324ad4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Includes">
+      <UniqueIdentifier>{4529846d-8c7a-43d6-b9d0-9dfedd5e6b04}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -51,6 +54,21 @@
     <ClCompile Include="Textures.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ResourceLoaderImpl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceCompilerTexturesImpl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceCompilerTileImpl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceCompilerMeshesImpl.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceCompilerMeshesImpl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ResourceCompiler.h">
@@ -59,16 +77,13 @@
     <ClInclude Include="3rdParty\json.hpp">
       <Filter>3rdParty</Filter>
     </ClInclude>
-    <ClInclude Include="ResourceCompilerModuleApi.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Structs.h">
+    <ClInclude Include="InternalStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="World.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="ResourceStructs.h">
+    <ClInclude Include="ResourceHeaders.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FbxLoader.h">
@@ -91,6 +106,30 @@
     </ClInclude>
     <ClInclude Include="Textures.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceLoaderImpl.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceCompilerTexturesImpl.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceCompilerTileImpl.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceLoader.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceCompilerMeshes.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceCompilerModuleApi.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceCompilerTile.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceCompilerTextures.h">
+      <Filter>Includes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

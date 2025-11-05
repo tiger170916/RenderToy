@@ -5,17 +5,15 @@
 #include <filesystem>
 #include <fstream>
 #include "3rdParty/json.hpp"
-#include "Structs.h"
-#include "ResourceStructs.h"
+#include "InternalStructs.h"
+#include "ResourceHeaders.h"
 
 using json = nlohmann::json;
-using namespace ResourceCompilerModule;
-
 
 class Textures
 {
 private:
-	std::vector<TextureDefine> m_textures;
+	std::vector<TextureDefineInternal> m_textures;
 
 public:
 	void AddTexture(

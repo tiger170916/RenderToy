@@ -4,7 +4,7 @@
 #include "ResourceStructs.h"
 
 using namespace ResourceCompilerModule;
-
+/*
 class BinaryFileLoader
 {
 public:
@@ -53,4 +53,4 @@ public:
 		const ResourceCompilerModule::BinaryHeader& header,
 		ResourceCompilerModule::TextureHeader** ppTextureHeaders,
 		uint32_t& outNumTextureHeaders);
-};
+};*/

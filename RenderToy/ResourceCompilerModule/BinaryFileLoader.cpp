@@ -40,6 +40,7 @@ bool BinaryFileLoader::ReadHeader(std::fstream* file, ResourceCompilerModule::Bi
 	}
 	 
 	std::byte headerBytes[1024];
+	file->seekg(0);
 	file->read((char*)headerBytes, 1024);
 	BinaryHeader* pheader = (BinaryHeader*)headerBytes;
 
@@ -64,6 +65,7 @@ bool BinaryFileLoader::GetStaticMeshes(
 	{
 		return false;
 	}
+
 
 	if (header.MagicNum != 0x12345678)
 	{

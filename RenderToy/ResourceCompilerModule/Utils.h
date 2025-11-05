@@ -1,9 +1,8 @@
 #pragma once
-#include "ResourceStructs.h"
+#include "ResourceHeaders.h"
 #include <string>
 #include <map>
 
-using namespace ResourceCompilerModule;
 class Utils
 {
 private:

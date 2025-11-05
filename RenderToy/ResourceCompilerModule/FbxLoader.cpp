@@ -1,7 +1,7 @@
 #include "FbxLoader.h"
 #include "TextureLoader.h"
 
-FbxLoader::FbxLoader(StaticMeshStruct* staticMeshStruct)
+FbxLoader::FbxLoader(StaticMeshComponentInternal* staticMeshStruct)
     : m_staticMeshStruct(staticMeshStruct)
 {
 }
@@ -68,7 +68,7 @@ bool FbxLoader::Load(bool loadHeaders, uint32_t* meshOffset, std::ofstream* file
     return true; 
 }
 
-void FbxLoader::ProcessMesh(FbxNode* pNode, FbxMesh* pMesh, StaticMeshStruct* staticMeshStruct, bool loadHeaders, uint32_t* meshOffset, std::ofstream* file)
+void FbxLoader::ProcessMesh(FbxNode* pNode, FbxMesh* pMesh, StaticMeshComponentInternal* staticMeshStruct, bool loadHeaders, uint32_t* meshOffset, std::ofstream* file)
 {
     if (!pNode || !pMesh || !pMesh->IsTriangleMesh()) // expecting a triangle mesh
     {
@@ -245,7 +245,7 @@ void FbxLoader::ProcessMesh(FbxNode* pNode, FbxMesh* pMesh, StaticMeshStruct* st
 
 }
 
-void FbxLoader::ProcessNode(FbxNode* pNode, StaticMeshStruct* staticMeshStruct, bool loadHeaders, uint32_t* meshOffset, std::ofstream* file)
+void FbxLoader::ProcessNode(FbxNode* pNode, StaticMeshComponentInternal* staticMeshStruct, bool loadHeaders, uint32_t* meshOffset, std::ofstream* file)
 {
     // Process the node's attributes
     for (int i = 0; i < pNode->GetNodeAttributeCount(); ++i)

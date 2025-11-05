@@ -70,8 +70,11 @@
       <AdditionalDependencies>Rpcrt4.lib;libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(ProjectDir)ResourceCompilerModuleApi.h" "$(SolutionDir)Includes\ResourceCompilerModuleApi.h";
-copy /Y "$(ProjectDir)ResourceStructs.h" "$(SolutionDir)Includes\ResourceStructs.h";
+      <Command>copy /Y "$(ProjectDir)ResourceCompilerMeshes.h" "$(SolutionDir)Includes\ResourceCompilerMeshes.h";
+copy /Y "$(ProjectDir)ResourceCompilerModuleApi.h" "$(SolutionDir)Includes\ResourceCompilerModuleApi.h";
+copy /Y "$(ProjectDir)ResourceCompilerTextures.h" "$(SolutionDir)Includes\ResourceCompilerTextures.h";
+copy /Y "$(ProjectDir)ResourceCompilerTile.h" "$(SolutionDir)Includes\ResourceCompilerTile.h";
+copy /Y "$(ProjectDir)ResourceLoader.h" "$(SolutionDir)Includes\ResourceLoader.h";
 copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)Libs\$(ProjectName).lib";
 copy /Y "$(SolutionDir)bin\$(ProjectName).dll" "$(SolutionDir)bin\ResourceCompiler\$(ProjectName).dll";
 copy /Y "$(SolutionDir)FbxSdk\lib\x64\debug\libfbxsdk.dll" "$(SolutionDir)bin\ResourceCompiler\libfbxsdk.dll";</Command>
@@ -98,21 +101,32 @@ copy /Y "$(SolutionDir)FbxSdk\lib\x64\debug\libfbxsdk.dll" "$(SolutionDir)bin\Re
       <AdditionalDependencies>Rpcrt4.lib;libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(ProjectDir)ResourceCompilerModuleApi.h" "$(SolutionDir)Includes\ResourceCompilerModuleApi.h";
-copy /Y "$(ProjectDir)ResourceStructs.h" "$(SolutionDir)Includes\ResourceStructs.h";
+      <Command>copy /Y "$(ProjectDir)ResourceCompilerMeshes.h" "$(SolutionDir)Includes\ResourceCompilerMeshes.h";
+copy /Y "$(ProjectDir)ResourceCompilerModuleApi.h" "$(SolutionDir)Includes\ResourceCompilerModuleApi.h";
+copy /Y "$(ProjectDir)ResourceCompilerTextures.h" "$(SolutionDir)Includes\ResourceCompilerTextures.h";
+copy /Y "$(ProjectDir)ResourceCompilerTile.h" "$(SolutionDir)Includes\ResourceCompilerTile.h";
+copy /Y "$(ProjectDir)ResourceLoader.h" "$(SolutionDir)Includes\ResourceLoader.h";
 copy /Y "$(TargetDir)$(ProjectName).lib" "$(SolutionDir)Libs\$(ProjectName).lib";
 copy /Y "$(SolutionDir)bin\$(ProjectName).dll" "$(SolutionDir)bin\ResourceCompiler\$(ProjectName).dll";
 copy /Y "$(SolutionDir)FbxSdk\lib\x64\release\libfbxsdk.dll" "$(SolutionDir)bin\ResourceCompiler\libfbxsdk.dll";</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="BinaryFileLoader.cpp" />
+    <ClCompile Include="BinaryFileLoader.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="FbxLoader.cpp" />
     <ClCompile Include="GuidComparator.cpp" />
     <ClCompile Include="Meshes.cpp" />
     <ClCompile Include="ResourceCompiler.cpp" />
+    <ClCompile Include="ResourceCompilerMeshesImpl.cpp" />
+    <ClCompile Include="ResourceCompilerMeshesImpl.h" />
     <ClCompile Include="ResourceCompilerModuleApi.cpp" />
+    <ClCompile Include="ResourceCompilerTileImpl.cpp" />
+    <ClCompile Include="ResourceCompilerTexturesImpl.cpp" />
+    <ClCompile Include="ResourceLoaderImpl.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="Textures.cpp" />
     <ClCompile Include="Utils.cpp" />
@@ -120,14 +134,24 @@ copy /Y "$(SolutionDir)FbxSdk\lib\x64\release\libfbxsdk.dll" "$(SolutionDir)bin\
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\json.hpp" />
-    <ClInclude Include="BinaryFileLoader.h" />
+    <ClInclude Include="BinaryFileLoader.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="FbxLoader.h" />
     <ClInclude Include="GuidComparator.h" />
     <ClInclude Include="Meshes.h" />
     <ClInclude Include="ResourceCompiler.h" />
+    <ClInclude Include="ResourceCompilerMeshes.h" />
     <ClInclude Include="ResourceCompilerModuleApi.h" />
-    <ClInclude Include="ResourceStructs.h" />
-    <ClInclude Include="Structs.h" />
+    <ClInclude Include="ResourceCompilerTile.h" />
+    <ClInclude Include="ResourceCompilerTileImpl.h" />
+    <ClInclude Include="ResourceCompilerTextures.h" />
+    <ClInclude Include="ResourceCompilerTexturesImpl.h" />
+    <ClInclude Include="ResourceLoader.h" />
+    <ClInclude Include="ResourceLoaderImpl.h" />
+    <ClInclude Include="ResourceHeaders.h" />
+    <ClInclude Include="InternalStructs.h" />
     <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="Textures.h" />
     <ClInclude Include="Utils.h" />

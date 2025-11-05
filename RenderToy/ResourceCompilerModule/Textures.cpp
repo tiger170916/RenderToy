@@ -5,7 +5,7 @@ void Textures::AddTexture(
 	std::string name,
 	std::string file)
 {
-	TextureDefine textureDefine = {};
+	TextureDefineInternal textureDefine = {};
 	textureDefine.Name = name;
 	textureDefine.File = file;
 	m_textures.push_back(textureDefine);
