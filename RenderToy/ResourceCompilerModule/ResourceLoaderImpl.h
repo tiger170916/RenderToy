@@ -40,6 +40,8 @@ public:
 
 	bool LoadFile(const char* filePath);
 
+	ResourceType ReadResourceType(const char* filePath);
+
 private:
 	bool LoadTileData(std::fstream& file);
 

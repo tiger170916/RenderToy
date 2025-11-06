@@ -14,15 +14,23 @@
 #define RESOURCE_COMPILER_MODULE_API __declspec(dllimport)
 #endif
 
-extern "C"
+namespace ResourceCompilerModule
 {
-	/// <summary>
-	/// Compile the resource
-	/// </summary>
-	RESOURCE_COMPILER_MODULE_API bool CompileResource(const char* rootFile);
+	extern "C"
+	{
+		/// <summary>
+		/// Compile the resource
+		/// </summary>
+		RESOURCE_COMPILER_MODULE_API bool CompileResource(const char* rootFile);
 
-	/// <summary>
-	/// Load a binary file
-	/// </summary>
-	RESOURCE_COMPILER_MODULE_API ResourceCompilerModule::ResourceLoader* LoadFile(char* filePath);
+		/// <summary>
+		/// Load a binary file
+		/// </summary>
+		RESOURCE_COMPILER_MODULE_API ResourceCompilerModule::ResourceLoader* LoadFile(const char* filePath);
+
+		/// <summary>
+		/// Get type of the resource binary file
+		/// </summary>
+		RESOURCE_COMPILER_MODULE_API ResourceCompilerModule::ResourceType GetResourceType(const char* filePath);
+	}
 }

@@ -154,7 +154,7 @@ bool World::ParseNonePlayableCharacter(json sceneObjectNode, std::string name, T
 
 bool World::ParseComponent(json componentNode, std::string parentName, TileStruct* tileStruct)
 {
-	if (!componentNode.contains("Type") || !componentNode.contains("Properties"))
+	if (!componentNode.contains("Type") || !componentNode.contains("Name") || !componentNode.contains("Properties"))
 	{
 		return false;
 	}

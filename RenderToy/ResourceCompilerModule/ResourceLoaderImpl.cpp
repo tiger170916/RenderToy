@@ -48,6 +48,38 @@ TexturesData* ResourceLoaderImpl::GetTexturesData()
 	return (TexturesData*)m_texturesData.get();
 }
 
+ResourceType ResourceLoaderImpl::ReadResourceType(const char* filePath)
+{
+	std::fstream file(filePath, std::ios::in | std::ios::binary);
+	if (!file.is_open())
+	{
+		return ResourceType::RESOURCE_TYPE_NONE;
+	}
+
+	BinaryHeader header = {};
+	file.read((char*)&header, sizeof(BinaryHeader));
+
+	if (header.MagicNum != 0x12345678)
+	{
+		// Broken file
+		file.close();
+		return ResourceType::RESOURCE_TYPE_NONE;
+	}
+
+	switch (header.BinaryType)
+	{
+	case BinaryType::BINARY_TYPE_TILE:
+		return ResourceType::RESOURCE_TYPE_TILE;
+	case BinaryType::BINARY_TYPE_MESHES:
+		return ResourceType::RESOURCE_TYPE_MESH;
+	case BinaryType::BINARY_TYPE_TEXTURES:
+		return ResourceType::RESOURCE_TYPE_TEXTURE;
+	}
+
+	// Unsupported type.
+	return ResourceType::RESOURCE_TYPE_NONE;
+}
+
 bool ResourceLoaderImpl::LoadFile(const char* filePath)
 {
 	std::fstream file(filePath, std::ios::in | std::ios::binary);
@@ -239,7 +271,7 @@ bool ResourceLoaderImpl::LoadTileData(std::fstream& file)
 		uint32_t instanceStartIdx = staticMeshComponentHeadersInternal[i].InstanceIndex;
 		uint32_t instanceCount = staticMeshComponentHeadersInternal[i].InstanceCount;
 		// Create static mesh instances
-		for (uint32_t instanceIdx = instanceStartIdx; instanceIdx < instanceStartIdx + instanceCount; i++)
+		for (uint32_t instanceIdx = instanceStartIdx; instanceIdx < instanceStartIdx + instanceCount; instanceIdx++)
 		{
 			const StaticMeshInstanceHeader& instanceHeader = staticMeshHeadersInternal[instanceIdx];
 			std::shared_ptr<StaticMeshInstanceImpl> staticMeshInstance 
