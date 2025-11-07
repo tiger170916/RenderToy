@@ -505,9 +505,9 @@ bool World::PackToBinary(std::filesystem::path rootFilePath)
 					uint32_t strIdx = 0;
 					PushString(componentName, stringTable, stringStartingIndices, stringSizes, currentStringPos, strIdx);
 				}
-
-				cameraComponentHeaders.push_back(cameraHeader);
 			}
+
+			cameraComponentHeaders.push_back(cameraHeader);
 		}
 
 

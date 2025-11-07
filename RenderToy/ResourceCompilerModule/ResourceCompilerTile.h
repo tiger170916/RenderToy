@@ -65,7 +65,7 @@ namespace ResourceCompilerModule
 		virtual LightExtension* GetLightExtension() = 0;
 	};
 
-	class StaticMeshComponent
+	class StaticMeshComponent : public SceneObjectComponent
 	{
 	public:
 		virtual std::string GetFileName() = 0;
@@ -73,13 +73,13 @@ namespace ResourceCompilerModule
 		virtual void GetInstances(std::vector<StaticMeshInstance*>& outInstances) = 0;
 	};
 
-	class CameraArmComponent
+	class CameraArmComponent : public SceneObjectComponent
 	{
 	public:
 		virtual float GetArmLength() = 0;
 	};
 
-	class CameraComponent
+	class CameraComponent : public SceneObjectComponent
 	{
 	public:
 		// No specific interface for now

@@ -130,6 +130,14 @@ private:
 	std::vector<std::shared_ptr<StaticMeshInstance>> m_instances;
 
 public:
+	inline virtual SceneObjectComponentType GetType() { return SceneObjectComponentImpl::GetType(); }
+
+	inline virtual std::string GetName() { return SceneObjectComponentImpl::GetName(); }
+
+	inline virtual SceneObjectComponent* GetParent() { return SceneObjectComponentImpl::GetParent(); }
+
+	inline virtual void GetComponents(std::vector<SceneObjectComponent*>& outComponents) { return SceneObjectComponentImpl::GetComponents(outComponents); }
+
 	inline virtual std::string GetFileName() { return m_fileName; }
 	virtual uint32_t GetInstanceCount() { return (uint32_t)m_instances.size(); }
 	virtual void GetInstances(std::vector<StaticMeshInstance*>& outInstances);
@@ -147,6 +155,14 @@ class CameraArmComponentImpl : public CameraArmComponent, public SceneObjectComp
 private:
 	float m_armLength;
 public:
+	inline virtual SceneObjectComponentType GetType() { return SceneObjectComponentImpl::GetType(); }
+
+	inline virtual std::string GetName() { return SceneObjectComponentImpl::GetName(); }
+
+	inline virtual SceneObjectComponent* GetParent() { return SceneObjectComponentImpl::GetParent(); }
+
+	inline virtual void GetComponents(std::vector<SceneObjectComponent*>& outComponents) { return SceneObjectComponentImpl::GetComponents(outComponents); }
+
 	virtual float GetArmLength() override { return m_armLength; }
 
 	CameraArmComponentImpl(std::string name, float armLen);
@@ -158,6 +174,14 @@ public:
 class CameraComponentImpl : public CameraComponent, public SceneObjectComponentImpl
 {
 public:
+	inline virtual SceneObjectComponentType GetType() { return SceneObjectComponentImpl::GetType(); }
+
+	inline virtual std::string GetName() { return SceneObjectComponentImpl::GetName(); }
+
+	inline virtual SceneObjectComponent* GetParent() { return SceneObjectComponentImpl::GetParent(); }
+
+	inline virtual void GetComponents(std::vector<SceneObjectComponent*>& outComponents) { return SceneObjectComponentImpl::GetComponents(outComponents); }
+
 	CameraComponentImpl(std::string name);
 };
 
