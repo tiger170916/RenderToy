@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 
 namespace ResourceCompilerModule
 {
@@ -35,12 +36,12 @@ namespace ResourceCompilerModule
 	public:
 		virtual std::string GetName() = 0;
 
-		virtual void GetMeshParts(MeshPart** ppMeshParts, uint32_t* pNumParts) = 0;
+		virtual void GetMeshParts(std::vector<MeshPart*>& outMeshParts) = 0;
 	};
 
 	class MeshesData
 	{
 	public:
-		virtual void GetMeshes(Mesh** ppMeshes, uint32_t* pNumMeshes) = 0;
+		virtual void GetMeshes(std::vector<Mesh*>& outMeshes) = 0;
 	};
 }

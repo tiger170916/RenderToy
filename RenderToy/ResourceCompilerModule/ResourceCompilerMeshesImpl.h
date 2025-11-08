@@ -84,7 +84,7 @@ private:
 public:
 	inline virtual std::string GetName() override { return m_name; }
 
-	virtual void GetMeshParts(MeshPart** ppMeshParts, uint32_t* pNumParts) override;
+	virtual void GetMeshParts(std::vector<MeshPart*>& outMeshParts) override;
 
 	MeshImpl(std::string name);
 
@@ -96,7 +96,7 @@ class MeshesDataImpl : public MeshesData
 private:
 	std::vector<std::shared_ptr<Mesh>> m_meshes;
 public:
-	virtual void GetMeshes(Mesh** ppMeshes, uint32_t* pNumMeshes) override;
+	virtual void GetMeshes(std::vector<Mesh*>& outMeshes) override;
 
 	inline void AddMesh(std::shared_ptr<Mesh> mesh) { m_meshes.push_back(mesh); }
 };

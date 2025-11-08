@@ -10,45 +10,23 @@ MeshPartImpl::MeshPartImpl(const uint32_t& dataOffset, const uint32_t& dataSize,
 {
 }
 
-void MeshImpl::GetMeshParts(MeshPart** ppMeshParts, uint32_t* pNumParts)
+void MeshImpl::GetMeshParts(std::vector<MeshPart*>& outMeshParts)
 {
-	if (!ppMeshParts || !pNumParts)
-	{
-		return;
-	}
+	outMeshParts.clear();
 
-	if (m_meshParts.empty())
-	{
-		*ppMeshParts = nullptr;
-		*pNumParts = 0;
-		return;
-	}
-
-	*ppMeshParts = (MeshPart*) malloc(sizeof(void*) * m_meshParts.size());
 	for (size_t i = 0; i < m_meshParts.size(); i++)
 	{
-		ppMeshParts[i] = m_meshParts[i].get();
+		outMeshParts.push_back(m_meshParts[i].get());
 	}
 }
 
-void MeshesDataImpl::GetMeshes(Mesh** ppMeshes, uint32_t* pNumMeshes)
+void MeshesDataImpl::GetMeshes(std::vector<Mesh*>& outMeshes)
 {
-	if (!ppMeshes || !pNumMeshes)
-	{
-		return;
-	}
+	outMeshes.clear();
 
-	if (m_meshes.empty())
-	{
-		*ppMeshes = nullptr;
-		*pNumMeshes = 0;
-		return;
-	}
-
-	*ppMeshes = (Mesh*)malloc(sizeof(void*) * m_meshes.size());
 	for (size_t i = 0; i < m_meshes.size(); i++)
 	{
-		ppMeshes[i] = m_meshes[i].get();
+		outMeshes.push_back(m_meshes[i].get());
 	}
 }
 
