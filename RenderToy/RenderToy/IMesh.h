@@ -2,14 +2,13 @@
 
 #include "Includes.h"
 #include "IDrawable.h"
-#include "SceneObjectComponent.h"
 #include "ConstantBuffer.h"
 #include "MeshStructs.h"
 
 /// <summary>
 /// Mesh Interface
 /// </summary>
-class IMesh : public SceneObjectComponent, public IDrawable
+class IMesh : public IDrawable
 {
 private:
 	// Whether the mesh is from file.
@@ -52,7 +51,7 @@ public:
 
 	~IMesh();
 
-	void SetIsFromFile(std::filesystem::path filePath);
+	void SetResourceFilePath(std::filesystem::path filePath);
 
 	void AddFileMetadataPart(UINT offset, UINT size, std::string materialName);
 

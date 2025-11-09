@@ -10,14 +10,17 @@ private:
 
 	std::unique_ptr<DirectX::Mouse> m_mouse;
 
-	IControllable* m_avtiveControlObject = nullptr;	// TODO: extend to be able to control multiple objects
+	std::set<IControllable*> m_controlObjects;
+
 
 public:
 	bool Initialize(HWND hwnd);
 
 	void Update(float delta);
 
-	void SetControlObject(IControllable* controlObject) { m_avtiveControlObject = controlObject; }
+	void AddControlObject(IControllable* controlObject);
+
+	void RemoveControlObject(IControllable* controlObject);
 
 	~InputManager();
 

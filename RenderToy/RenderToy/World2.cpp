@@ -1,8 +1,10 @@
 #include "World2.h"
 #include "ResourceCompilerModuleApi.h"
+#include "ResourceCompilerTile.h"
+#include "ResourceLoader.h"
 
-World2::World2(MaterialManager* materialManager, TextureManager2* texManager)
-	: m_materialManager(materialManager), m_textureManager(texManager) {
+World2::World2(GraphicsContext* graphicsContext, MaterialManager* materialManager, TextureManager2* texManager)
+	: m_graphicsContext(graphicsContext), m_materialManager(materialManager), m_textureManager(texManager) {
 }
 
 bool World2::Initialize(GraphicsContext* graphicsContext)
@@ -34,14 +36,69 @@ bool World2::Initialize(GraphicsContext* graphicsContext)
 
 World2::~World2() {}
 
-void World2::CreateCamera(UINT width, UINT height, FVector3 position, FRotator rotator)
+void World2::CreateStandaloneCamera(UINT width, UINT height, FVector3 position, FRotator rotator)
 {
-	if (m_activeCamera)
+	std::string camName = "StandAloneCamera" + std::to_string(m_standaloneCameras.size());
+	std::string characterName = camName + "Character";
+	std::unique_ptr<PlayableCharacterObject> standAloneCameraCharacter = std::make_unique<PlayableCharacterObject>(characterName);
+	std::unique_ptr<Camera> cameraComponent = std::make_unique<Camera>(camName, width, height, position, rotator);
+	
+	standAloneCameraCharacter->SetRootComponent(std::move(cameraComponent));
+
+	m_standaloneCameras.push_back(std::move(standAloneCameraCharacter));
+}
+
+Camera* World2::GetActiveCamera()
+{
+	GetAllCamerasInternal();
+	if (m_activeCameraIdx < 0 || m_activeCameraIdx >= (int)m_allCameras.size())
 	{
-		m_activeCamera.reset();
+		m_activeCameraIdx = (int)m_allCameras.size() - 1;
 	}
 
-	m_activeCamera = std::make_unique<Camera>(width, height, position, rotator);
+	if (m_activeCameraIdx < 0)
+	{
+		return nullptr;
+	}
+
+	return m_allCameras[m_activeCameraIdx];
+}
+
+void World2::GetAllCamerasInternal()
+{
+	if (m_cameraListDirty)
+	{
+		m_allCameras.clear();
+		// Standalone cameras
+		for (auto& standaloneCamera : m_standaloneCameras)
+		{
+			if (!standaloneCamera)
+			{
+				continue;
+			}
+
+			SceneObjectComponent* rootComp = standaloneCamera->GetRootComponent();
+			Camera* camera = (Camera*)dynamic_cast<Camera*>(rootComp);
+			if (camera)
+			{
+				m_allCameras.push_back(camera);
+			}
+		}
+
+		// Component cameras
+		for (auto& tile : m_tiles)
+		{
+			if (!tile)
+			{
+				continue;
+			}
+
+			const std::vector<Camera*>& cameraComponents = tile->GetAllCameraComponents();
+			m_allCameras.insert(m_allCameras.end(), cameraComponents.begin(), cameraComponents.end());
+		}
+
+		m_cameraListDirty = true;
+	}
 }
 
 bool World2::LoadFromBinary(std::filesystem::path rootDirectory)
@@ -57,29 +114,34 @@ bool World2::LoadFromBinary(std::filesystem::path rootDirectory)
 				continue;
 			}
 
-			std::fstream file(filePath, std::ios::in | std::ios::binary);
-			if (!file.is_open())
+			ResourceCompilerModule::ResourceType binType = ResourceCompilerModule::GetResourceType(filePath.string().c_str());
+			if (binType != ResourceCompilerModule::ResourceType::RESOURCE_TYPE_TILE)
 			{
 				continue;
 			}
 
-			ResourceCompilerModule::BinaryHeader header = {};
-			if (ReadHeader(&file, header))
+			ResourceCompilerModule::ResourceLoader* loader = ResourceCompilerModule::LoadFile(filePath.string().c_str());
+			ResourceCompilerModule::TileData* tileData = loader->GetTileData();
+			// Create the tile
+			if (tileData)
 			{
-				// Only accept tile binary files here
+				float bboxMinX = 0.0f, bboxMinY = 0.0f, bboxMaxX = 0.0f, bboxMaxY = 0.0f;
+				tileData->GetBoundingBox(bboxMinX, bboxMinY, bboxMaxX, bboxMaxY);
 
-				if (header.BinaryType == ResourceCompilerModule::BinaryType::BINARY_TYPE_TILE)
-				{
-					std::unique_ptr<Tile> tile = std::make_unique<Tile>(header.TileName, m_materialManager, m_textureManager, header.BboxMinX, header.BboxMinY, header.BboxMaxX, header.BboxMaxY);
-					tile->LoadTileContentsFromFile(filePath);
-					m_tiles.push_back(std::move(tile));
-				}
+				std::unique_ptr<Tile> tile = std::make_unique<Tile>(
+					tileData->GetTileName(), m_graphicsContext, m_materialManager, m_textureManager, bboxMinX, bboxMinY, bboxMaxX, bboxMaxY);
+
+				// Load from bin
+				tile->LoadTileContentsFromResource(tileData);
+
+				m_tiles.push_back(std::move(tile));
 			}
 
-			file.close();
+			delete loader;
 		}
 
 		// Load all meshes & materials
+		std::map<ResourceCompilerModule::ResourceLoader*, std::filesystem::path> meshesDataLoaders;
 		for (const auto& entry : std::filesystem::directory_iterator(rootDirectory))
 		{
 			std::filesystem::path filePath = entry.path();
@@ -88,73 +150,92 @@ bool World2::LoadFromBinary(std::filesystem::path rootDirectory)
 				continue;
 			}
 
-			std::fstream file(filePath, std::ios::in | std::ios::binary);
-			if (!file.is_open())
+			ResourceCompilerModule::ResourceType binType = ResourceCompilerModule::GetResourceType(filePath.string().c_str());
+			if (binType != ResourceCompilerModule::ResourceType::RESOURCE_TYPE_MESH)
 			{
 				continue;
 			}
 
-			ResourceCompilerModule::BinaryHeader header = {};
-			if (ReadHeader(&file, header))
+			ResourceCompilerModule::ResourceLoader* loader = ResourceCompilerModule::LoadFile(filePath.string().c_str());
+			if (loader)
 			{
-				if (header.BinaryType == ResourceCompilerModule::BinaryType::BINARY_TYPE_MESHES)
+				meshesDataLoaders[loader] = filePath;
+			}
+		}
+		// Collect all static mesh defs (rc)
+		std::map<std::string, ResourceCompilerModule::Mesh*> rcAllMeshes;
+		std::map<ResourceCompilerModule::Mesh*, ResourceCompilerModule::ResourceLoader*> rcMeshesLoaderLookup;
+		for (auto& meshesDataLoader : meshesDataLoaders)
+		{
+			ResourceCompilerModule::MeshesData* meshesData = meshesDataLoader.first->GetMeshesData();
+			if (meshesData)
+			{
+				std::vector<ResourceCompilerModule::Mesh*> rcMeshes;
+				meshesData->GetMeshes(rcMeshes);
+				for (auto& rcMesh : rcMeshes)
 				{
-					ResourceCompilerModule::StaticMeshDefinitionHeader* staticMeshDefinitionHeaders = nullptr;
-					ResourceCompilerModule::MeshPartHeader* meshPartHeaders = nullptr;
-					ResourceCompilerModule::MaterialHeader* materialHeaders = nullptr;
-
-					uint32_t numStaticMeshDefinitions = 0;
-					uint32_t numMeshParts = 0;
-					uint32_t numMaterials = 0;
-					
-					bool succ = GetStaticMeshDefinitions(&file, header, &staticMeshDefinitionHeaders, numStaticMeshDefinitions);
-					succ &= GetMeshPartHeaders(&file, header, &meshPartHeaders, numMeshParts);
-					succ &= GetMaterialHeaders(&file, header, &materialHeaders, numMaterials);
-
-					if (succ)
+					if (!rcAllMeshes.contains(rcMesh->GetName()))
 					{
-						for (auto& tile : m_tiles)
-						{
-							tile->LoadMeshFromFile(
-								filePath,
-								staticMeshDefinitionHeaders, meshPartHeaders,
-								materialHeaders,
-								numStaticMeshDefinitions,
-								numMeshParts,
-								numMaterials);
-						}
-
-						for (uint32_t matIdx = 0; matIdx < numMaterials; matIdx++)
-						{
-							ResourceCompilerModule::MaterialHeader& matHeader = materialHeaders[matIdx];
-							m_materialManager->CreateMaterial(
-								matHeader.MaterialName,
-								matHeader.BaseColorTextureName,
-								matHeader.MetallicTextureName,
-								matHeader.RoughnessTextureName,
-								matHeader.NormalTextureName);
-						}
-					}
-
-					if (numStaticMeshDefinitions > 0)
-					{
-						delete staticMeshDefinitionHeaders;
-					}
-
-					if (numMeshParts > 0)
-					{
-						delete meshPartHeaders;
-					}
-
-					if (numMaterials > 0)
-					{
-						delete materialHeaders;
+						rcAllMeshes[rcMesh->GetName()] = rcMesh;
+						rcMeshesLoaderLookup[rcMesh] = meshesDataLoader.first;
 					}
 				}
 			}
-
-			file.close();
 		}
+		
+
+		// Get meshes parts
+		for (auto& tile : m_tiles)
+		{
+			if (!tile)
+			{
+				continue;
+			}
+
+			// Get all static mesh components on this tile
+			const std::vector<StaticMeshComponent*>& allStaticMeshes = tile->GetAllStaticMeshComponents();
+			for (auto& staticMeshComp : allStaticMeshes)
+			{
+				IMesh* mesh = staticMeshComp->GetMesh();
+				if (mesh && rcAllMeshes.contains(mesh->GetName()))
+				{
+					// Find rc mesh ptr
+					ResourceCompilerModule::Mesh* rcMesh = rcAllMeshes[mesh->GetName()];
+					// Find rc meshes loader ptr
+					ResourceCompilerModule::ResourceLoader* meshesLoader = rcMeshesLoaderLookup[rcMesh];
+					// Find path
+					std::filesystem::path meshesDataPath = meshesDataLoaders[meshesLoader];
+					mesh->SetResourceFilePath(meshesDataPath);
+
+					std::vector<ResourceCompilerModule::MeshPart*> rcMeshParts;
+					rcMesh->GetMeshParts(rcMeshParts);
+					for (auto& rcMeshPart : rcMeshParts)
+					{
+						ResourceCompilerModule::Material* rcMaterial = rcMeshPart->GetMaterial();
+						mesh->AddFileMetadataPart(rcMeshPart->GetDataOffset(), rcMeshPart->GetDataSize(), rcMaterial ? rcMaterial->GetMaterialName() : "");
+						if (rcMaterial)
+						{
+							m_materialManager->CreateMaterial(
+								rcMaterial->GetMaterialName(),
+								rcMaterial->GetBaseColorTextureName(),
+								rcMaterial->GetMetallicTextureName(),
+								rcMaterial->GetRoughnessTextureName(),
+								rcMaterial->GetNormalTextureName());
+						}
+					}
+				}
+			}
+		}
+
+		// Release meshes data loaders
+		for (auto& meshesDataLoader : meshesDataLoaders)
+		{
+			if (meshesDataLoader.first)
+			{
+				delete meshesDataLoader.first;
+			}
+		}
+		meshesDataLoaders.clear();
 
 		// Load all textures
 		for (const auto& entry : std::filesystem::directory_iterator(rootDirectory))
@@ -165,36 +246,40 @@ bool World2::LoadFromBinary(std::filesystem::path rootDirectory)
 				continue;
 			}
 
-			std::fstream file(filePath, std::ios::in | std::ios::binary);
-			if (!file.is_open())
+			ResourceCompilerModule::ResourceType binType = ResourceCompilerModule::GetResourceType(filePath.string().c_str());
+			if (binType != ResourceCompilerModule::ResourceType::RESOURCE_TYPE_TEXTURE)
 			{
 				continue;
 			}
 
-			ResourceCompilerModule::BinaryHeader header = {};
-			if (ReadHeader(&file, header))
+			ResourceCompilerModule::ResourceLoader* loader = ResourceCompilerModule::LoadFile(filePath.string().c_str());
+			
+			ResourceCompilerModule::TexturesData* rcTexturesData = loader->GetTexturesData();
+			if (!rcTexturesData)
 			{
-				if (header.BinaryType == ResourceCompilerModule::BinaryType::BINARY_TYPE_TEXTURES)
-				{
-					ResourceCompilerModule::TextureHeader* textureHeaders = nullptr;
-					uint32_t numTextures = 0;
-					if (GetTextureHeaders(&file, header, &textureHeaders, numTextures))
-					{
-						for (uint32_t texIdx = 0; texIdx < numTextures; texIdx++)
-						{
-							ResourceCompilerModule::TextureHeader& texHeader = textureHeaders[texIdx];
-							m_textureManager->GetOrCreateTexture(
-								texHeader.TextureName,
-								filePath,
-								texHeader.TextureOffset,
-								texHeader.TextureDataSize,
-								texHeader.TextureWidth,
-								texHeader.TextureHeight,
-								texHeader.NumChannels);
-						}
-					}
-				}
+				continue;
 			}
+
+			std::vector<ResourceCompilerModule::Texture*> rcTextures;
+			rcTexturesData->GetTextures(rcTextures);
+			for (auto& rcTexture : rcTextures)
+			{
+				if (!rcTexture)
+				{
+					continue;
+				}
+			
+				m_textureManager->GetOrCreateTexture(
+					rcTexture->GetTextureName(),
+					filePath,
+					rcTexture->GetTextureDataOffset(),
+					rcTexture->GetTextureDataSize(),
+					rcTexture->GetWidth(),
+					rcTexture->GetHeight(),
+					rcTexture->GetNumChannels());
+			}
+
+			delete loader;
 		}
 
 		return true;
@@ -205,7 +290,13 @@ bool World2::LoadFromBinary(std::filesystem::path rootDirectory)
 
 bool World2::StreamInAroundActiveCameraRange(GraphicsContext* graphicsContext, CommandBuilder* cmdBuilder, float radius)
 {
-	FVector3 camPos = m_activeCamera->GetPosition();
+	Camera* activeCamera = GetActiveCamera();
+	if (!activeCamera)
+	{
+		return true;
+	}
+
+	FVector3 camPos = activeCamera->GetPosition();
 	bool updated = false;
 	for (auto& tile : m_tiles)
 	{
@@ -237,24 +328,30 @@ bool World2::StreamInAroundActiveCameraRange(GraphicsContext* graphicsContext, C
 
 bool World2::UpdateBuffersForFrame()
 {
+	Camera* activeCamera = GetActiveCamera();
+	if (!activeCamera)
+	{
+		return false;
+	}
+
 	// Update uniform frame constants
 	UniformFrameConstants uniformFrameConstants = {};
-	DirectX::XMStoreFloat4x4(&uniformFrameConstants.ViewMatrix, DirectX::XMMatrixTranspose(m_activeCamera->GetViewMatrix()));
-	DirectX::XMStoreFloat4x4(&uniformFrameConstants.ProjectionMatrix, DirectX::XMMatrixTranspose(m_activeCamera->GetProjectionMatrix()));
+	DirectX::XMStoreFloat4x4(&uniformFrameConstants.ViewMatrix, DirectX::XMMatrixTranspose(activeCamera->GetViewMatrix()));
+	DirectX::XMStoreFloat4x4(&uniformFrameConstants.ProjectionMatrix, DirectX::XMMatrixTranspose(activeCamera->GetProjectionMatrix()));
 
-	XMMATRIX viewProj = DirectX::XMMatrixTranspose(m_activeCamera->GetProjectionMatrix()) * DirectX::XMMatrixTranspose(m_activeCamera->GetViewMatrix());
+	XMMATRIX viewProj = DirectX::XMMatrixTranspose(activeCamera->GetProjectionMatrix()) * DirectX::XMMatrixTranspose(activeCamera->GetViewMatrix());
 
 	XMVECTOR detViewProj;
 	XMMATRIX invViewProj = DirectX::XMMatrixInverse(&detViewProj, viewProj);
 
 	XMVECTOR detProj;
-	XMMATRIX invProj = DirectX::XMMatrixInverse(&detProj, DirectX::XMMatrixTranspose(m_activeCamera->GetProjectionMatrix()));
+	XMMATRIX invProj = DirectX::XMMatrixInverse(&detProj, DirectX::XMMatrixTranspose(activeCamera->GetProjectionMatrix()));
 
 	XMVECTOR detView;
-	XMMATRIX invView = DirectX::XMMatrixInverse(&detView, DirectX::XMMatrixTranspose(m_activeCamera->GetViewMatrix()));
+	XMMATRIX invView = DirectX::XMMatrixInverse(&detView, DirectX::XMMatrixTranspose(activeCamera->GetViewMatrix()));
 
 	XMVECTOR detVectorView;
-	XMMATRIX vectorView = DirectX::XMMatrixInverse(&detVectorView, m_activeCamera->GetViewMatrix());
+	XMMATRIX vectorView = DirectX::XMMatrixInverse(&detVectorView, activeCamera->GetViewMatrix());
 
 
 	XMVECTOR forwardVector = DirectX::XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), invView);
@@ -266,7 +363,7 @@ bool World2::UpdateBuffersForFrame()
 	DirectX::XMStoreFloat4x4(&uniformFrameConstants.VectorViewMatrix, vectorView);
 
 
-	FVector3 cameraPos = m_activeCamera->GetPosition();
+	FVector3 cameraPos = activeCamera->GetPosition();
 	uniformFrameConstants.CameraPostion[0] = cameraPos.X;
 	uniformFrameConstants.CameraPostion[1] = cameraPos.Y;
 	uniformFrameConstants.CameraPostion[2] = cameraPos.Z;
@@ -276,11 +373,11 @@ bool World2::UpdateBuffersForFrame()
 	uniformFrameConstants.ForwardVector[2] = forwardVector.m128_f32[2];
 	uniformFrameConstants.ForwardVector[3] = forwardVector.m128_f32[3];
 
-	uniformFrameConstants.PixelStepScale = m_activeCamera->GetPixelStepScale();
-	uniformFrameConstants.RenderTargetHeight = m_activeCamera->GetWidth();
-	uniformFrameConstants.RenderTargetWidth = m_activeCamera->GetHeight();
-	uniformFrameConstants.PixelWidthInNdc = 2.0f / (float)m_activeCamera->GetWidth();
-	uniformFrameConstants.PixelHeightInNdc = 2.0f / (float)m_activeCamera->GetHeight();
+	uniformFrameConstants.PixelStepScale = activeCamera->GetPixelStepScale();
+	uniformFrameConstants.RenderTargetHeight = activeCamera->GetWidth();
+	uniformFrameConstants.RenderTargetWidth = activeCamera->GetHeight();
+	uniformFrameConstants.PixelWidthInNdc = 2.0f / (float)activeCamera->GetWidth();
+	uniformFrameConstants.PixelHeightInNdc = 2.0f / (float)activeCamera->GetHeight();
 
 	(*m_uniformFrameConstantBuffer)[0] = uniformFrameConstants;
 	bool succ = m_uniformFrameConstantBuffer->UpdateToGPU();

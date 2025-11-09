@@ -77,7 +77,7 @@ void World::SetActiveCamera(UINT width, UINT height, FVector3 position, FRotator
 		m_activeCamera.reset();
 	}
 
-	m_activeCamera = std::unique_ptr<Camera>(new Camera(width, height, position, rotator));
+	//m_activeCamera = std::unique_ptr<Camera>(new Camera(width, height, position, rotator));
 }
 
 void World::SpawnStaticMesh(std::shared_ptr<StaticMesh> staticMesh)

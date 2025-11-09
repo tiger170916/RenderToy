@@ -1,6 +1,13 @@
 #include "SceneObjectComponent.h"
 
-SceneObjectComponent::SceneObjectComponent() {}
+SceneObjectComponent::SceneObjectComponent(std::string name, SceneObjectComponent* parent = nullptr) 
+	: m_name(name), m_parent(parent){}
+
+SceneObjectComponent::SceneObjectComponent(std::string name)
+	: m_name(name), m_parent(nullptr)
+{
+
+}
 
 SceneObjectComponent::~SceneObjectComponent() {}
 
@@ -33,7 +40,7 @@ void SceneObjectComponent::Iterator::BuildArray(SceneObjectComponent* sceneObjec
 	}
 
 	m_array.push_back(sceneObjectComponent);
-	for (auto& comp : sceneObjectComponent->m_childrenComponents)
+	for (auto& comp : sceneObjectComponent->m_components)
 	{
 		BuildArray(comp.get());
 	}
@@ -52,7 +59,7 @@ void SceneObjectComponent::AttachComponent(std::unique_ptr<SceneObjectComponent>
 	}
 
 	component->SetParent(this);
-	m_childrenComponents.push_back(std::move(component));
+	m_components.push_back(std::move(component));
 }
 
 const Transform SceneObjectComponent::GetTransform() const

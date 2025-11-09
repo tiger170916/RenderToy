@@ -22,7 +22,7 @@ void IMesh::AddFileMetadataPart(UINT offset, UINT size, std::string materialName
 	m_MeshPartMaterialNames.push_back(materialName);
 }
 
-void IMesh::SetIsFromFile(std::filesystem::path filePath)
+void IMesh::SetResourceFilePath(std::filesystem::path filePath)
 {
 	m_isFromeFile = true;
 	m_filePath = filePath;

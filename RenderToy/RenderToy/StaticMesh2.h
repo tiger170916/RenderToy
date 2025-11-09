@@ -17,6 +17,8 @@ class StaticMesh2 : public IMesh, public IControllable
 private:
 	std::unique_ptr<LightExtension> m_lightExtension = nullptr;
 
+	Transform m_transform = Transform::Identity();
+
 public:
 	StaticMesh2(std::string meshName);
 
@@ -40,4 +42,8 @@ public:
 
 	// IMesh interface implementation
 	virtual bool UpdateBuffersForFrame() override;
+
+	inline void SetTransform(Transform transform) { m_transform = transform; }
+
+	inline Transform GetTransform() const { return m_transform; }
 };

@@ -9,13 +9,15 @@
 #include "ConstantBuffer.h"
 #include "GlobalStructs.h"
 #include "LightStructs.h"
+#include "GraphicsContext.h"
+#include "PlayableCharacterObject.h"
 
 class World2
 {
 private:
 	std::vector<std::unique_ptr<Tile>> m_tiles;
 
-	std::unique_ptr<Camera> m_activeCamera; // TODO: switch between different cameras
+	int m_activeCameraIdx = -1;
 
 	std::unique_ptr<ConstantBuffer<UniformFrameConstants>> m_uniformFrameConstantBuffer = nullptr;
 
@@ -25,8 +27,22 @@ private:
 
 	TextureManager2* m_textureManager = nullptr;
 
+	GraphicsContext* m_graphicsContext = nullptr;
+
+	std::vector<std::unique_ptr<PlayableCharacterObject>> m_standaloneCameras;
+
+	bool m_cameraListDirty = false;
+
+	// all cameras in the world
+	std::vector<Camera*> m_allCameras;
+
+	bool m_playableObjectsDirty = true;
+
+	// all playable objects in the world.
+	std::vector<PlayableCharacterObject*> m_playableObjects;
+
 public:
-	World2(MaterialManager* materialManager, TextureManager2* texManager);
+	World2(GraphicsContext* graphicsContext, MaterialManager* materialManager, TextureManager2* texManager);
 
 	bool Initialize(GraphicsContext* graphicsContext);
 
@@ -34,7 +50,7 @@ public:
 	
 	bool LoadFromBinary(std::filesystem::path rootDirectory);
 
-	void CreateCamera(UINT width, UINT height, FVector3 position, FRotator rotator);
+	void CreateStandaloneCamera(UINT width, UINT height, FVector3 position, FRotator rotator);
 
 public:
 	/// <summary>
@@ -48,7 +64,11 @@ public:
 
 	bool UpdateBuffersForFrame();
 
-	Camera* GetActiveCamera() { return m_activeCamera.get(); }
+	Camera* GetActiveCamera();
 
 	void GetActiveTiles(std::vector<Tile*>& outTiles);
+
+private:
+	// Iterate all global standalone cameras and component cameras and cache all available camerasd
+	void GetAllCamerasInternal();
 };

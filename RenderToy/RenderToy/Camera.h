@@ -36,7 +36,7 @@ public:
 	virtual void ProcessInput(DirectX::Mouse::State mouseState, DirectX::Keyboard::State keyboardState, float deltaTime) override;
 
 public:
-	Camera(UINT width, UINT height, FVector3 initPosition, FRotator initRotation);
+	Camera(std::string name, UINT width, UINT height, FVector3 initPosition, FRotator initRotation);
 
 	~Camera();
 

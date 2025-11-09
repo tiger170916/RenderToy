@@ -93,7 +93,7 @@ bool Renderer::Initialize(HWND hwnd)
 	// Load initial world
 	std::filesystem::path initialWorldBinaryPath = Utils::GetWorkingDirectory();
 	initialWorldBinaryPath.append("InitialWorld");
-	m_activeWorld = std::make_shared<World2>(m_materialManager.get(), m_textureManager2.get());
+	m_activeWorld = std::make_shared<World2>(m_graphicsContext.get(), m_materialManager.get(), m_textureManager2.get());
 	
 	if (!m_activeWorld->Initialize(m_graphicsContext.get()))
 	{
@@ -113,12 +113,12 @@ bool Renderer::Initialize(HWND hwnd)
 	
 	FRotator initRotation = {};
 
-	m_activeWorld->CreateCamera(m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight(), FVector3(0, 0.0, -25.0), initRotation);
+	m_activeWorld->CreateStandaloneCamera(m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight(), FVector3(0, 0.0, -25.0), initRotation);
 	Camera* activeCamera = m_activeWorld->GetActiveCamera();
 	
 	if (activeCamera != nullptr)
 	{
-		m_inputManager->SetControlObject(activeCamera);
+		m_inputManager->AddControlObject(activeCamera);
 	}
 
 	m_streamingEngine->StartStreaming(m_activeWorld.get());

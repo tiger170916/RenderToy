@@ -1,8 +1,8 @@
 #include "Camera.h"
 #include "GraphicsUtils.h"
 
-Camera::Camera(UINT width, UINT height, FVector3 initPosition, FRotator initRotation)
-	: m_width(width), m_height(height), m_position(initPosition), m_rotator(initRotation)
+Camera::Camera(std::string name, UINT width, UINT height, FVector3 initPosition, FRotator initRotation)
+	: SceneObjectComponent(name), m_width(width), m_height(height), m_position(initPosition), m_rotator(initRotation)
 {
 	float fov_y = 0.25f * DirectX::XM_PI;
 	float aspectRatio = (float)m_width / (float)m_height;

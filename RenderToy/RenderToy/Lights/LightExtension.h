@@ -60,4 +60,6 @@ public:
 		const UINT& lightAtlasOffsetY, 
 		const UINT& lightMapSize,
 		const UINT& lightUid);
+
+	~LightExtension() = default;
 };

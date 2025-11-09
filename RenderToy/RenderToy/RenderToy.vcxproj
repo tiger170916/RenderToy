@@ -113,6 +113,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CameraArm.cpp" />
     <ClCompile Include="CommandBuilder.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="CriticalSection.cpp" />
@@ -143,10 +144,12 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="MaterialManager.cpp" />
     <ClCompile Include="IMesh.cpp" />
     <ClCompile Include="MeshFactory.cpp" />
+    <ClCompile Include="NonPlayableCharacterObject.cpp" />
     <ClCompile Include="ObjectExtension.cpp" />
     <ClCompile Include="PassBase.cpp" />
     <ClCompile Include="PassFactory.cpp" />
     <ClCompile Include="Pipeline.cpp" />
+    <ClCompile Include="PlayableCharacterObject.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderGraph.cpp" />
     <ClCompile Include="RenderPassBase.cpp" />
@@ -161,6 +164,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="Material2.cpp" />
     <ClCompile Include="StaticMesh.cpp" />
     <ClCompile Include="StaticMesh2.cpp" />
+    <ClCompile Include="StaticMeshComponent.cpp" />
     <ClCompile Include="StreamingEngine.cpp" />
     <ClCompile Include="Swapchain.cpp" />
     <ClCompile Include="Texture.cpp" />
@@ -180,6 +184,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="..\Includes\ResourceStructs.h" />
     <ClInclude Include="3rdParty\json.hpp" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CameraArm.h" />
     <ClInclude Include="CommandBuilder.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="ConstantBuffer.h" />
@@ -219,6 +224,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="MaterialManager.h" />
     <ClInclude Include="IMesh.h" />
     <ClInclude Include="MeshFactory.h" />
+    <ClInclude Include="NonPlayableCharacterObject.h" />
     <ClInclude Include="ObjectExtension.h" />
     <ClInclude Include="MeshStructs.h" />
     <ClInclude Include="PassBase.h" />
@@ -226,6 +232,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="PassFactory.h" />
     <ClInclude Include="PassType.h" />
     <ClInclude Include="Pipeline.h" />
+    <ClInclude Include="PlayableCharacterObject.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderGraph.h" />
     <ClInclude Include="RenderPassBase.h" />
@@ -239,6 +246,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="SilhouetteRenderPass.h" />
     <ClInclude Include="StaticMesh.h" />
     <ClInclude Include="StaticMesh2.h" />
+    <ClInclude Include="StaticMeshComponent.h" />
     <ClInclude Include="StreamingEngine.h" />
     <ClInclude Include="StreamInterface.h" />
     <ClInclude Include="Swapchain.h" />

@@ -55,14 +55,39 @@ void InputManager::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 void InputManager::Update(float delta)
 {
-    if (!m_avtiveControlObject)
+    if (!m_controlObjects.empty())
     {
         return;
     }
 
+    for (auto& controlObj : m_controlObjects)
+    {
+        if (controlObj)
+        {
+            continue;
+        }
 
-    DirectX::Mouse::State mouseState = m_mouse->GetState();
-    DirectX::Keyboard::State keyboardState = m_keyboard->GetState();
+        DirectX::Mouse::State mouseState = m_mouse->GetState();
+        DirectX::Keyboard::State keyboardState = m_keyboard->GetState();
 
-    m_avtiveControlObject->ProcessInput(mouseState, keyboardState, delta);
+        controlObj->ProcessInput(mouseState, keyboardState, delta);
+    }
+}
+
+void InputManager::AddControlObject(IControllable* controlObject)
+{
+    if (m_controlObjects.contains(controlObject))
+    {
+        return;
+    }
+
+    m_controlObjects.insert(controlObject);
+}
+
+void InputManager::RemoveControlObject(IControllable* controlObject)
+{
+    if (m_controlObjects.contains(controlObject))
+    {
+        m_controlObjects.erase(controlObject);
+    }
 }

@@ -218,6 +218,18 @@
     <ClCompile Include="IMesh.cpp">
       <Filter>World</Filter>
     </ClCompile>
+    <ClCompile Include="PlayableCharacterObject.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="NonPlayableCharacterObject.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="StaticMeshComponent.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraArm.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -452,6 +464,18 @@
       <Filter>World</Filter>
     </ClInclude>
     <ClInclude Include="IMesh.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayableCharacterObject.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="NonPlayableCharacterObject.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="StaticMeshComponent.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraArm.h">
       <Filter>World</Filter>
     </ClInclude>
   </ItemGroup>
