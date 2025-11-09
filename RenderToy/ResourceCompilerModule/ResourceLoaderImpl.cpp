@@ -109,6 +109,7 @@ bool ResourceLoaderImpl::LoadFile(const char* filePath)
 		break;
 	case BinaryType::BINARY_TYPE_TEXTURES:
 		m_type = ResourceType::RESOURCE_TYPE_TEXTURE;
+		m_loadedFile = LoadTexturesData(file);
 		break;
 	default:
 		// Unsupport binary type
@@ -439,6 +440,7 @@ bool ResourceLoaderImpl::LoadMeshesData(std::fstream& file)
 			std::shared_ptr<MeshPartImpl> meshPart = std::make_shared<MeshPartImpl>(meshPartHeader.MeshDataOffset, meshPartHeader.MeshDataSize, meshPartHeader.NumVertices);
 		
 			meshPart->SetMaterial(materials[meshPartHeader.MaterialIdx]);
+			mesh->AddMeshPart(meshPart);
 		}
 
 		m_meshesData->AddMesh(mesh);
