@@ -13,6 +13,9 @@ namespace RenderToyEditor
         public static extern bool InitializeRenderer(IntPtr hwnd);
 
         [DllImport("RenderToy.dll")]
+        public static extern bool StartRendering();
+
+        [DllImport("RenderToy.dll")]
         public static extern bool FinalizeRenderer();
     }
 }

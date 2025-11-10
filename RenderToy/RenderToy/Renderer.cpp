@@ -124,6 +124,7 @@ bool Renderer::Initialize(HWND hwnd)
 	m_streamingEngine->StartStreaming(m_activeWorld.get());
 	
 	m_initialized = true;
+
 	return true;
 }
 

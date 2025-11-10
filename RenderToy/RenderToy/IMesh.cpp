@@ -1,6 +1,7 @@
 #include "IMesh.h"
 #include "UidGenerator.h"
 #include "Macros.h"
+#include "GraphicsUtils.h"
 
 std::map<PassType, std::map<UINT, UINT>> IMesh::_passMeshArgumentsMap = PASS_MESH_ARGUMENTS_MAP_DEFINE;
 
@@ -72,6 +73,7 @@ bool IMesh::LoadFromBinary(
 		meshPart->vertexBufferView.SizeInBytes = meshPart->bufferSize;
 		meshPart->vertexBufferView.StrideInBytes = sizeof(MeshVertexDx);
 		meshPart->materialName = m_MeshPartMaterialNames[partIdx];
+
 
 		Material2* material = materialManager->GetMaterial(meshPart->materialName);
 		if (material)

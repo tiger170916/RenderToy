@@ -177,8 +177,14 @@ bool D3DResource::CopyToDefaultHeap(ID3D12GraphicsCommandList* commandList)
 	}
 	else
 	{
+
+		GraphicsUtils::ResourceBarrierTransition(m_uploadHeapResource.Get(), commandList, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_SOURCE);
+		GraphicsUtils::ResourceBarrierTransition(m_defaultHeapResource.Get(), commandList, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
 		commandList->CopyResource(m_defaultHeapResource.Get(), m_uploadHeapResource.Get());
+		GraphicsUtils::ResourceBarrierTransition(m_uploadHeapResource.Get(), commandList, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON);
+		GraphicsUtils::ResourceBarrierTransition(m_defaultHeapResource.Get(), commandList, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
 	}
+
 
 	m_copiedToDefaultHeap = true;
 

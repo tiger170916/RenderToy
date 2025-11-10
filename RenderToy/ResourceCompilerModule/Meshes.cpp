@@ -51,6 +51,7 @@ bool Meshes::PackToBinary(std::filesystem::path rootFilePath)
 	std::filesystem::create_directory(outputDir);
 
 	std::filesystem::path outputFile = outputDir;
+
 	outputFile.append(rootFilePath.stem().string()).concat(".bin");
 
 	std::ofstream file(outputFile, std::ios::out | std::ios::binary);

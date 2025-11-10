@@ -381,7 +381,7 @@ bool World::PackToBinary(std::filesystem::path rootFilePath)
 
 		// Write playable scene objects
 		std::vector<PlayableCharacterHeader> playableCharacterHeaders;
-		for (auto& playableCharacter : tile->NonePlayableObjects)
+		for (auto& playableCharacter : tile->PlayableObjects)
 		{
 			PlayableCharacterHeader playableHeader = {};
 

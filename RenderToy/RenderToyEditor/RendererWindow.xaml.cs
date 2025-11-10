@@ -32,6 +32,10 @@ namespace RenderToyEditor
 
             
             bool succ = RendererInterop.InitializeRenderer(hWnd);
+            if (succ)
+            {
+                RendererInterop.StartRendering();
+            }
         }
     }
 }

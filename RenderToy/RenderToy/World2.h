@@ -31,7 +31,7 @@ private:
 
 	std::vector<std::unique_ptr<PlayableCharacterObject>> m_standaloneCameras;
 
-	bool m_cameraListDirty = false;
+	bool m_cameraListDirty = true;
 
 	// all cameras in the world
 	std::vector<Camera*> m_allCameras;

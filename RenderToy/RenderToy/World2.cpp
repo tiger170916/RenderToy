@@ -53,7 +53,7 @@ Camera* World2::GetActiveCamera()
 	GetAllCamerasInternal();
 	if (m_activeCameraIdx < 0 || m_activeCameraIdx >= (int)m_allCameras.size())
 	{
-		m_activeCameraIdx = (int)m_allCameras.size() - 1;
+		m_activeCameraIdx = 0;
 	}
 
 	if (m_activeCameraIdx < 0)
@@ -97,7 +97,7 @@ void World2::GetAllCamerasInternal()
 			m_allCameras.insert(m_allCameras.end(), cameraComponents.begin(), cameraComponents.end());
 		}
 
-		m_cameraListDirty = true;
+		m_cameraListDirty = false;
 	}
 }
 
