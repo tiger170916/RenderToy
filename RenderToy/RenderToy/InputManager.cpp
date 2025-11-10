@@ -55,14 +55,14 @@ void InputManager::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 void InputManager::Update(float delta)
 {
-    if (!m_controlObjects.empty())
+    if (m_controlObjects.empty())
     {
         return;
     }
 
     for (auto& controlObj : m_controlObjects)
     {
-        if (controlObj)
+        if (!controlObj)
         {
             continue;
         }

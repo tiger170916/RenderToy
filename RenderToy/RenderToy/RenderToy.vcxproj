@@ -167,6 +167,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="StaticMeshComponent.cpp" />
     <ClCompile Include="StreamingEngine.cpp" />
     <ClCompile Include="Swapchain.cpp" />
+    <ClCompile Include="SystemController.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Texture2.cpp" />
     <ClCompile Include="TextureAtlas.cpp" />
@@ -250,6 +251,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="StreamingEngine.h" />
     <ClInclude Include="StreamInterface.h" />
     <ClInclude Include="Swapchain.h" />
+    <ClInclude Include="SystemController.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Texture2.h" />
     <ClInclude Include="TextureAtlas.h" />

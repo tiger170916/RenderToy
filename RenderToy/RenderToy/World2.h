@@ -66,6 +66,8 @@ public:
 
 	Camera* GetActiveCamera();
 
+	void SwitchCamera();
+
 	void GetActiveTiles(std::vector<Tile*>& outTiles);
 
 private:

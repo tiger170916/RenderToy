@@ -230,6 +230,9 @@
     <ClCompile Include="CameraArm.cpp">
       <Filter>World</Filter>
     </ClCompile>
+    <ClCompile Include="SystemController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -477,6 +480,9 @@
     </ClInclude>
     <ClInclude Include="CameraArm.h">
       <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="SystemController.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -64,6 +64,17 @@ Camera* World2::GetActiveCamera()
 	return m_allCameras[m_activeCameraIdx];
 }
 
+void World2::SwitchCamera()
+{
+	GetAllCamerasInternal();
+	if (m_allCameras.size() <= 1)
+	{
+		return;
+	}
+
+	m_activeCameraIdx = (m_activeCameraIdx + 1) % (int)m_allCameras.size();
+}
+
 void World2::GetAllCamerasInternal()
 {
 	if (m_cameraListDirty)

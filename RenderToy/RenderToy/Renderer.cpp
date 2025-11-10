@@ -122,6 +122,11 @@ bool Renderer::Initialize(HWND hwnd)
 	}
 
 	m_streamingEngine->StartStreaming(m_activeWorld.get());
+
+	m_systemController = std::make_unique<SystemController>();
+	m_systemController->SetActiveWorld(m_activeWorld.get());
+
+	m_inputManager->AddControlObject(m_systemController.get());
 	
 	m_initialized = true;
 
