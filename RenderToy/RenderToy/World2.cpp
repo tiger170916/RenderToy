@@ -2,6 +2,7 @@
 #include "ResourceCompilerModuleApi.h"
 #include "ResourceCompilerTile.h"
 #include "ResourceLoader.h"
+#include "FirstPersonCamera.h"
 
 World2::World2(GraphicsContext* graphicsContext, MaterialManager* materialManager, TextureManager2* texManager)
 	: m_graphicsContext(graphicsContext), m_materialManager(materialManager), m_textureManager(texManager) {
@@ -41,7 +42,8 @@ void World2::CreateStandaloneCamera(UINT width, UINT height, FVector3 position, 
 	std::string camName = "StandAloneCamera" + std::to_string(m_standaloneCameras.size());
 	std::string characterName = camName + "Character";
 	std::unique_ptr<PlayableCharacterObject> standAloneCameraCharacter = std::make_unique<PlayableCharacterObject>(characterName);
-	std::unique_ptr<Camera> cameraComponent = std::make_unique<Camera>(camName, width, height, position, rotator);
+	std::unique_ptr<FirstPersonCamera> cameraComponent = std::make_unique<FirstPersonCamera>(camName, nullptr, width, height);
+	cameraComponent->SetInitialPositionAndRotation(position, rotator);
 	
 	standAloneCameraCharacter->SetRootComponent(std::move(cameraComponent));
 

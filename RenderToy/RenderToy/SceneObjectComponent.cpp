@@ -3,12 +3,6 @@
 SceneObjectComponent::SceneObjectComponent(std::string name, SceneObjectComponent* parent = nullptr) 
 	: m_name(name), m_parent(parent){}
 
-SceneObjectComponent::SceneObjectComponent(std::string name)
-	: m_name(name), m_parent(nullptr)
-{
-
-}
-
 SceneObjectComponent::~SceneObjectComponent() {}
 
 SceneObjectComponent::Iterator::Iterator(SceneObjectComponent* sceneObjectComponent)
@@ -72,6 +66,7 @@ const Transform SceneObjectComponent::GetTransform() const
 		Transform parentTransform = parent->GetTransform();
 		totalTransform.Rotation = parentTransform.Rotation + totalTransform.Rotation;
 		totalTransform.Translation = parentTransform.Translation + totalTransform.Translation;
+		parent = parent->GetParent();
 	}
 
 	return totalTransform;

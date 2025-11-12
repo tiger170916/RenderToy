@@ -42,6 +42,9 @@ public:
 
 	void AttachComponent(std::unique_ptr<SceneObjectComponent> component);
 
+	/// <summary>
+	/// Set the (relative) transform of the component
+	/// </summary>
 	inline void SetTransform(Transform& transform) { m_transform = transform; }
 
 
@@ -51,10 +54,10 @@ public:
 
 	inline std::string GetName() const { return m_name; }
 
+	SceneObjectComponent* GetParent() const { return m_parent; }
+
 protected:
 	SceneObjectComponent(std::string name, SceneObjectComponent* parent);
-
-	SceneObjectComponent(std::string name);
 
 	void SetParent(SceneObjectComponent* parent);
 };

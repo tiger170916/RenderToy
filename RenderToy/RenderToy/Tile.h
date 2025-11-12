@@ -86,7 +86,7 @@ public:
 	const std::vector<Camera*>& GetAllCameraComponents();
 
 private:
-	std::unique_ptr<SceneObjectComponent> ConstructSceneObjectComponentFromResource(ResourceCompilerModule::SceneObjectComponent* rcSceneObjectComponent);
+	std::unique_ptr<SceneObjectComponent> ConstructSceneObjectComponentFromResource(ResourceCompilerModule::SceneObjectComponent* rcSceneObjectComponent, SceneObjectComponent* parent);
 
 	template<typename T>
 	void GetComponentsOfTypeInternal(SceneObjectComponent* sceneObjectComp, std::vector<T>& array);

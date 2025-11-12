@@ -1,7 +1,7 @@
 #include "CameraArm.h"
 
-CameraArm::CameraArm(std::string name) 
-	: SceneObjectComponent(name){}
+CameraArm::CameraArm(std::string name, SceneObjectComponent* parent) 
+	: SceneObjectComponent(name, parent){}
 
 CameraArm::~CameraArm() {}
 

@@ -120,6 +120,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="D3DFence.cpp" />
     <ClCompile Include="D3DResource.cpp" />
     <ClCompile Include="ExtensionFactory.cpp" />
+    <ClCompile Include="FirstPersonCamera.cpp" />
     <ClCompile Include="FullscreenQuad.cpp" />
     <ClCompile Include="GeometryPass.cpp" />
     <ClCompile Include="DescriptorHeapManager.cpp" />
@@ -173,6 +174,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClCompile Include="TextureAtlas.cpp" />
     <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="TextureManager2.cpp" />
+    <ClCompile Include="ThirdPersonCamera.cpp" />
     <ClCompile Include="Tile.cpp" />
     <ClCompile Include="UidGenerator.cpp" />
     <ClCompile Include="Utils.cpp" />
@@ -193,6 +195,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="D3DFence.h" />
     <ClInclude Include="D3DResource.h" />
     <ClInclude Include="d3dx12.h" />
+    <ClInclude Include="FirstPersonCamera.h" />
     <ClInclude Include="IDrawable.h" />
     <ClInclude Include="ExtensionFactory.h" />
     <ClInclude Include="FullscreenQuad.h" />
@@ -257,6 +260,7 @@ $(SolutionDir)bin\CodeGen.exe</Command>
     <ClInclude Include="TextureAtlas.h" />
     <ClInclude Include="TextureManager.h" />
     <ClInclude Include="TextureManager2.h" />
+    <ClInclude Include="ThirdPersonCamera.h" />
     <ClInclude Include="Tile.h" />
     <ClInclude Include="UidGenerator.h" />
     <ClInclude Include="Utils.h" />

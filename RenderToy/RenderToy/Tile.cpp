@@ -4,6 +4,7 @@
 #include "NonPlayableCharacterObject.h"
 #include "StaticMeshComponent.h"
 #include "CameraArm.h"
+#include "ThirdPersonCamera.h"
 
 
 Tile::Tile(std::string tileName, GraphicsContext* graphicsContext, MaterialManager* materialManager, TextureManager2* texManager, float bboxMinX, float bboxMinY, float bboxMaxX, float bboxMaxY)
@@ -37,7 +38,7 @@ bool Tile::LoadTileContentsFromResource(ResourceCompilerModule::TileData* tileDa
 			}
 
 			std::unique_ptr<NonPlayableCharacterObject> nonPlayableCharacterObject = std::make_unique<NonPlayableCharacterObject>(rcNonPlayableObj->GetName());
-			std::unique_ptr<SceneObjectComponent> rootComp = ConstructSceneObjectComponentFromResource(rcNonPlayableObj->GetRootComponent());
+			std::unique_ptr<SceneObjectComponent> rootComp = ConstructSceneObjectComponentFromResource(rcNonPlayableObj->GetRootComponent(), nullptr);
 			if (rootComp)
 			{
 				nonPlayableCharacterObject->SetRootComponent(std::move(rootComp));
@@ -59,7 +60,7 @@ bool Tile::LoadTileContentsFromResource(ResourceCompilerModule::TileData* tileDa
 			}
 
 			std::unique_ptr<PlayableCharacterObject> playableCharacterObject = std::make_unique<PlayableCharacterObject>(rcPlayableObj->GetName());
-			std::unique_ptr<SceneObjectComponent> rootComp = ConstructSceneObjectComponentFromResource(rcPlayableObj->GetRootComponent());
+			std::unique_ptr<SceneObjectComponent> rootComp = ConstructSceneObjectComponentFromResource(rcPlayableObj->GetRootComponent(), nullptr);
 			if (rootComp)
 			{
 				playableCharacterObject->SetRootComponent(std::move(rootComp));
@@ -72,7 +73,7 @@ bool Tile::LoadTileContentsFromResource(ResourceCompilerModule::TileData* tileDa
 	return true;
 }
 
-std::unique_ptr<SceneObjectComponent> Tile::ConstructSceneObjectComponentFromResource(ResourceCompilerModule::SceneObjectComponent* rcSceneObjectComponent)
+std::unique_ptr<SceneObjectComponent> Tile::ConstructSceneObjectComponentFromResource(ResourceCompilerModule::SceneObjectComponent* rcSceneObjectComponent, SceneObjectComponent* parent)
 {
 	if (!rcSceneObjectComponent)
 	{
@@ -87,7 +88,7 @@ std::unique_ptr<SceneObjectComponent> Tile::ConstructSceneObjectComponentFromRes
 		ResourceCompilerModule::StaticMeshComponent* rcMeshComp = (ResourceCompilerModule::StaticMeshComponent*)dynamic_cast<ResourceCompilerModule::StaticMeshComponent*>(rcSceneObjectComponent);
 		if (rcMeshComp)
 		{
-			std::unique_ptr<StaticMeshComponent> staticMeshComponent = std::make_unique<StaticMeshComponent>(rcMeshComp->GetName(), nullptr);
+			std::unique_ptr<StaticMeshComponent> staticMeshComponent = std::make_unique<StaticMeshComponent>(rcMeshComp->GetName(), parent);
 			staticMeshComponent->ConstructComponentFromResource(rcMeshComp);
 			result = std::move(staticMeshComponent);
 		}
@@ -99,7 +100,7 @@ std::unique_ptr<SceneObjectComponent> Tile::ConstructSceneObjectComponentFromRes
 		ResourceCompilerModule::CameraArmComponent* rcCameraArmComp = (ResourceCompilerModule::CameraArmComponent*)dynamic_cast<ResourceCompilerModule::CameraArmComponent*>(rcSceneObjectComponent);
 		if (rcCameraArmComp)
 		{
-			std::unique_ptr<CameraArm> cameraArm = std::make_unique<CameraArm>(rcSceneObjectComponent->GetName());
+			std::unique_ptr<CameraArm> cameraArm = std::make_unique<CameraArm>(rcSceneObjectComponent->GetName(), parent);
 			result = std::move(cameraArm);
 		}
 		break;
@@ -109,7 +110,7 @@ std::unique_ptr<SceneObjectComponent> Tile::ConstructSceneObjectComponentFromRes
 		ResourceCompilerModule::CameraComponent* rcCameraComp = (ResourceCompilerModule::CameraComponent*)dynamic_cast<ResourceCompilerModule::CameraComponent*>(rcSceneObjectComponent);
 		if (rcCameraComp)
 		{
-			std::unique_ptr<Camera> camera = std::make_unique<Camera>(rcSceneObjectComponent->GetName(), m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight(), FVector3(0.0f, 0.0f, 0.0f), FRotator(0.0f, 0.0f, 0.0f));
+			std::unique_ptr<ThirdPersonCamera> camera = std::make_unique<ThirdPersonCamera>(rcSceneObjectComponent->GetName(), parent, m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight());
 			result = std::move(camera);
 		}
 		break;
@@ -126,7 +127,7 @@ std::unique_ptr<SceneObjectComponent> Tile::ConstructSceneObjectComponentFromRes
 			continue;
 		}
 
-		std::unique_ptr<SceneObjectComponent> component = ConstructSceneObjectComponentFromResource(comp);
+		std::unique_ptr<SceneObjectComponent> component = ConstructSceneObjectComponentFromResource(comp, result.get());
 		result->AttachComponent(std::move(component));
 	}
 

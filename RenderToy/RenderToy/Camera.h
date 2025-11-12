@@ -7,10 +7,10 @@
 
 class Camera : public IControllable, public SceneObjectComponent
 {
-private:
-	FVector3 m_position = FVector3::Zero();
+protected:
+	FVector3 m_cameraPosition = FVector3::Zero();
 
-	FRotator m_rotator = FRotator::Zero();
+	FRotator m_cameraRotation = FRotator::Zero();
 
 	UINT m_width = 0;
 
@@ -32,11 +32,7 @@ private:
 	bool m_cinematic = true;
 
 public:
-	// IControllable interface
-	virtual void ProcessInput(DirectX::Mouse::State mouseState, DirectX::Keyboard::State keyboardState, float deltaTime) override;
-
-public:
-	Camera(std::string name, UINT width, UINT height, FVector3 initPosition, FRotator initRotation);
+	Camera(std::string name, SceneObjectComponent* parent, UINT width, UINT height);
 
 	~Camera();
 
@@ -44,9 +40,7 @@ public:
 
 	inline XMMATRIX GetProjectionMatrix() const { return m_projectionMatrix; }
 
-	inline FVector3 GetPosition() const { return m_position; }
-
-	void Frame(float delta);
+	inline FVector3 GetPosition() const { return m_cameraPosition; }
 
 	inline const float GetPixelStepScale() const { return m_pixelStepScale; }
 
@@ -54,7 +48,7 @@ public:
 
 	inline const UINT GetHeight() const { return m_height; }
 
-private:
+protected:
 	void CalculateViewMatrix();
 
 	void CalculateViewMatrixWithLookAtPosition();
