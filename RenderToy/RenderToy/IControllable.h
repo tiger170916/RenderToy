@@ -1,8 +1,21 @@
 #pragma once
 #include "Includes.h"
 
+// Fixed axis and action bindings for now
+struct InputStruct
+{
+	float MouseXAxis = 0.0f;
+	float MouseYAxis = 0.0f;
+
+	float ForwardAxis = 0.0f;
+	float RightAxis = 0.0f;
+
+	bool SwitchCamera = false;
+	bool SwitchCharacter = false;
+};
+
 class IControllable
 {
 public:
-	virtual void ProcessInput(DirectX::Mouse::State, DirectX::Keyboard::State, float deltaTime) = 0;
+	virtual void ProcessInput(InputStruct inputStruct) = 0;
 };

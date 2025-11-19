@@ -5,8 +5,15 @@
 
 class PlayableCharacterObject : public SceneObject, public IControllable
 {
+private:
+	// speed vector of the character
+	FVector2 m_velocity = {};
+
+	FVector2 m_mouseVelocity = {};
 public:
-	virtual void ProcessInput(DirectX::Mouse::State, DirectX::Keyboard::State, float deltaTime) override;
+	virtual void ProcessInput(InputStruct inputStruct) override;
+
+	virtual void Tick(float delta) override;
 
 	PlayableCharacterObject(std::string name);
 };

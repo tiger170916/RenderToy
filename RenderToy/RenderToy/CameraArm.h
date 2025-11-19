@@ -11,7 +11,7 @@ private:
 	float m_length = 5.0f;
 
 public:
-	CameraArm(std::string name, SceneObjectComponent* parent);
+	CameraArm(std::string name, Object* parent);
 
 	~CameraArm();
 	

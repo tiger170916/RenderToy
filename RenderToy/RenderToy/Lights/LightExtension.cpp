@@ -25,6 +25,7 @@ LightExtension::LightExtension(
 void LightExtension::UpdateLightConstants(
 	LightConstants& lightConsts,
 	const FVector3& parentPos,
+	const FRotator& parentRotation,
 	const UINT& lightAtlasOffsetX,
 	const UINT& lightAtlasOffsetY, 
 	const UINT& lightMapSize,
@@ -45,9 +46,14 @@ void LightExtension::UpdateLightConstants(
 	lightConsts.ShadowBufferOffsetY = lightAtlasOffsetY;
 	lightConsts.ShadowBufferSize = lightMapSize;
 	lightConsts.LightParentUid = parentUid;
+
+	FRotator totalRotation = FRotator(
+		parentRotation.Pitch + m_rotation.X,
+		parentRotation.Yaw + m_rotation.Y,
+		parentRotation.Roll + m_rotation.Z);
 	
 	FVector3 forwardDir;
-	XMMATRIX viewMatrix = GraphicsUtils::ViewMatrixFromPositionRotation(FVector3(lightConsts.Position[0], lightConsts.Position[1], lightConsts.Position[2]), FRotator(m_rotation.X, m_rotation.Y, m_rotation.Z), forwardDir);
+	XMMATRIX viewMatrix = GraphicsUtils::ViewMatrixFromPositionRotation(FVector3(lightConsts.Position[0], lightConsts.Position[1], lightConsts.Position[2]), totalRotation, forwardDir);
 
 	DirectX::XMStoreFloat4x4(&lightConsts.Transform, DirectX::XMMatrixTranspose(m_projectionMatrix) * DirectX::XMMatrixTranspose(viewMatrix));
 	DirectX::XMStoreFloat4x4(&lightConsts.ViewMatrix, DirectX::XMMatrixTranspose(viewMatrix));

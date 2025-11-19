@@ -2,16 +2,11 @@
 
 #include "Includes.h"
 #include "Vectors.h"
-#include "IControllable.h"
 #include "SceneObjectComponent.h"
 
-class Camera : public IControllable, public SceneObjectComponent
+class Camera : public SceneObjectComponent
 {
 protected:
-	FVector3 m_cameraPosition = FVector3::Zero();
-
-	FRotator m_cameraRotation = FRotator::Zero();
-
 	UINT m_width = 0;
 
 	UINT m_height = 0;
@@ -32,15 +27,15 @@ protected:
 	bool m_cinematic = true;
 
 public:
-	Camera(std::string name, SceneObjectComponent* parent, UINT width, UINT height);
+	Camera(std::string name, Object* parent, UINT width, UINT height);
 
 	~Camera();
 
-	inline XMMATRIX GetViewMatrix() const { return m_viewMatrix; }
+	XMMATRIX GetViewMatrix();
 
 	inline XMMATRIX GetProjectionMatrix() const { return m_projectionMatrix; }
 
-	inline FVector3 GetPosition() const { return m_cameraPosition; }
+	//inline FVector3 GetPosition() const { return m_cameraPosition; }
 
 	inline const float GetPixelStepScale() const { return m_pixelStepScale; }
 
@@ -50,6 +45,4 @@ public:
 
 protected:
 	void CalculateViewMatrix();
-
-	void CalculateViewMatrixWithLookAtPosition();
 };

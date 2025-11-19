@@ -233,10 +233,10 @@
     <ClCompile Include="SystemController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FirstPersonCamera.cpp">
+    <ClCompile Include="Mode.cpp">
       <Filter>World</Filter>
     </ClCompile>
-    <ClCompile Include="ThirdPersonCamera.cpp">
+    <ClCompile Include="StandAloneCameraInputComponent.cpp">
       <Filter>World</Filter>
     </ClCompile>
   </ItemGroup>
@@ -490,10 +490,16 @@
     <ClInclude Include="SystemController.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="FirstPersonCamera.h">
+    <ClInclude Include="Mode.h">
       <Filter>World</Filter>
     </ClInclude>
-    <ClInclude Include="ThirdPersonCamera.h">
+    <ClInclude Include="InputComponent.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="StandAloneCameraInputComponent.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
       <Filter>World</Filter>
     </ClInclude>
   </ItemGroup>

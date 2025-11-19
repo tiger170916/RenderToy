@@ -3,7 +3,7 @@
 #include "StaticMesh2.h"
 #include "InstancedStaticMesh.h"
 
-StaticMeshComponent::StaticMeshComponent(std::string name, SceneObjectComponent* pParent = nullptr)
+StaticMeshComponent::StaticMeshComponent(std::string name, Object* pParent)
 	: SceneObjectComponent(name, pParent)
 {}
 
@@ -25,13 +25,14 @@ bool StaticMeshComponent::ConstructComponentFromResource(ResourceCompilerModule:
 
 	if (rcStaticMeshComponent->GetInstanceCount() == 1) 
 	{
-		std::unique_ptr<StaticMesh2> staticMesh = std::make_unique<StaticMesh2>(rcStaticMeshComponent->GetName());
+		std::unique_ptr<StaticMesh2> staticMesh = std::make_unique<StaticMesh2>(rcStaticMeshComponent->GetName(), this);
 		ResourceCompilerModule::StaticMeshInstance*& instance = instances[0];
 		Transform transform = {};
 		instance->GetPosition(transform.Translation.X, transform.Translation.Y, transform.Translation.Z);
 		instance->GetRotation(transform.Rotation.Pitch, transform.Rotation.Yaw, transform.Rotation.Roll);
 		instance->GetScale(transform.Scale.X, transform.Scale.Y, transform.Scale.Z);
-		staticMesh->SetTransform(transform);
+		
+		SetTransform(transform);
 
 		// Get light ext
 		if (instance->HasLightExtension())

@@ -3,11 +3,12 @@
 #include "Macros.h"
 #include "GraphicsUtils.h"
 #include "UidGenerator.h"
+#include "SceneObjectComponent.h"
 
-StaticMesh2::StaticMesh2(std::string meshName)
-	: IMesh(meshName)
+StaticMesh2::StaticMesh2(std::string meshName, SceneObjectComponent* component)
+	: IMesh(meshName), m_sceneObjectComponent(component)
 {
-
+	assert(component != nullptr);
 }
 
 StaticMesh2::~StaticMesh2()
@@ -107,7 +108,7 @@ bool StaticMesh2::UpdateBuffersForFrame()
 {
 	MeshInstanceConstants updateCb = {};
 
-	Transform transform = GetTransform();
+	Transform transform = m_sceneObjectComponent->GetTransform();
 	XMMATRIX transformMatrix = XMMatrixIdentity();
 	XMMATRIX rotation = XMMatrixRotationRollPitchYaw(transform.Rotation.Pitch, transform.Rotation.Yaw, transform.Rotation.Roll);
 	XMMATRIX translation = XMMatrixTranslation(transform.Translation.X, transform.Translation.Y, transform.Translation.Z);
@@ -146,53 +147,5 @@ void StaticMesh2::AttachLightExtension(std::unique_ptr<LightExtension> lightExt)
 	if (lightExt != nullptr)
 	{
 		m_lightExtension = std::move(lightExt);
-	}
-}
-
-void StaticMesh2::ProcessInput(DirectX::Mouse::State mouseState, DirectX::Keyboard::State keyboardState, float deltaTime)
-{
-	Transform transform = GetTransform();
-	// Control the first instance for temp, TODO: add a logic to control specific instance
-	//InstanceStruct* instance = m_instances[0].get();
-	if (mouseState.x != 0 || mouseState.y != 0)
-	{
-		std::string msg = "mouse X: " + std::to_string(mouseState.x);
-		msg = msg + " mouse Y: " + std::to_string(mouseState.y);
-		msg = msg + " delta:" + std::to_string(deltaTime);
-		OutputDebugStringA(msg.c_str());
-
-		transform.Rotation.Yaw += mouseState.x * deltaTime;
-		transform.Rotation.Pitch += mouseState.y * deltaTime;
-	}
-
-	int forward = 0;
-	int right = 0;
-	if (keyboardState.W)
-	{
-		forward += 1;
-	}
-
-	if (keyboardState.S)
-	{
-		forward -= 1;
-	}
-
-	if (keyboardState.D)
-	{
-		right += 1;
-	}
-
-	if (keyboardState.A)
-	{
-		right -= 1;
-	}
-
-	if (forward != 0 || right != 0)
-	{
-		FVector3 forwardDir;
-		FVector3 rightDir;
-		FVector3 upDir;
-		GraphicsUtils::GetForwardRightUpVectorFromRotator(transform.Rotation, forwardDir, rightDir, upDir);
-		transform.Translation = transform.Translation + forwardDir * (float)forward * deltaTime * 10.0f + rightDir * (float)right * deltaTime * 10.0f;
 	}
 }

@@ -2,10 +2,9 @@
 #include "ResourceCompilerModuleApi.h"
 #include "ResourceCompilerTile.h"
 #include "ResourceLoader.h"
-#include "FirstPersonCamera.h"
 
 World2::World2(GraphicsContext* graphicsContext, MaterialManager* materialManager, TextureManager2* texManager)
-	: m_graphicsContext(graphicsContext), m_materialManager(materialManager), m_textureManager(texManager) {
+	: m_graphicsContext(graphicsContext), m_materialManager(materialManager), m_textureManager(texManager){
 }
 
 bool World2::Initialize(GraphicsContext* graphicsContext)
@@ -37,17 +36,61 @@ bool World2::Initialize(GraphicsContext* graphicsContext)
 
 World2::~World2() {}
 
+void World2::LogicLoop(float delta)
+{
+	// Tick standalone cameras
+	for (auto& standaloneCamera : m_standaloneCameras)
+	{
+		if (!standaloneCamera)
+		{
+			continue;
+		}
+		standaloneCamera->Tick(delta);
+	}
+
+	// Tick tiles
+	for (auto& tile : m_tiles)
+	{
+		if (!tile)
+		{
+			continue;
+		}
+
+		tile->LogicLoop(delta);
+	}
+}
+
 void World2::CreateStandaloneCamera(UINT width, UINT height, FVector3 position, FRotator rotator)
 {
 	std::string camName = "StandAloneCamera" + std::to_string(m_standaloneCameras.size());
 	std::string characterName = camName + "Character";
 	std::unique_ptr<PlayableCharacterObject> standAloneCameraCharacter = std::make_unique<PlayableCharacterObject>(characterName);
-	std::unique_ptr<FirstPersonCamera> cameraComponent = std::make_unique<FirstPersonCamera>(camName, nullptr, width, height);
-	cameraComponent->SetInitialPositionAndRotation(position, rotator);
+	std::unique_ptr<Camera> cameraComponent = std::make_unique<Camera>(camName, standAloneCameraCharacter.get(), width, height);
+
+	Transform initTransform = Transform::Identity();
+	initTransform.Rotation = rotator;
+	initTransform.Translation = position;
+	cameraComponent->SetTransform(initTransform);
 	
 	standAloneCameraCharacter->SetRootComponent(std::move(cameraComponent));
 
 	m_standaloneCameras.push_back(std::move(standAloneCameraCharacter));
+}
+
+PlayableCharacterObject* World2::GetActivePlayableObject()
+{
+	GetAllPlayableObjectsInternal();
+	if (m_activePlayableObjectIdx < 0 || m_activePlayableObjectIdx >= (int)m_allPlayableObjects.size())
+	{
+		m_activePlayableObjectIdx = 0;
+	}
+
+	if (m_activePlayableObjectIdx < 0)
+	{
+		return nullptr;
+	}
+
+	return m_allPlayableObjects[m_activePlayableObjectIdx];
 }
 
 Camera* World2::GetActiveCamera()
@@ -75,6 +118,62 @@ void World2::SwitchCamera()
 	}
 
 	m_activeCameraIdx = (m_activeCameraIdx + 1) % (int)m_allCameras.size();
+}
+
+void World2::SetMode(std::shared_ptr<Mode> mode)
+{
+	m_mode = mode;
+
+	if (m_mode)
+	{
+		m_mode->SetWorld(this);
+	}
+}
+
+void World2::SwitchPlayableObject()
+{
+	GetAllPlayableObjectsInternal();
+	if (m_allPlayableObjects.size() < 1)
+	{
+		return;
+	}
+
+	int oldIdx = m_activePlayableObjectIdx;
+	m_activePlayableObjectIdx = (m_activePlayableObjectIdx + 1) % (int)m_allPlayableObjects.size();
+
+	InputManager* inputManager = InputManager::Get();
+	inputManager->RemoveControlObject(m_allPlayableObjects[oldIdx]);
+	inputManager->AddControlObject(m_allPlayableObjects[m_activePlayableObjectIdx]);
+}
+
+void World2::GetAllPlayableObjectsInternal()
+{
+	if (m_playableObjectsDirty)
+	{
+		for (auto& standaloneCamera : m_standaloneCameras)
+		{
+			if (!standaloneCamera)
+			{
+				continue;
+			}
+
+			
+			m_allPlayableObjects.push_back(standaloneCamera.get());
+		}
+
+		for (auto& tile : m_tiles)
+		{
+			if (!tile)
+			{
+				continue;
+			}
+
+			const std::vector<PlayableCharacterObject*>& playableObjects = tile->GetAllPlayableCharacterObjects();
+			m_allPlayableObjects.insert(m_allPlayableObjects.end(), playableObjects.begin(), playableObjects.end());
+		}
+
+		m_playableObjectsDirty = false;
+	}
 }
 
 void World2::GetAllCamerasInternal()
@@ -309,7 +408,8 @@ bool World2::StreamInAroundActiveCameraRange(GraphicsContext* graphicsContext, C
 		return true;
 	}
 
-	FVector3 camPos = activeCamera->GetPosition();
+	const Transform camTransform = activeCamera->GetTransform();
+	FVector3 camPos = camTransform.Translation;
 	bool updated = false;
 	for (auto& tile : m_tiles)
 	{
@@ -357,6 +457,7 @@ bool World2::UpdateBuffersForFrame()
 	XMVECTOR detViewProj;
 	XMMATRIX invViewProj = DirectX::XMMatrixInverse(&detViewProj, viewProj);
 
+
 	XMVECTOR detProj;
 	XMMATRIX invProj = DirectX::XMMatrixInverse(&detProj, DirectX::XMMatrixTranspose(activeCamera->GetProjectionMatrix()));
 
@@ -375,8 +476,8 @@ bool World2::UpdateBuffersForFrame()
 	DirectX::XMStoreFloat4x4(&uniformFrameConstants.InvViewMatrix, invView);
 	DirectX::XMStoreFloat4x4(&uniformFrameConstants.VectorViewMatrix, vectorView);
 
-
-	FVector3 cameraPos = activeCamera->GetPosition();
+	const Transform camTransform = activeCamera->GetTransform();
+	FVector3 cameraPos = camTransform.Translation;
 	uniformFrameConstants.CameraPostion[0] = cameraPos.X;
 	uniformFrameConstants.CameraPostion[1] = cameraPos.Y;
 	uniformFrameConstants.CameraPostion[2] = cameraPos.Z;

@@ -56,6 +56,7 @@ public:
 	void UpdateLightConstants(
 		LightConstants& lightConsts,
 		const FVector3& parentPos,
+		const FRotator& parentRotation,
 		const UINT& lightAtlasOffsetX, 
 		const UINT& lightAtlasOffsetY, 
 		const UINT& lightMapSize,

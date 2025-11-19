@@ -4,12 +4,25 @@
 #include "NonPlayableCharacterObject.h"
 #include "StaticMeshComponent.h"
 #include "CameraArm.h"
-#include "ThirdPersonCamera.h"
+#include "Camera.h"
 
 
 Tile::Tile(std::string tileName, GraphicsContext* graphicsContext, MaterialManager* materialManager, TextureManager2* texManager, float bboxMinX, float bboxMinY, float bboxMaxX, float bboxMaxY)
 	: m_tileName(tileName), m_graphicsContext(graphicsContext), m_materialManager(materialManager), m_textureManager(texManager), m_bboxMinX(bboxMinX), m_bboxMinY(bboxMinY), m_bboxMaxX(bboxMaxX), m_bboxMaxY(bboxMaxY)
 {
+}
+
+void Tile::LogicLoop(float delta)
+{
+	for (auto& sceneObject : m_sceneObjects)
+	{
+		if (!sceneObject)
+		{
+			continue;
+		}
+
+		sceneObject->Tick(delta);
+	}
 }
 
 bool Tile::LoadTileContentsFromResource(ResourceCompilerModule::TileData* tileData)
@@ -38,7 +51,7 @@ bool Tile::LoadTileContentsFromResource(ResourceCompilerModule::TileData* tileDa
 			}
 
 			std::unique_ptr<NonPlayableCharacterObject> nonPlayableCharacterObject = std::make_unique<NonPlayableCharacterObject>(rcNonPlayableObj->GetName());
-			std::unique_ptr<SceneObjectComponent> rootComp = ConstructSceneObjectComponentFromResource(rcNonPlayableObj->GetRootComponent(), nullptr);
+			std::unique_ptr<SceneObjectComponent> rootComp = ConstructSceneObjectComponentFromResource(rcNonPlayableObj->GetRootComponent(), nonPlayableCharacterObject.get());
 			if (rootComp)
 			{
 				nonPlayableCharacterObject->SetRootComponent(std::move(rootComp));
@@ -60,7 +73,7 @@ bool Tile::LoadTileContentsFromResource(ResourceCompilerModule::TileData* tileDa
 			}
 
 			std::unique_ptr<PlayableCharacterObject> playableCharacterObject = std::make_unique<PlayableCharacterObject>(rcPlayableObj->GetName());
-			std::unique_ptr<SceneObjectComponent> rootComp = ConstructSceneObjectComponentFromResource(rcPlayableObj->GetRootComponent(), nullptr);
+			std::unique_ptr<SceneObjectComponent> rootComp = ConstructSceneObjectComponentFromResource(rcPlayableObj->GetRootComponent(), playableCharacterObject.get());
 			if (rootComp)
 			{
 				playableCharacterObject->SetRootComponent(std::move(rootComp));
@@ -73,7 +86,7 @@ bool Tile::LoadTileContentsFromResource(ResourceCompilerModule::TileData* tileDa
 	return true;
 }
 
-std::unique_ptr<SceneObjectComponent> Tile::ConstructSceneObjectComponentFromResource(ResourceCompilerModule::SceneObjectComponent* rcSceneObjectComponent, SceneObjectComponent* parent)
+std::unique_ptr<SceneObjectComponent> Tile::ConstructSceneObjectComponentFromResource(ResourceCompilerModule::SceneObjectComponent* rcSceneObjectComponent, Object* parent)
 {
 	if (!rcSceneObjectComponent)
 	{
@@ -110,7 +123,7 @@ std::unique_ptr<SceneObjectComponent> Tile::ConstructSceneObjectComponentFromRes
 		ResourceCompilerModule::CameraComponent* rcCameraComp = (ResourceCompilerModule::CameraComponent*)dynamic_cast<ResourceCompilerModule::CameraComponent*>(rcSceneObjectComponent);
 		if (rcCameraComp)
 		{
-			std::unique_ptr<ThirdPersonCamera> camera = std::make_unique<ThirdPersonCamera>(rcSceneObjectComponent->GetName(), parent, m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight());
+			std::unique_ptr<Camera> camera = std::make_unique<Camera>(rcSceneObjectComponent->GetName(), parent, m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight());
 			result = std::move(camera);
 		}
 		break;
@@ -129,6 +142,21 @@ std::unique_ptr<SceneObjectComponent> Tile::ConstructSceneObjectComponentFromRes
 
 		std::unique_ptr<SceneObjectComponent> component = ConstructSceneObjectComponentFromResource(comp, result.get());
 		result->AttachComponent(std::move(component));
+	}
+
+	return result;
+}
+
+const std::vector<PlayableCharacterObject*> Tile::GetAllPlayableCharacterObjects()
+{
+	std::vector<PlayableCharacterObject*> result;
+	for (auto& sceneObj : m_sceneObjects)
+	{
+		PlayableCharacterObject* playableCharObj = dynamic_cast<PlayableCharacterObject*>(sceneObj.get());
+		if (playableCharObj)
+		{
+			result.push_back(playableCharObj);
+		}
 	}
 
 	return result;
@@ -207,7 +235,7 @@ bool Tile::StreamInBinary(GraphicsContext* graphicsContext, CommandBuilder* cmdB
 		return false;
 	}
 
-	m_activeMeshes.clear();
+	m_activeMeshComponents.clear();
 
 	// Stream in static meshes
 	for (auto& meshComp : m_allMeshComponents)
@@ -225,7 +253,7 @@ bool Tile::StreamInBinary(GraphicsContext* graphicsContext, CommandBuilder* cmdB
 
 		if (mesh->LoadFromBinary(graphicsContext, m_materialManager, m_textureManager, cmdBuilder))
 		{
-			m_activeMeshes.push_back(mesh);
+			m_activeMeshComponents.push_back(meshComp);
 		}
 	}
 
@@ -270,8 +298,14 @@ bool Tile::UpdateBuffersForFrame()
 		return false;
 	}
 
-	for (auto& mesh : m_activeMeshes)
+	for (auto& meshComp : m_activeMeshComponents)
 	{
+		auto mesh = meshComp->GetMesh();
+		if (!mesh)
+		{
+			continue;
+		}
+
 		mesh->UpdateBuffersForFrame();
 	}
 

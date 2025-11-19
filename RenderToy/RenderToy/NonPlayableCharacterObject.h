@@ -9,4 +9,6 @@ class NonPlayableCharacterObject : public SceneObject
 {
 public:
 	NonPlayableCharacterObject(std::string name);
+
+	virtual void Tick(float delta) override;
 };

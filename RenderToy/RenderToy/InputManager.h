@@ -6,17 +6,18 @@
 class InputManager
 {
 private:
-	std::unique_ptr<DirectX::Keyboard> m_keyboard;
-
-	std::unique_ptr<DirectX::Mouse> m_mouse;
-
 	std::set<IControllable*> m_controlObjects;
 
+	InputStruct m_inputState = {};
+
+	uint64_t m_lastMouseMoveTime = 0;
+
+	HWND m_hwnd = NULL;
 
 public:
-	bool Initialize(HWND hwnd);
+	static InputManager* Get();
 
-	void Update(float delta);
+	bool Initialize(HWND hwnd);
 
 	void AddControlObject(IControllable* controlObject);
 
@@ -27,4 +28,10 @@ public:
 
 private:
 	static void WindowProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, void* object);
+
+	InputManager();
+
+	void Update();
+
+	void ClearActions();
 };

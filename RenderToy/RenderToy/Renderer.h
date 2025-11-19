@@ -17,7 +17,6 @@
 #include "StreamingEngine.h"
 #include "TextureManager2.h"
 #include "MaterialManager.h"
-#include "SystemController.h"
 #include "D3DFence.h"
 
 /// <summary>
@@ -53,8 +52,6 @@ private:
 private:
 	std::shared_ptr<World2> m_activeWorld = nullptr;	// TODO: switch between different scenes
 
-	std::unique_ptr<SystemController> m_systemController = nullptr;
-
 	std::unique_ptr<ShaderManager> m_shaderManager = nullptr;
 
 	std::unique_ptr<RenderGraph> m_mainRenderGraph = nullptr;
@@ -64,8 +61,6 @@ private:
 	std::unique_ptr<ResourceStreamer> m_resourceStreamer = nullptr;
 
 	std::unique_ptr<TextureManager> m_textureManager = nullptr;
-
-	std::unique_ptr<InputManager> m_inputManager = nullptr;
 
 	std::unique_ptr<D3DFence> m_mainRenderGraphFence = nullptr;
 
@@ -97,4 +92,9 @@ private:
 	void FrameBegin(float delta);
 
 	void FrameEnd();
+
+	/// <summary>
+	/// Logic loop, delta is in seconds
+	/// </summary>
+	void LogicLoop(float delta);
 };

@@ -1,9 +1,10 @@
 #pragma once
 #include "Includes.h"
 #include "Vectors.h"
+#include "Object.h"
 #include "ResourceCompilerTile.h"
 
-class SceneObjectComponent
+class SceneObjectComponent : public Object
 {
 friend class SceneObject;
 
@@ -27,7 +28,7 @@ public:
 protected:
 	std::vector<std::unique_ptr<SceneObjectComponent>> m_components;
 
-	SceneObjectComponent* m_parent = nullptr;
+	Object* m_parent = nullptr;
 
 	Transform m_transform = Transform::Identity();
 
@@ -54,10 +55,14 @@ public:
 
 	inline std::string GetName() const { return m_name; }
 
-	SceneObjectComponent* GetParent() const { return m_parent; }
+	Object* GetParent() const { return m_parent; }
+
+	Object* GetSceneObject();
+
+	bool IsRootComponent() const;
 
 protected:
-	SceneObjectComponent(std::string name, SceneObjectComponent* parent);
+	SceneObjectComponent(std::string name, Object* parent);
 
 	void SetParent(SceneObjectComponent* parent);
 };

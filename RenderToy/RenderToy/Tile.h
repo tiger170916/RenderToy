@@ -4,6 +4,7 @@
 #include "ResourceCompilerTile.h"
 #include "StaticMesh2.h"
 #include "SceneObject.h"
+#include "PlayableCharacterObject.h"
 #include "InstancedStaticMesh.h"
 #include "IStreamable.h"
 #include "Vectors.h"
@@ -34,7 +35,8 @@ private:
 	// All scene objects
 	std::vector<std::unique_ptr<SceneObject>> m_sceneObjects;
 
-	std::vector<IMesh*> m_activeMeshes;
+
+	std::vector<StaticMeshComponent*> m_activeMeshComponents;
 
 	GraphicsContext* m_graphicsContext = nullptr;
 	MaterialManager* m_materialManager = nullptr;
@@ -77,7 +79,7 @@ public:
 
 	void GetBBox(float& outXMin, float& outXMax, float& outYMin, float& outYMax);
 
-	inline const std::vector<IMesh*>& GetAllMeshes() { return m_activeMeshes; }
+	inline const std::vector<StaticMeshComponent*>& GetAllMeshes() { return m_activeMeshComponents; }
 
 	bool UpdateBuffersForFrame();
 
@@ -85,8 +87,12 @@ public:
 
 	const std::vector<Camera*>& GetAllCameraComponents();
 
+	const std::vector<PlayableCharacterObject*> GetAllPlayableCharacterObjects();
+
+	void LogicLoop(float delta);
+
 private:
-	std::unique_ptr<SceneObjectComponent> ConstructSceneObjectComponentFromResource(ResourceCompilerModule::SceneObjectComponent* rcSceneObjectComponent, SceneObjectComponent* parent);
+	std::unique_ptr<SceneObjectComponent> ConstructSceneObjectComponentFromResource(ResourceCompilerModule::SceneObjectComponent* rcSceneObjectComponent, Object* parent);
 
 	template<typename T>
 	void GetComponentsOfTypeInternal(SceneObjectComponent* sceneObjectComp, std::vector<T>& array);

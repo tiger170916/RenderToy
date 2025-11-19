@@ -5,3 +5,8 @@ NonPlayableCharacterObject::NonPlayableCharacterObject(std::string name)
 {
 
 }
+
+void NonPlayableCharacterObject::Tick(float delta)
+{
+
+}

@@ -231,9 +231,14 @@ bool EarlyZPass::PopulateCommands(World2* world, MaterialManager* materialManage
 	world->GetActiveTiles(activeTiles);
 	for (auto& tile : activeTiles)
 	{
-		std::vector<IMesh*> meshes = tile->GetAllMeshes();
-		for (auto& mesh : meshes)
+		std::vector<StaticMeshComponent*> meshComponents = tile->GetAllMeshes();
+		for (auto& meshComp : meshComponents)
 		{
+			auto mesh = meshComp->GetMesh();
+			if (!mesh)
+			{
+				continue;
+			}
 			mesh->Draw(graphicsContext, materialManager, textureManager, commandList, m_passType);
 		}
 	}

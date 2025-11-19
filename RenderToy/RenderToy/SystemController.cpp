@@ -1,13 +1,6 @@
 #include "SystemController.h"
 
-void SystemController::ProcessInput(DirectX::Mouse::State mouse, DirectX::Keyboard::State keyboard, float deltaTime)
+void SystemController::ProcessInput(InputStruct inputStruct)
 {
-	// Switch camera
-	if (keyboard.P)
-	{
-		if (m_world)
-		{
-			m_world->SwitchCamera();
-		}
-	}
+
 }

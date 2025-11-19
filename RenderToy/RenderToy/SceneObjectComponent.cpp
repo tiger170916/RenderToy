@@ -1,7 +1,10 @@
 #include "SceneObjectComponent.h"
 
-SceneObjectComponent::SceneObjectComponent(std::string name, SceneObjectComponent* parent = nullptr) 
-	: m_name(name), m_parent(parent){}
+SceneObjectComponent::SceneObjectComponent(std::string name, Object* parent) 
+	: m_name(name), m_parent(parent)
+{
+	assert(parent != nullptr);
+}
 
 SceneObjectComponent::~SceneObjectComponent() {}
 
@@ -60,14 +63,31 @@ const Transform SceneObjectComponent::GetTransform() const
 {
 	Transform totalTransform = m_transform;
 
-	SceneObjectComponent* parent = m_parent;
+	SceneObjectComponent* parent = dynamic_cast<SceneObjectComponent*>(m_parent);
 	while (parent != nullptr)
 	{
 		Transform parentTransform = parent->GetTransform();
-		totalTransform.Rotation = parentTransform.Rotation + totalTransform.Rotation;
-		totalTransform.Translation = parentTransform.Translation + totalTransform.Translation;
-		parent = parent->GetParent();
+		totalTransform.Rotation = parentTransform.Rotation + m_transform.Rotation;
+		totalTransform.Translation = parentTransform.Translation + m_transform.Translation;
+		parent = dynamic_cast<SceneObjectComponent*>(parent->GetParent());
 	}
 
 	return totalTransform;
+}
+
+bool SceneObjectComponent::IsRootComponent() const
+{
+	SceneObjectComponent* sceneObj = dynamic_cast<SceneObjectComponent*>(m_parent);
+	return sceneObj == nullptr;
+}
+
+Object* SceneObjectComponent::GetSceneObject()
+{
+	SceneObjectComponent* parent = dynamic_cast<SceneObjectComponent*>(m_parent);
+	while (parent != nullptr)
+	{
+		parent = dynamic_cast<SceneObjectComponent*>(parent->GetParent());
+	}
+
+	return m_parent;
 }

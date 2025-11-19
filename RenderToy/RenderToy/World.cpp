@@ -124,10 +124,10 @@ bool World::UpdateBuffers()
 	DirectX::XMStoreFloat4x4(&uniformFrameConstants.VectorViewMatrix, vectorView);
 
 
-	FVector3 cameraPos = m_activeCamera->GetPosition();
-	uniformFrameConstants.CameraPostion[0] = cameraPos.X;
-	uniformFrameConstants.CameraPostion[1] = cameraPos.Y;
-	uniformFrameConstants.CameraPostion[2] = cameraPos.Z;
+	Transform cameraTransform = m_activeCamera->GetTransform();
+	uniformFrameConstants.CameraPostion[0] = cameraTransform.Translation.X;
+	uniformFrameConstants.CameraPostion[1] = cameraTransform.Translation.Y;
+	uniformFrameConstants.CameraPostion[2] = cameraTransform.Translation.Z;
 
 	uniformFrameConstants.ForwardVector[0] = forwardVector.m128_f32[0];
 	uniformFrameConstants.ForwardVector[1] = forwardVector.m128_f32[1];
@@ -220,7 +220,8 @@ bool World::GetAdjacentTilesAroundActiveCamera(std::vector<Tile*>& outAdjacentTi
 	outOtherTiles.clear();
 
 	std::vector<FVector3> points;
-	const FVector3& cameraPos = m_activeCamera->GetPosition();
+	Transform cameraTransform = m_activeCamera->GetTransform();
+	const FVector3& cameraPos = cameraTransform.Translation;
 	points.push_back(cameraPos);
 	points.push_back(cameraPos + FVector3(50.0f, 50.0f, 0));
 	points.push_back(cameraPos + FVector3(-50.0f, 50.0f, 0));

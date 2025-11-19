@@ -5,6 +5,7 @@
 #include "Lights/LightFactory.h"
 #include "GraphicsUtils.h"
 #include "Utils.h"
+#include "Mode.h"
 
 
 Renderer::~Renderer()
@@ -72,8 +73,8 @@ bool Renderer::Initialize(HWND hwnd)
 
 	WndProc::Get()->Initialize(hwnd);
 
-	m_inputManager = std::unique_ptr<InputManager>(new InputManager());
-	if (!m_inputManager->Initialize(hwnd))
+	InputManager* inputManager = InputManager::Get();
+	if (!inputManager || !inputManager->Initialize(hwnd))
 	{
 		return false;
 	}
@@ -105,6 +106,10 @@ bool Renderer::Initialize(HWND hwnd)
 		return false;
 	}
 
+	std::shared_ptr<Mode> mode = std::make_shared<Mode>();
+	m_activeWorld->SetMode(mode);
+	inputManager->AddControlObject(mode.get());
+
 	m_mainRenderGraphFence = std::make_unique<D3DFence>();
 	if (!m_mainRenderGraphFence->Initialize(m_graphicsContext->GetDevice()))
 	{
@@ -114,19 +119,11 @@ bool Renderer::Initialize(HWND hwnd)
 	FRotator initRotation = {};
 
 	m_activeWorld->CreateStandaloneCamera(m_graphicsContext->GetHwndWidth(), m_graphicsContext->GetHwndHeight(), FVector3(0, 0.0, -25.0), initRotation);
-	Camera* activeCamera = m_activeWorld->GetActiveCamera();
 	
-	if (activeCamera != nullptr)
-	{
-		m_inputManager->AddControlObject(activeCamera);
-	}
+	PlayableCharacterObject* defaultPlayableObj = m_activeWorld->GetActivePlayableObject();
+	inputManager->AddControlObject(defaultPlayableObj);
 
 	m_streamingEngine->StartStreaming(m_activeWorld.get());
-
-	m_systemController = std::make_unique<SystemController>();
-	m_systemController->SetActiveWorld(m_activeWorld.get());
-
-	m_inputManager->AddControlObject(m_systemController.get());
 	
 	m_initialized = true;
 
@@ -141,6 +138,15 @@ bool Renderer::RenderStart()
 	return true;
 }
 
+void Renderer::LogicLoop(float delta)
+{
+	if (m_activeWorld)
+	{
+		m_activeWorld->LogicLoop(delta);
+	}
+}
+
+// Logic loop
 DWORD WINAPI Renderer::StateUpdateThreadRoutine(LPVOID lpParameter)
 {
 	if (lpParameter == nullptr)
@@ -161,16 +167,7 @@ DWORD WINAPI Renderer::StateUpdateThreadRoutine(LPVOID lpParameter)
 			delta = (float)(nowInMicroSecs - renderer->m_lastStateUpdateTime) / 1000000.0f;
 		}
 
-		// Update input
-		if (renderer->m_inputManager)
-		{
-			renderer->m_stateUpdateCriticalSection->EnterCriticalSection();
-
-			renderer->m_inputManager->Update(delta);
-
-			renderer->m_stateUpdateCriticalSection->ExitCriticalSection();
-		}
-
+		renderer->LogicLoop(delta);
 		renderer->m_lastStateUpdateTime = nowInMicroSecs;
 		Sleep(1);
 	}

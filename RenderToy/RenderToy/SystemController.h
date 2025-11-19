@@ -13,7 +13,7 @@ public:
 	/// <summary>
 	/// IControllable interface implementation
 	/// </summary>
-	virtual void ProcessInput(DirectX::Mouse::State, DirectX::Keyboard::State, float deltaTime) override;
+	virtual void ProcessInput(InputStruct inputStruct) override;
 
 	void SetActiveWorld(World2* world) { m_world = world; }
 };
